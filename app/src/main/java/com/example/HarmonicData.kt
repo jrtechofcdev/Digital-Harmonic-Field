@@ -1,11 +1,15 @@
 package com.example
 
+import com.example.music.HarmonicFunction
+import com.example.music.functionForDegree
+
 data class ChordInfo(
     val degree: String,          // e.g. "I", "ii", "iii", "IV", "V", "vi", "vii°"
     val cipher: String,          // e.g. "C", "Dm", "Em", "F", "G", "Am", "B°"
-    val functionName: String,    // e.g. "Tônica", "Subdominante"
-    val functionFeel: String,    // e.g. "Repouso", "Preparação", "Tensão"
-    val portugueseName: String   // e.g. "Dó Maior", "Ré menor", "Si diminuto"
+    val functionName: String,    // rótulo bruto (não usado na UI; ver `function`)
+    val functionFeel: String,    // rótulo bruto (não usado na UI; ver `function`)
+    val portugueseName: String,  // e.g. "Dó Maior", "Ré menor", "Si diminuto"
+    val function: HarmonicFunction = HarmonicFunction.TONIC
 )
 
 data class HarmonicField(
@@ -411,23 +415,12 @@ object HarmonicDatabase {
     fun getField(cipher: String): HarmonicField? {
         val field = (majorFields + minorFields).firstOrNull { it.keyCipher == cipher } ?: return null
         val mappedChords = field.chords.mapIndexed { index, chord ->
-            chord.withSensations(index)
+            chord.copy(function = functionForDegree(index, field.isMinor))
         }
         return field.copy(chords = mappedChords)
     }
-}
 
-fun ChordInfo.withSensations(index: Int): ChordInfo {
-    val (funName, funFeel) = when (index) {
-        0 -> "Tônica" to "Ponto de Chegada / Repouso Absoluto"
-        1 -> "Subdominante" to "Afastamento / Início do Movimento"
-        2 -> "Tônica Mediana" to "Transição Suave / Repouso Flutuante"
-        3 -> "Subdominante" to "Abertura / Expansão"
-        4 -> "Dominante" to "Gatilho de Puxada / Tensão Máxima"
-        5 -> "Tônica Relativa" to "Falsa Resolução / Desvio Emocional"
-        6 -> "Dominante Simétrico" to "Instabilidade Pura / Suspense"
-        else -> this.functionName to this.functionFeel
-    }
-    return this.copy(functionName = funName, functionFeel = funFeel)
+    /** Todos os 24 tons na ordem: 12 maiores seguidos de 12 menores. */
+    fun allKeys(): List<HarmonicField> = majorFields + minorFields
 }
 

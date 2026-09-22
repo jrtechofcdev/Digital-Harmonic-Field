@@ -29,12 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.HarmonicDatabase
+import com.example.ui.components.BrandMark
 import com.example.ui.components.SectionLabel
 import com.example.ui.theme.Brass
 import com.example.ui.theme.Favorite
-import com.example.ui.theme.FuncDominant
-import com.example.ui.theme.FuncSubdominant
-import com.example.ui.theme.FuncTonic
 import com.example.ui.theme.Hairline
 import com.example.ui.theme.Surface1
 import com.example.ui.theme.TextBody
@@ -50,6 +48,7 @@ private val ptNameByCipher: Map<String, String> = HarmonicDatabase.ptNameByCiphe
 fun FieldsScreen(
     favorites: Set<String>,
     onOpenKey: (String) -> Unit,
+    onSupport: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -61,7 +60,7 @@ fun FieldsScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        item { BrandHeader() }
+        item { BrandHeader(onSupport = onSupport) }
 
         if (favorites.isNotEmpty()) {
             item {
@@ -96,30 +95,38 @@ fun FieldsScreen(
 }
 
 @Composable
-private fun BrandHeader() {
+private fun BrandHeader(onSupport: () -> Unit) {
     Column(Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Marca: três barras nas cores das funções tonais (T / SD / D).
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
-            ) {
-                Bar(FuncTonic, 16.dp)
-                Bar(FuncSubdominant, 24.dp)
-                Bar(FuncDominant, 20.dp)
-            }
+            BrandMark(size = 46.dp)
             Spacer(Modifier.width(12.dp))
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(
                     text = "Campo Harmônico",
                     style = MaterialTheme.typography.headlineMedium,
                     color = TextStrong,
                 )
                 Text(
-                    text = "por JR TECH",
+                    text = "JR TECH · guitarrista e developer",
                     style = MaterialTheme.typography.labelSmall,
                     color = Brass,
                 )
+            }
+            // Botão de apoio (palheta).
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Surface1)
+                    .border(1.dp, Hairline, RoundedCornerShape(10.dp))
+                    .clickable { onSupport() }
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    BrandMark(size = 18.dp)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Apoiar", style = MaterialTheme.typography.labelLarge, color = TextBody)
+                }
             }
         }
         Spacer(Modifier.height(10.dp))
@@ -129,17 +136,6 @@ private fun BrandHeader() {
             color = TextBody,
         )
     }
-}
-
-@Composable
-private fun Bar(color: androidx.compose.ui.graphics.Color, height: androidx.compose.ui.unit.Dp) {
-    Box(
-        Modifier
-            .width(5.dp)
-            .height(height)
-            .clip(RoundedCornerShape(2.dp))
-            .background(color)
-    )
 }
 
 @Composable

@@ -81,6 +81,13 @@ fun fft(re: DoubleArray, im: DoubleArray) {
  * Calcula o chromagram (12 valores) de um trecho de áudio já janelado ou não.
  * Aplica janela de Hann internamente. Considera apenas frequências musicais úteis.
  */
+// Janelas de Hann memorizadas por tamanho (evita recomputar cos a cada quadro).
+private val hannWindows = HashMap<Int, DoubleArray>()
+
+private fun hannWindow(n: Int): DoubleArray = hannWindows.getOrPut(n) {
+    DoubleArray(n) { 0.5 - 0.5 * cos(2.0 * PI * it / (n - 1)) }
+}
+
 fun computeChroma(
     samples: DoubleArray,
     sampleRate: Int,
@@ -90,21 +97,33 @@ fun computeChroma(
     val n = samples.size
     val re = DoubleArray(n)
     val im = DoubleArray(n)
-    for (i in 0 until n) {
-        val hann = 0.5 - 0.5 * cos(2.0 * PI * i / (n - 1))
-        re[i] = samples[i] * hann
-    }
+    val hann = hannWindow(n)
+    for (i in 0 until n) re[i] = samples[i] * hann[i]
     fft(re, im)
 
-    val chroma = FloatArray(12)
     val ln2 = ln(2.0)
     val c0 = 16.351597831287414 // Dó0 em Hz
     val maxBin = n / 2
-    for (k in 1 until maxBin) {
+    val minK = (minFreq * n / sampleRate).toInt().coerceAtLeast(1)
+    val maxK = (maxFreq * n / sampleRate).toInt().coerceAtMost(maxBin - 1)
+
+    // Portão de ruído: só picos acima de uma fração do máximo contribuem.
+    // Isso limpa o chromagram (menos ruído de banda larga) e deixa a detecção
+    // do acorde mais firme — em vez de achatar tudo com compressão log.
+    var maxMag = 0.0
+    for (k in minK..maxK) {
+        val mag = re[k] * re[k] + im[k] * im[k]
+        if (mag > maxMag) maxMag = mag
+    }
+    val gate = maxMag * 0.06
+
+    val chroma = FloatArray(12)
+    for (k in minK..maxK) {
+        val power = re[k] * re[k] + im[k] * im[k]
+        if (power < gate) continue
+        val mag = sqrt(power)
         val freq = k.toDouble() * sampleRate / n
-        if (freq < minFreq || freq > maxFreq) continue
-        val mag = sqrt(re[k] * re[k] + im[k] * im[k])
-        val pc = (Math.floorMod(Math.round(12.0 * ln(freq / c0) / ln2).toInt(), 12))
+        val pc = Math.floorMod(Math.round(12.0 * ln(freq / c0) / ln2).toInt(), 12)
         chroma[pc] += mag.toFloat()
     }
     return normalize(chroma)

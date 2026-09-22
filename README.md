@@ -6,7 +6,7 @@ na hora, os sete graus, a função de cada acorde e as notas que o formam. Tudo
 offline e em modo escuro, para uso confortável em palco.
 
 Desenvolvido em **Kotlin** com **Jetpack Compose** e **Material 3**.
-Mantido por **JR TECH** (José Renato).
+Mantido por **JR TECH** — José Renato, guitarrista e developer.
 
 ---
 
@@ -116,6 +116,13 @@ O APK é gerado em `app/build/outputs/apk/debug/`. Uma cópia da última build �
 mantida em `.build-outputs/app-debug.apk` para instalação direta.
 
 ---
+
+## Apoiar
+
+O app é gratuito. Quem quiser apoiar o projeto encontra, no cabeçalho da tela
+inicial, o botão **Apoiar** — uma tela com contribuição via Mercado Pago
+(Pix ou cartão), com valores sugeridos ou valor livre. Nada é cobrado dentro
+do app.
 
 ## Licença
 

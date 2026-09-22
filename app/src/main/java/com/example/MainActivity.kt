@@ -41,6 +41,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.ui.screens.DonationScreen
 import com.example.ui.screens.FieldDetailScreen
 import com.example.ui.screens.FieldsScreen
 import com.example.ui.screens.LearnScreen
@@ -104,12 +105,25 @@ private fun HarmonicApp() {
 
     var tab by remember { mutableStateOf(Tab.CAMPOS) }
     var detailKey by remember { mutableStateOf<String?>(null) }
+    var showDonation by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = detailKey != null) { detailKey = null }
+    BackHandler(enabled = detailKey != null || showDonation) {
+        when {
+            showDonation -> showDonation = false
+            else -> detailKey = null
+        }
+    }
 
     val openKey: (String) -> Unit = { detailKey = it }
 
-    if (detailKey != null) {
+    if (showDonation) {
+        Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            DonationScreen(
+                onBack = { showDonation = false },
+                contentPadding = WindowInsets.safeDrawing.asPaddingValues(),
+            )
+        }
+    } else if (detailKey != null) {
         Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
             FieldDetailScreen(
                 keyCipher = detailKey!!,
@@ -152,7 +166,7 @@ private fun HarmonicApp() {
             },
         ) { innerPadding ->
             when (tab) {
-                Tab.CAMPOS -> FieldsScreen(favorites, openKey, innerPadding)
+                Tab.CAMPOS -> FieldsScreen(favorites, openKey, { showDonation = true }, innerPadding)
                 Tab.OUVIR -> ListenScreen(openKey, innerPadding)
                 Tab.PROGRESSOES -> ProgressionsScreen(openKey, innerPadding)
                 Tab.APRENDER -> LearnScreen(openKey, innerPadding)

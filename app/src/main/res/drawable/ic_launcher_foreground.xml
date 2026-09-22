@@ -5,23 +5,27 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <!--
-      Marca: três barras nas cores das funções tonais (Tônica, Subdominante,
-      Dominante). Traços verticais com ponta arredondada, dentro da zona segura
-      do ícone adaptativo. Substitui o desenho de braço de guitarra anterior.
+      Marca: palheta de guitarra (identidade "guitarrista") com as três barras
+      das funções tonais dentro (Tônica, Subdominante, Dominante).
     -->
     <path
+        android:fillColor="#14161B"
+        android:strokeColor="#E0A94A"
+        android:strokeWidth="3.5"
+        android:pathData="M54,30 C63,30 72,34 72,46 C72,60 60,80 54,86 C48,80 36,60 36,46 C36,34 45,30 54,30 Z" />
+    <path
         android:strokeColor="#57B892"
-        android:strokeWidth="9"
+        android:strokeWidth="5"
         android:strokeLineCap="round"
-        android:pathData="M 42,72 L 42,50" />
+        android:pathData="M48,64 L48,52" />
     <path
         android:strokeColor="#5B8AD6"
-        android:strokeWidth="9"
+        android:strokeWidth="5"
         android:strokeLineCap="round"
-        android:pathData="M 54,72 L 54,38" />
+        android:pathData="M54,64 L54,44" />
     <path
         android:strokeColor="#D9695E"
-        android:strokeWidth="9"
+        android:strokeWidth="5"
         android:strokeLineCap="round"
-        android:pathData="M 66,72 L 66,46" />
+        android:pathData="M60,64 L60,50" />
 </vector>

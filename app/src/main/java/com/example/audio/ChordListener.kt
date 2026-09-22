@@ -10,9 +10,9 @@ import androidx.compose.runtime.setValue
 import com.example.HarmonicDatabase
 import com.example.music.blendChroma
 import com.example.music.cipherToPtName
+import com.example.music.computeChroma
 import com.example.music.detectChord
 import com.example.music.detectKey
-import com.example.music.computeChroma
 import kotlin.concurrent.thread
 import kotlin.math.sqrt
 
@@ -20,14 +20,23 @@ import kotlin.math.sqrt
  * Escuta o microfone e estima, em tempo real, o acorde tocado e o tom provável
  * da música. Toda a análise é local; ver ChordAnalysis para a matemática.
  *
+ * Melhorias de captação:
+ *  - Janela deslizante com sobreposição (hop menor que a janela) → resposta
+ *    mais rápida e suave, com boa resolução de frequência.
+ *  - Estabilização: o acorde só troca quando um novo candidato se confirma, e
+ *    o último acorde é mantido por um instante nas pausas (não fica piscando).
+ *
  * A permissão RECORD_AUDIO deve ser concedida ANTES de chamar start().
  */
 class ChordListener {
 
     companion object {
         private const val SAMPLE_RATE = 44100
-        private const val FFT_SIZE = 8192 // ~186 ms por análise
-        private const val SILENCE_RMS = 0.008 // abaixo disso, tratamos como silêncio
+        private const val FFT_SIZE = 8192       // ~186 ms de janela (bom custo/resolução)
+        private const val HOP = 4096            // ~93 ms entre análises (50% overlap)
+        private const val SILENCE_RMS = 0.006   // abaixo disso, tratamos como silêncio
+        private const val STABLE_FRAMES = 2     // confirmações para trocar o acorde
+        private const val HOLD_FRAMES = 14       // ~1,3 s segurando o último acorde
     }
 
     var isListening by mutableStateOf(false)
@@ -93,61 +102,94 @@ class ChordListener {
             return
         }
 
-        worker = thread(name = "chord-listener") {
-            val shorts = ShortArray(FFT_SIZE)
-            val samples = DoubleArray(FFT_SIZE)
-            var chordChroma = FloatArray(12) // suavização rápida (acorde)
-            var keyChroma = FloatArray(12)   // acúmulo lento (tom)
+        worker = thread(name = "chord-listener") { analysisLoop(rec) }
+    }
 
-            while (running) {
-                // Preenche um bloco completo lendo em pedaços.
-                var read = 0
-                while (read < FFT_SIZE && running) {
-                    val r = rec.read(shorts, read, FFT_SIZE - read)
-                    if (r <= 0) break
-                    read += r
+    private fun analysisLoop(rec: AudioRecord) {
+        val window = DoubleArray(FFT_SIZE)      // janela deslizante
+        val hopShorts = ShortArray(HOP)
+        var chordChroma = FloatArray(12)        // suavização rápida (acorde)
+        var keyChroma = FloatArray(12)          // acúmulo lento (tom)
+
+        var stable: String? = null
+        var pending: String? = null
+        var pendingCount = 0
+        var framesSinceGood = HOLD_FRAMES
+
+        while (running) {
+            // Lê um hop completo (bloco novo que entra na janela).
+            var read = 0
+            while (read < HOP && running) {
+                val r = rec.read(hopShorts, read, HOP - read)
+                if (r <= 0) break
+                read += r
+            }
+            if (!running || read < HOP) continue
+
+            if (keyResetRequested) {
+                keyChroma = FloatArray(12)
+                keyResetRequested = false
+            }
+
+            // Desliza a janela: descarta o hop mais antigo, anexa o novo.
+            System.arraycopy(window, HOP, window, 0, FFT_SIZE - HOP)
+            for (i in 0 until HOP) {
+                window[FFT_SIZE - HOP + i] = hopShorts[i] / 32768.0
+            }
+            // RMS da janela inteira (mais estável que só o último hop).
+            var sumSq = 0.0
+            for (i in 0 until FFT_SIZE) sumSq += window[i] * window[i]
+            val rms = sqrt(sumSq / FFT_SIZE)
+            level = (rms * 6f).coerceIn(0.0, 1.0).toFloat()
+
+            if (rms < SILENCE_RMS) {
+                framesSinceGood++
+                if (framesSinceGood > HOLD_FRAMES) {
+                    stable = null; pending = null; pendingCount = 0
                 }
-                if (!running || read < FFT_SIZE) continue
-
-                if (keyResetRequested) {
-                    keyChroma = FloatArray(12)
-                    keyResetRequested = false
-                }
-
-                var sumSq = 0.0
-                for (i in 0 until FFT_SIZE) {
-                    val s = shorts[i] / 32768.0
-                    samples[i] = s
-                    sumSq += s * s
-                }
-                val rms = sqrt(sumSq / FFT_SIZE)
-                level = (rms * 6f).coerceIn(0.0, 1.0).toFloat()
-
-                if (rms < SILENCE_RMS) {
-                    // Silêncio: não polui o acúmulo; apenas indica que está quieto.
-                    currentChord = null
-                    currentChordPt = null
-                    continue
-                }
-
-                val instant = computeChroma(samples, SAMPLE_RATE)
-                chordChroma = blendChroma(chordChroma, instant, 0.5f)
-                keyChroma = blendChroma(keyChroma, instant, 0.04f)
+                // Faz o gráfico decair no silêncio (não congela na última leitura).
+                chordChroma = FloatArray(12) { chordChroma[it] * 0.8f }
                 chroma = chordChroma
+                publishChord(stable)
+                continue
+            }
 
-                val chord = detectChord(chordChroma)
-                if (chord != null) {
-                    currentChord = chord.label
-                    currentChordPt = cipherToPtName(chord.label)
+            val instant = computeChroma(window, SAMPLE_RATE)
+            chordChroma = blendChroma(chordChroma, instant, 0.45f)
+            keyChroma = blendChroma(keyChroma, instant, 0.05f)
+            chroma = chordChroma
+
+            val cand = detectChord(chordChroma)
+            if (cand != null) {
+                framesSinceGood = 0
+                if (cand.label == pending) {
+                    pendingCount++
+                } else {
+                    pending = cand.label
+                    pendingCount = 1
                 }
-
-                val key = detectKey(keyChroma)
-                if (key != null) {
-                    keyCipher = key.keyCipher
-                    keyPt = HarmonicDatabase.ptNameByCipher[key.keyCipher]
+                if (pendingCount >= STABLE_FRAMES || stable == null) {
+                    stable = cand.label
+                }
+            } else {
+                framesSinceGood++
+                if (framesSinceGood > HOLD_FRAMES) {
+                    stable = null; pending = null; pendingCount = 0
                 }
             }
+            publishChord(stable)
+
+            val key = detectKey(keyChroma)
+            if (key != null) {
+                keyCipher = key.keyCipher
+                keyPt = HarmonicDatabase.ptNameByCipher[key.keyCipher]
+            }
         }
+    }
+
+    private fun publishChord(label: String?) {
+        currentChord = label
+        currentChordPt = label?.let { cipherToPtName(it) }
     }
 
     fun stop() {
@@ -156,7 +198,7 @@ class ChordListener {
         level = 0f
         currentChord = null
         currentChordPt = null
-        worker?.join(200)
+        worker?.join(300)
         worker = null
         record?.run { runCatching { stop(); release() } }
         record = null

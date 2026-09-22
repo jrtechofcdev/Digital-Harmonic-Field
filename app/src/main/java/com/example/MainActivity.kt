@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,9 +39,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.example.ui.screens.CircleScreen
 import com.example.ui.screens.FieldDetailScreen
 import com.example.ui.screens.FieldsScreen
+import com.example.ui.screens.LearnScreen
 import com.example.ui.screens.ProgressionsScreen
 import com.example.ui.screens.ToolsScreen
 import com.example.ui.theme.Brass
@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
 private enum class Tab(val label: String, val icon: ImageVector) {
     CAMPOS("Campos", Icons.Filled.Home),
     PROGRESSOES("Progressões", Icons.AutoMirrored.Filled.List),
-    CIRCULO("Círculo", Icons.Filled.Refresh),
+    APRENDER("Aprender", Icons.Filled.Info),
     FERRAMENTAS("Ferramentas", Icons.Filled.Settings),
 }
 
@@ -137,7 +137,7 @@ private fun HarmonicApp() {
             when (tab) {
                 Tab.CAMPOS -> FieldsScreen(favorites, openKey, innerPadding)
                 Tab.PROGRESSOES -> ProgressionsScreen(openKey, innerPadding)
-                Tab.CIRCULO -> CircleScreen(openKey, innerPadding)
+                Tab.APRENDER -> LearnScreen(openKey, innerPadding)
                 Tab.FERRAMENTAS -> ToolsScreen(innerPadding)
             }
         }

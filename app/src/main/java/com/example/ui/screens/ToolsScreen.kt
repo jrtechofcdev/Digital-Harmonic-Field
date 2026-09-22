@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import com.example.audio.Metronome
 import com.example.audio.ReferencePitches
 import com.example.audio.TonePlayer
-import com.example.music.transposeCipher
 import com.example.ui.components.SectionLabel
 import com.example.ui.theme.Brass
 import com.example.ui.theme.FuncDominant

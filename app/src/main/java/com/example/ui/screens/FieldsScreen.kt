@@ -36,9 +36,7 @@ import com.example.ui.theme.FuncDominant
 import com.example.ui.theme.FuncSubdominant
 import com.example.ui.theme.FuncTonic
 import com.example.ui.theme.Hairline
-import com.example.ui.theme.HairlineStrong
 import com.example.ui.theme.Surface1
-import com.example.ui.theme.Surface2
 import com.example.ui.theme.TextBody
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextStrong
@@ -46,8 +44,7 @@ import com.example.ui.theme.TextStrong
 private val majorOrder = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 private val minorOrder = majorOrder.map { it + "m" }
 
-private val ptNameByCipher: Map<String, String> =
-    HarmonicDatabase.allKeys().associate { it.keyCipher to it.keyNamePt }
+private val ptNameByCipher: Map<String, String> = HarmonicDatabase.ptNameByCipher
 
 @Composable
 fun FieldsScreen(

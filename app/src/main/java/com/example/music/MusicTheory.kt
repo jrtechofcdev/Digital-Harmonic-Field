@@ -14,12 +14,12 @@ import com.example.ui.theme.FuncTonic
 enum class HarmonicFunction(
     val short: String,
     val label: String,
-    val feel: String,
+    val tendency: String,
 ) {
-    TONIC("T", "Tônica", "Repouso e resolução"),
-    SUBDOMINANT("SD", "Subdominante", "Preparação e movimento"),
-    DOMINANT("D", "Dominante", "Tensão que pede resolução"),
-    NEUTRAL("—", "Passagem", "Transição");
+    TONIC("T", "Tônica", "É a casa. Pode descansar aqui ou partir para qualquer acorde."),
+    SUBDOMINANT("SD", "Subdominante", "Prepara o caminho — costuma seguir para a dominante."),
+    DOMINANT("D", "Dominante", "Tensão máxima — pede para voltar à tônica."),
+    NEUTRAL("—", "Passagem", "Acorde de passagem, liga um trecho ao outro.");
 
     fun color(): Color = when (this) {
         TONIC -> FuncTonic

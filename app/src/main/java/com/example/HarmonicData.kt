@@ -422,5 +422,10 @@ object HarmonicDatabase {
 
     /** Todos os 24 tons na ordem: 12 maiores seguidos de 12 menores. */
     fun allKeys(): List<HarmonicField> = majorFields + minorFields
+
+    /** Mapa cifra → nome em português (ex.: "G#m" → "Sol# menor"), calculado uma vez. */
+    val ptNameByCipher: Map<String, String> by lazy {
+        allKeys().associate { it.keyCipher to it.keyNamePt }
+    }
 }
 

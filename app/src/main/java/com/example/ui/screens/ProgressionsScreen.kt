@@ -46,7 +46,7 @@ import com.example.ui.theme.TextStrong
 
 private val majorKeys = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 private val allKeysOrdered = majorKeys + majorKeys.map { it + "m" }
-private val ptByCipher = HarmonicDatabase.allKeys().associate { it.keyCipher to it.keyNamePt }
+private val ptByCipher = HarmonicDatabase.ptNameByCipher
 
 @Composable
 fun ProgressionsScreen(
@@ -161,12 +161,25 @@ private fun ProgressionCard(prog: Progression, keyCipher: String) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(Surface1)
-            .border(1.dp, Hairline, RoundedCornerShape(14.dp))
+            .border(
+                if (prog.featured) 1.5.dp else 1.dp,
+                if (prog.featured) Brass.copy(alpha = 0.55f) else Hairline,
+                RoundedCornerShape(14.dp),
+            )
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(prog.name, style = MaterialTheme.typography.titleLarge, color = TextStrong)
-            Spacer(Modifier.weight(1f))
+            Column(Modifier.weight(1f)) {
+                if (prog.featured) {
+                    Text(
+                        "ESSENCIAL",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Brass,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                }
+                Text(prog.name, style = MaterialTheme.typography.titleLarge, color = TextStrong)
+            }
             Text(prog.roman, style = MaterialTheme.typography.labelLarge, color = Brass)
         }
         Spacer(Modifier.height(10.dp))
@@ -176,20 +189,51 @@ private fun ProgressionCard(prog: Progression, keyCipher: String) {
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            prog.degrees.forEach { degreeIndex ->
+            prog.degrees.forEachIndexed { position, degreeIndex ->
                 val chord = field?.chords?.getOrNull(degreeIndex)
                 if (chord != null) {
-                    ChordChip(cipher = chord.cipher, degree = chord.degree, color = chord.function.color())
+                    if (position > 0) {
+                        Text(
+                            "→",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextMuted,
+                            modifier = Modifier.align(Alignment.CenterVertically),
+                        )
+                    }
+                    ChordChip(
+                        cipher = chord.cipher,
+                        degree = chord.degree,
+                        functionLabel = chord.function.label,
+                        color = chord.function.color(),
+                    )
                 }
             }
         }
         Spacer(Modifier.height(12.dp))
         Text(prog.description, style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+        if (prog.tip.isNotEmpty()) {
+            Spacer(Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Brass.copy(alpha = 0.10f))
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            ) {
+                Text("Dica  ", style = MaterialTheme.typography.labelSmall, color = Brass)
+                Text(prog.tip, style = MaterialTheme.typography.bodyMedium, color = TextBody)
+            }
+        }
     }
 }
 
 @Composable
-private fun ChordChip(cipher: String, degree: String, color: androidx.compose.ui.graphics.Color) {
+private fun ChordChip(
+    cipher: String,
+    degree: String,
+    functionLabel: String,
+    color: androidx.compose.ui.graphics.Color,
+) {
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -198,8 +242,10 @@ private fun ChordChip(cipher: String, degree: String, color: androidx.compose.ui
             .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Text(degree, style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        Spacer(Modifier.height(2.dp))
         Text(cipher, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = color)
         Spacer(Modifier.height(2.dp))
-        Text(degree, style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        Text(functionLabel, style = MaterialTheme.typography.labelSmall, color = color)
     }
 }

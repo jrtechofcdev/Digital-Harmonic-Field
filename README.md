@@ -19,21 +19,28 @@ A função central. Uma grade com os 24 tons (12 maiores e 12 menores). Ao abrir
 um tom você vê:
 
 - Os **sete graus** do campo, cada um com sua **função tonal** — Tônica,
-  Subdominante ou Dominante — sinalizada por cor.
+  Subdominante ou Dominante — sinalizada por cor, com a **tendência** de cada
+  acorde (para onde ele "puxa").
 - **Transposição** em tempo real (± semitons), útil para adequar a música ao
   vocal ou ao instrumento.
 - A **formação** de cada acorde (fundamental, terça e quinta).
-- As **notas da escala** do tom.
-- **Favoritos**, salvos no aparelho para acesso imediato.
+- **Caminhos comuns** já montados no tom (a Progressão da Harpa e o 1‑4‑5),
+  para bater o olho e saber para onde ir.
+- As **notas da escala** e **favoritos** salvos no aparelho.
+- **Modo paisagem** compacto: todos os graus na tela, sem rolagem, para uso
+  ao vivo.
 
 ### Progressões
-Sequências harmônicas consagradas (eixo pop/louvor, cadências, ciclo de
-Pachelbel, progressões menores) já montadas no tom escolhido. Serve para compor,
-ensaiar e conduzir a ministração sem precisar transpor de cabeça.
+Sequências harmônicas consagradas já montadas no tom escolhido. Em destaque, a
+**Progressão da Harpa** (I – vi – ii – V – I) — a "volta" presente em quase todo
+hino — além do 1‑4‑5, eixo do louvor, cadências e progressões menores.
 
-### Círculo das Quintas
-O círculo das quintas interativo: tons vizinhos ficam lado a lado e os relativos
-menores aparecem no anel interno. Toque em qualquer tom para abrir o campo dele.
+### Aprender
+Um guia para o tocador iniciante da assembleia: o que é campo harmônico, as três
+funções, a progressão da Harpa, **como tirar música de ouvido**, o sistema de
+números (1‑4‑5) e o **círculo das quintas explicado com uso prático** — um mapa
+interativo que mostra, para cada tom, sua subdominante, dominante e relativa
+menor.
 
 ### Ferramentas
 Três utilitários para o dia a dia, todos sem depender de internet:
@@ -74,7 +81,7 @@ app/src/main/java/com/example/
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
     ├── components/              # Componentes reutilizáveis
-    └── screens/                 # Campos, Detalhe, Progressões, Círculo, Ferramentas
+    └── screens/                 # Campos, Detalhe, Progressões, Aprender, Ferramentas
 ```
 
 ---

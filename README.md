@@ -12,7 +12,7 @@ Mantido por **JR TECH** (José Renato).
 
 ## O que o app faz
 
-O app é organizado em quatro áreas, acessíveis pela barra inferior:
+O app é organizado em cinco áreas, acessíveis pela barra inferior:
 
 ### Campos
 A função central. Uma grade com os 24 tons (12 maiores e 12 menores). Ao abrir
@@ -29,6 +29,14 @@ um tom você vê:
 - As **notas da escala** e **favoritos** salvos no aparelho.
 - **Modo paisagem** compacto: todos os graus na tela, sem rolagem, para uso
   ao vivo.
+
+### Ouvir
+Identificador de acorde e tom por **microfone**. O app escuta, estima o **acorde
+tocado** e o **tom provável da música**, mostra um gráfico do que está ouvindo
+(chromagram) e abre o campo do tom com um toque. Toda a análise acontece no
+próprio aparelho — nada é gravado ou enviado. É uma estimativa: funciona melhor
+com acordes claros, um instrumento de cada vez e pouco ruído. Requer permissão
+de microfone.
 
 ### Progressões
 Sequências harmônicas consagradas já montadas no tom escolhido. Em destaque, a
@@ -75,13 +83,15 @@ app/src/main/java/com/example/
 ├── HarmonicData.kt              # Base dos 24 campos harmônicos
 ├── music/
 │   ├── MusicTheory.kt           # Funções tonais, transposição, formação de acordes
-│   └── Progressions.kt          # Biblioteca de progressões
+│   ├── Progressions.kt          # Biblioteca de progressões
+│   └── ChordAnalysis.kt         # FFT, chromagram, detecção de acorde e tom (puro/testável)
 ├── audio/
-│   └── AudioEngine.kt           # Metrônomo e tons de referência (AudioTrack)
+│   ├── AudioEngine.kt           # Metrônomo e tons de referência (AudioTrack)
+│   └── ChordListener.kt         # Escuta o microfone e roda a análise (AudioRecord)
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
     ├── components/              # Componentes reutilizáveis
-    └── screens/                 # Campos, Detalhe, Progressões, Aprender, Ferramentas
+    └── screens/                 # Campos, Detalhe, Ouvir, Progressões, Aprender, Ferramentas
 ```
 
 ---

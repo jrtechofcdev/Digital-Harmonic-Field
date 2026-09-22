@@ -33,13 +33,15 @@ mantém `Tab` e `detailKey`; o detalhe do campo é uma sobreposição de tela ch
 
 ```
 com/example/
-├── MainActivity.kt        # Scaffold + NavigationBar (Campos/Progressões/Aprender/Ferramentas)
+├── MainActivity.kt        # Scaffold + NavigationBar (Campos/Ouvir/Progressões/Aprender/Ferramentas)
 ├── HarmonicData.kt        # Os 24 campos (dados brutos) + HarmonicDatabase
 ├── music/
 │   ├── MusicTheory.kt     # HarmonicFunction (T/SD/D), transposição, formação de acordes
-│   └── Progressions.kt    # ProgressionLibrary (inclui a Progressão da Harpa)
+│   ├── Progressions.kt    # ProgressionLibrary (inclui a Progressão da Harpa)
+│   └── ChordAnalysis.kt   # FFT/chroma/detecção de acorde e tom — puro e testável
 ├── audio/
-│   └── AudioEngine.kt     # Metronome e TonePlayer via AudioTrack (sem libs externas)
+│   ├── AudioEngine.kt     # Metronome e TonePlayer via AudioTrack (sem libs externas)
+│   └── ChordListener.kt   # AudioRecord do microfone → ChordAnalysis (requer RECORD_AUDIO)
 └── ui/
     ├── theme/             # Color.kt (tokens), Type.kt (Space Grotesk), Theme.kt
     ├── components/         # CommonUi.kt (SectionLabel, AppCard, FunctionTag)

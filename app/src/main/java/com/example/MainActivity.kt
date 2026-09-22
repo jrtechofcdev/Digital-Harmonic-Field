@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
@@ -33,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -42,6 +44,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.ui.screens.FieldDetailScreen
 import com.example.ui.screens.FieldsScreen
 import com.example.ui.screens.LearnScreen
+import com.example.ui.screens.ListenScreen
 import com.example.ui.screens.ProgressionsScreen
 import com.example.ui.screens.ToolsScreen
 import com.example.ui.theme.Brass
@@ -69,11 +72,16 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val label: String, val icon: ImageVector) {
-    CAMPOS("Campos", Icons.Filled.Home),
-    PROGRESSOES("Progressões", Icons.AutoMirrored.Filled.List),
-    APRENDER("Aprender", Icons.Filled.Info),
-    FERRAMENTAS("Ferramentas", Icons.Filled.Settings),
+private enum class Tab(
+    val label: String,
+    val iconVector: ImageVector? = null,
+    val iconRes: Int? = null,
+) {
+    CAMPOS("Campos", iconVector = Icons.Filled.Home),
+    OUVIR("Ouvir", iconRes = R.drawable.ic_mic),
+    PROGRESSOES("Progressões", iconVector = Icons.AutoMirrored.Filled.List),
+    APRENDER("Aprender", iconVector = Icons.Filled.Info),
+    FERRAMENTAS("Ferramentas", iconVector = Icons.Filled.Settings),
 }
 
 @Composable
@@ -120,7 +128,16 @@ private fun HarmonicApp() {
                         NavigationBarItem(
                             selected = tab == entry,
                             onClick = { tab = entry },
-                            icon = { Icon(entry.icon, contentDescription = entry.label) },
+                            icon = {
+                                when {
+                                    entry.iconRes != null -> Icon(
+                                        painterResource(entry.iconRes),
+                                        contentDescription = entry.label,
+                                        modifier = Modifier.size(22.dp),
+                                    )
+                                    entry.iconVector != null -> Icon(entry.iconVector, contentDescription = entry.label)
+                                }
+                            },
                             label = { Text(entry.label, style = MaterialTheme.typography.labelSmall) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Ink,
@@ -136,6 +153,7 @@ private fun HarmonicApp() {
         ) { innerPadding ->
             when (tab) {
                 Tab.CAMPOS -> FieldsScreen(favorites, openKey, innerPadding)
+                Tab.OUVIR -> ListenScreen(openKey, innerPadding)
                 Tab.PROGRESSOES -> ProgressionsScreen(openKey, innerPadding)
                 Tab.APRENDER -> LearnScreen(openKey, innerPadding)
                 Tab.FERRAMENTAS -> ToolsScreen(innerPadding)

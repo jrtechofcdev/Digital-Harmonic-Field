@@ -41,13 +41,18 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.data.TunerSettings
+import com.example.data.saveTunerSettings
+import com.example.data.tunerSettingsFlow
 import com.example.ui.screens.DonationScreen
 import com.example.ui.screens.FieldDetailScreen
 import com.example.ui.screens.FieldsScreen
 import com.example.ui.screens.LearnScreen
 import com.example.ui.screens.ListenScreen
 import com.example.ui.screens.ProgressionsScreen
+import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.ToolsScreen
+import com.example.ui.screens.TunerScreen
 import com.example.ui.theme.Brass
 import com.example.ui.theme.HarmonicTheme
 import com.example.ui.theme.Hairline
@@ -94,6 +99,11 @@ private fun HarmonicApp() {
         context.dataStore.data.map { it[FAVORITES_KEY] ?: emptySet() }
     }.collectAsState(initial = emptySet())
 
+    val settings by remember { context.tunerSettingsFlow() }.collectAsState(initial = TunerSettings())
+    val onSettingsChange: (TunerSettings) -> Unit = { new ->
+        scope.launch { context.saveTunerSettings(new) }
+    }
+
     fun toggleFavorite(key: String) {
         scope.launch {
             context.dataStore.edit { prefs ->
@@ -106,21 +116,44 @@ private fun HarmonicApp() {
     var tab by remember { mutableStateOf(Tab.CAMPOS) }
     var detailKey by remember { mutableStateOf<String?>(null) }
     var showDonation by remember { mutableStateOf(false) }
+    var showTuner by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = detailKey != null || showDonation) {
+    BackHandler(enabled = detailKey != null || showDonation || showTuner || showSettings) {
         when {
+            showSettings -> showSettings = false
+            showTuner -> showTuner = false
             showDonation -> showDonation = false
             else -> detailKey = null
         }
     }
 
     val openKey: (String) -> Unit = { detailKey = it }
+    val insets = WindowInsets.safeDrawing.asPaddingValues()
 
-    if (showDonation) {
+    if (showSettings) {
+        Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            SettingsScreen(
+                settings = settings,
+                onChange = onSettingsChange,
+                onBack = { showSettings = false },
+                contentPadding = insets,
+            )
+        }
+    } else if (showTuner) {
+        Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            TunerScreen(
+                settings = settings,
+                onSettingsChange = onSettingsChange,
+                onBack = { showTuner = false },
+                contentPadding = insets,
+            )
+        }
+    } else if (showDonation) {
         Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
             DonationScreen(
                 onBack = { showDonation = false },
-                contentPadding = WindowInsets.safeDrawing.asPaddingValues(),
+                contentPadding = insets,
             )
         }
     } else if (detailKey != null) {
@@ -170,7 +203,11 @@ private fun HarmonicApp() {
                 Tab.OUVIR -> ListenScreen(openKey, innerPadding)
                 Tab.PROGRESSOES -> ProgressionsScreen(openKey, innerPadding)
                 Tab.APRENDER -> LearnScreen(openKey, innerPadding)
-                Tab.FERRAMENTAS -> ToolsScreen(innerPadding)
+                Tab.FERRAMENTAS -> ToolsScreen(
+                    onOpenTuner = { showTuner = true },
+                    onOpenSettings = { showSettings = true },
+                    contentPadding = innerPadding,
+                )
             }
         }
     }

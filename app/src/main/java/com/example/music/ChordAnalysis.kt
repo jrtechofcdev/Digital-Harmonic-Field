@@ -107,15 +107,15 @@ fun computeChroma(
     val minK = (minFreq * n / sampleRate).toInt().coerceAtLeast(1)
     val maxK = (maxFreq * n / sampleRate).toInt().coerceAtMost(maxBin - 1)
 
-    // Portão de ruído: só picos acima de uma fração do máximo contribuem.
-    // Isso limpa o chromagram (menos ruído de banda larga) e deixa a detecção
-    // do acorde mais firme — em vez de achatar tudo com compressão log.
+    // Portão de ruído suave: descarta apenas o "chão" de ruído de banda larga,
+    // mantendo terças e quintas do acorde (que podem ser bem mais fracas que a
+    // parcial dominante). O limiar é em potência; 0.003 ≈ 5,5% da amplitude do pico.
     var maxMag = 0.0
     for (k in minK..maxK) {
         val mag = re[k] * re[k] + im[k] * im[k]
         if (mag > maxMag) maxMag = mag
     }
-    val gate = maxMag * 0.06
+    val gate = maxMag * 0.003
 
     val chroma = FloatArray(12)
     for (k in minK..maxK) {

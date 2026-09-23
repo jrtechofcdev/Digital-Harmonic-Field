@@ -51,13 +51,18 @@ interativo que mostra, para cada tom, sua subdominante, dominante e relativa
 menor.
 
 ### Ferramentas
-Três utilitários para o dia a dia, todos sem depender de internet:
+Utilitários para o dia a dia, todos sem depender de internet:
 
+- **Afinador PRO** — afinador cromático e corda a corda, por microfone, com
+  detecção de altura por autocorrelação (precisão em cents). Traz as afinações
+  mais usadas — Padrão, Drop D, ½ tom abaixo, Drop C, Open G e Open D — medidor
+  visual, guia passo a passo para iniciantes e tom de referência.
 - **Metrônomo** — som sintetizado, ajuste por slider ou passo, "marcar tempo"
   (tap tempo), escolha de compasso e indicador visual dos tempos.
-- **Diapasão** — tons de referência (Lá = 440 Hz) para afinar de ouvido.
 - **Capotraste** — indica em que casa colocar o capo para tocar com acordes
   abertos (formatos CAGED) e soar no tom desejado.
+- **Configurações** — filtro de ruído, precisão do afinador, frequência de
+  referência (Lá) e sons.
 
 ---
 
@@ -84,14 +89,20 @@ app/src/main/java/com/example/
 ├── music/
 │   ├── MusicTheory.kt           # Funções tonais, transposição, formação de acordes
 │   ├── Progressions.kt          # Biblioteca de progressões
-│   └── ChordAnalysis.kt         # FFT, chromagram, detecção de acorde e tom (puro/testável)
+│   ├── ChordAnalysis.kt         # FFT, chromagram, detecção de acorde e tom (puro/testável)
+│   ├── PitchDetection.kt        # Detecção de altura (autocorrelação) + notas/cents
+│   └── Tunings.kt               # Presets de afinação (Padrão, Drop D, Open G…)
+├── data/
+│   └── AppSettings.kt           # Configurações persistidas (DataStore)
 ├── audio/
 │   ├── AudioEngine.kt           # Metrônomo e tons de referência (AudioTrack)
-│   └── ChordListener.kt         # Escuta o microfone e roda a análise (AudioRecord)
+│   ├── ChordListener.kt         # Microfone → identificação de acorde/tom (AudioRecord)
+│   └── TunerListener.kt         # Microfone → afinador (AudioRecord)
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
-    ├── components/              # Componentes reutilizáveis
-    └── screens/                 # Campos, Detalhe, Ouvir, Progressões, Aprender, Ferramentas
+    ├── components/              # Componentes reutilizáveis (inclui a marca/palheta)
+    └── screens/                 # Campos, Detalhe, Ouvir, Progressões, Aprender,
+                                 #  Ferramentas, Afinador, Configurações, Doação
 ```
 
 ---

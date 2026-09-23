@@ -38,10 +38,15 @@ com/example/
 ├── music/
 │   ├── MusicTheory.kt     # HarmonicFunction (T/SD/D), transposição, formação de acordes
 │   ├── Progressions.kt    # ProgressionLibrary (inclui a Progressão da Harpa)
-│   └── ChordAnalysis.kt   # FFT/chroma/detecção de acorde e tom — puro e testável
+│   ├── ChordAnalysis.kt   # FFT/chroma/detecção de acorde e tom — puro e testável
+│   ├── PitchDetection.kt  # Detecção de altura (autocorrelação/MPM) + notas/cents
+│   └── Tunings.kt         # Presets de afinação do afinador
+├── data/
+│   └── AppSettings.kt     # Configurações do afinador via DataStore (ref A, precisão…)
 ├── audio/
 │   ├── AudioEngine.kt     # Metronome e TonePlayer via AudioTrack (sem libs externas)
-│   └── ChordListener.kt   # AudioRecord do microfone → ChordAnalysis (requer RECORD_AUDIO)
+│   ├── ChordListener.kt   # AudioRecord do microfone → ChordAnalysis (requer RECORD_AUDIO)
+│   └── TunerListener.kt   # AudioRecord do microfone → PitchDetection (afinador)
 └── ui/
     ├── theme/             # Color.kt (tokens), Type.kt (Space Grotesk), Theme.kt
     ├── components/         # CommonUi.kt (SectionLabel, AppCard, FunctionTag)

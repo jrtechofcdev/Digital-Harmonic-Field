@@ -37,8 +37,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.audio.Metronome
-import com.example.audio.ReferencePitches
-import com.example.audio.TonePlayer
 import com.example.ui.components.SectionLabel
 import com.example.ui.theme.Brass
 import com.example.ui.theme.FuncDominant
@@ -52,15 +50,15 @@ import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextStrong
 
 @Composable
-fun ToolsScreen(contentPadding: PaddingValues) {
+fun ToolsScreen(
+    onOpenTuner: () -> Unit,
+    onOpenSettings: () -> Unit,
+    contentPadding: PaddingValues,
+) {
     val metronome = remember { Metronome() }
-    val tone = remember { TonePlayer() }
 
     DisposableEffect(Unit) {
-        onDispose {
-            metronome.stop()
-            tone.stop()
-        }
+        onDispose { metronome.stop() }
     }
 
     LazyColumn(
@@ -75,9 +73,42 @@ fun ToolsScreen(contentPadding: PaddingValues) {
         item {
             Text("Ferramentas", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
         }
+        item {
+            NavCard(
+                title = "Afinador PRO",
+                subtitle = "Afine seu violão corda a corda, com várias afinações",
+                onClick = onOpenTuner,
+            )
+        }
         item { MetronomeCard(metronome) }
-        item { TunerCard(tone) }
         item { CapoCard() }
+        item {
+            NavCard(
+                title = "Configurações",
+                subtitle = "Filtro de ruído, precisão, frequência de referência e sons",
+                onClick = onOpenSettings,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NavCard(title: String, subtitle: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Surface1)
+            .border(1.dp, Hairline, RoundedCornerShape(14.dp))
+            .clickable { onClick() }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleLarge, color = TextStrong)
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+        }
+        Text("Abrir ›", style = MaterialTheme.typography.labelLarge, color = Brass)
     }
 }
 
@@ -209,64 +240,6 @@ private fun MetronomeCard(metronome: Metronome) {
                     )
                 }
             }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Diapasão / tons de referência
-// ---------------------------------------------------------------------------
-
-@Composable
-private fun TunerCard(tone: TonePlayer) {
-    val notes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
-    val ptNames = mapOf(
-        "C" to "Dó", "C#" to "Dó#", "D" to "Ré", "D#" to "Ré#", "E" to "Mi", "F" to "Fá",
-        "F#" to "Fá#", "G" to "Sol", "G#" to "Sol#", "A" to "Lá", "A#" to "Lá#", "B" to "Si"
-    )
-
-    ToolCard(title = "Diapasão", subtitle = "Tons de referência (Lá = 440 Hz) para afinar de ouvido") {
-        val playing = tone.playingKey
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            notes.chunked(4).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    row.forEach { note ->
-                        val isPlaying = playing == note
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp)
-                                .clip(RoundedCornerShape(11.dp))
-                                .background(if (isPlaying) FuncTonic.copy(alpha = 0.18f) else Surface2)
-                                .border(
-                                    1.dp,
-                                    if (isPlaying) FuncTonic else Hairline,
-                                    RoundedCornerShape(11.dp),
-                                )
-                                .clickable { tone.toggle(note, ReferencePitches.frequency(note)) },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    note,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isPlaying) FuncTonic else TextStrong,
-                                )
-                                Text(ptNames[note] ?: "", style = MaterialTheme.typography.labelSmall, color = TextMuted)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (playing != null) {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "Tocando ${ptNames[playing]} · ${"%.1f".format(ReferencePitches.frequency(playing))} Hz — toque de novo para parar.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextBody,
-            )
         }
     }
 }

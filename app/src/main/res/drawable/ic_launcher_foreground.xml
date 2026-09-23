@@ -5,27 +5,25 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <!--
-      Marca: palheta de guitarra (identidade "guitarrista") com as três barras
-      das funções tonais dentro (Tônica, Subdominante, Dominante).
+      Marca: palheta de guitarra sólida (latão) com três barras de equalizador.
+      Formas cheias e contraste alto para boa leitura em tamanho pequeno.
     -->
     <path
-        android:fillColor="#14161B"
-        android:strokeColor="#E0A94A"
-        android:strokeWidth="3.5"
-        android:pathData="M54,30 C63,30 72,34 72,46 C72,60 60,80 54,86 C48,80 36,60 36,46 C36,34 45,30 54,30 Z" />
+        android:fillColor="#E0A94A"
+        android:pathData="M54,26 C65,26 76,32 76,46 C76,62 62,84 54,90 C46,84 32,62 32,46 C32,32 43,26 54,26 Z" />
     <path
-        android:strokeColor="#57B892"
-        android:strokeWidth="5"
+        android:strokeColor="#0B0C0F"
+        android:strokeWidth="6"
         android:strokeLineCap="round"
-        android:pathData="M48,64 L48,52" />
+        android:pathData="M47,66 L47,54" />
     <path
-        android:strokeColor="#5B8AD6"
-        android:strokeWidth="5"
+        android:strokeColor="#0B0C0F"
+        android:strokeWidth="6"
         android:strokeLineCap="round"
-        android:pathData="M54,64 L54,44" />
+        android:pathData="M54,66 L54,44" />
     <path
-        android:strokeColor="#D9695E"
-        android:strokeWidth="5"
+        android:strokeColor="#0B0C0F"
+        android:strokeWidth="6"
         android:strokeLineCap="round"
-        android:pathData="M60,64 L60,50" />
+        android:pathData="M61,66 L61,52" />
 </vector>

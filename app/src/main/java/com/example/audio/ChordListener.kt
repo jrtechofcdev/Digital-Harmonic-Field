@@ -168,7 +168,9 @@ class ChordListener {
                     pending = cand.label
                     pendingCount = 1
                 }
-                if (pendingCount >= STABLE_FRAMES || stable == null) {
+                // Exige confirmação também no primeiro acorde após uma pausa,
+                // para não piscar o candidato errado no ataque da nota.
+                if (pendingCount >= STABLE_FRAMES) {
                     stable = cand.label
                 }
             } else {

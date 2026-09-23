@@ -107,7 +107,7 @@ fun DonationScreen(
         Text(
             "Este app é gratuito e sempre vai ser. Se ele te ajudou no louvor ou nos estudos, " +
                 "você pode contribuir com qualquer valor — é o que me ajuda a manter e melhorar o projeto. " +
-                "Muito obrigado! 🎸",
+                "Muito obrigado!",
             style = MaterialTheme.typography.bodyLarge,
             color = TextBody,
         )

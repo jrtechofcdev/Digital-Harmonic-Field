@@ -33,7 +33,7 @@ mantém `Tab` e `detailKey`; o detalhe do campo é uma sobreposição de tela ch
 
 ```
 com/example/
-├── MainActivity.kt        # Scaffold + NavigationBar (Campos/Ouvir/Progressões/Aprender/Ferramentas)
+├── MainActivity.kt        # Scaffold + NavigationBar (Campos/Afinador/Progressões/Aprender/Ferramentas)
 ├── HarmonicData.kt        # Os 24 campos (dados brutos) + HarmonicDatabase
 ├── music/
 │   ├── MusicTheory.kt     # HarmonicFunction (T/SD/D), transposição, formação de acordes

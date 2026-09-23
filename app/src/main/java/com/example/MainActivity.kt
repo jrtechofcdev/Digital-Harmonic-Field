@@ -84,7 +84,7 @@ private enum class Tab(
     val iconRes: Int? = null,
 ) {
     CAMPOS("Campos", iconVector = Icons.Filled.Home),
-    OUVIR("Ouvir", iconRes = R.drawable.ic_mic),
+    AFINADOR("Afinador", iconRes = R.drawable.ic_tuner),
     PROGRESSOES("Progressões", iconVector = Icons.AutoMirrored.Filled.List),
     APRENDER("Aprender", iconVector = Icons.Filled.Info),
     FERRAMENTAS("Ferramentas", iconVector = Icons.Filled.Settings),
@@ -116,13 +116,13 @@ private fun HarmonicApp() {
     var tab by remember { mutableStateOf(Tab.CAMPOS) }
     var detailKey by remember { mutableStateOf<String?>(null) }
     var showDonation by remember { mutableStateOf(false) }
-    var showTuner by remember { mutableStateOf(false) }
+    var showListen by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = detailKey != null || showDonation || showTuner || showSettings) {
+    BackHandler(enabled = detailKey != null || showDonation || showListen || showSettings) {
         when {
             showSettings -> showSettings = false
-            showTuner -> showTuner = false
+            showListen -> showListen = false
             showDonation -> showDonation = false
             else -> detailKey = null
         }
@@ -140,12 +140,11 @@ private fun HarmonicApp() {
                 contentPadding = insets,
             )
         }
-    } else if (showTuner) {
+    } else if (showListen) {
         Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-            TunerScreen(
-                settings = settings,
-                onSettingsChange = onSettingsChange,
-                onBack = { showTuner = false },
+            ListenScreen(
+                onOpenKey = { showListen = false; openKey(it) },
+                onBack = { showListen = false },
                 contentPadding = insets,
             )
         }
@@ -200,11 +199,15 @@ private fun HarmonicApp() {
         ) { innerPadding ->
             when (tab) {
                 Tab.CAMPOS -> FieldsScreen(favorites, openKey, { showDonation = true }, innerPadding)
-                Tab.OUVIR -> ListenScreen(openKey, innerPadding)
+                Tab.AFINADOR -> TunerScreen(
+                    settings = settings,
+                    onSettingsChange = onSettingsChange,
+                    contentPadding = innerPadding,
+                )
                 Tab.PROGRESSOES -> ProgressionsScreen(openKey, innerPadding)
                 Tab.APRENDER -> LearnScreen(openKey, innerPadding)
                 Tab.FERRAMENTAS -> ToolsScreen(
-                    onOpenTuner = { showTuner = true },
+                    onOpenListen = { showListen = true },
                     onOpenSettings = { showSettings = true },
                     contentPadding = innerPadding,
                 )

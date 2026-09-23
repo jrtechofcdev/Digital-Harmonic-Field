@@ -51,7 +51,7 @@ import com.example.ui.theme.TextStrong
 
 @Composable
 fun ToolsScreen(
-    onOpenTuner: () -> Unit,
+    onOpenListen: () -> Unit,
     onOpenSettings: () -> Unit,
     contentPadding: PaddingValues,
 ) {
@@ -75,9 +75,9 @@ fun ToolsScreen(
         }
         item {
             NavCard(
-                title = "Afinador PRO",
-                subtitle = "Afine seu violão corda a corda, com várias afinações",
-                onClick = onOpenTuner,
+                title = "Ouvir (identificar acorde)",
+                subtitle = "O app escuta e estima o acorde e o tom provável da música",
+                onClick = onOpenListen,
             )
         }
         item { MetronomeCard(metronome) }

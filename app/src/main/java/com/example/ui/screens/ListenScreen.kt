@@ -17,10 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,6 +64,7 @@ import com.example.ui.theme.TextStrong
 @Composable
 fun ListenScreen(
     onOpenKey: (String) -> Unit,
+    onBack: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     val context = LocalContext.current
@@ -101,8 +106,27 @@ fun ListenScreen(
                 bottom = contentPadding.calculateBottomPadding() + 24.dp,
             ),
     ) {
-        Text("Ouvir", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-        Spacer(Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Surface1)
+                    .border(1.dp, Hairline, CircleShape)
+                    .clickable { onBack() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Voltar",
+                    tint = TextStrong,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Spacer(Modifier.width(14.dp))
+            Text("Ouvir", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
+        }
+        Spacer(Modifier.height(10.dp))
         Text(
             "Toque um acorde perto do celular. O app escuta e estima o acorde e o tom provável da música.",
             style = MaterialTheme.typography.bodyMedium,

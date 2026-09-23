@@ -30,13 +30,13 @@ um tom você vê:
 - **Modo paisagem** compacto: todos os graus na tela, sem rolagem, para uso
   ao vivo.
 
-### Ouvir
-Identificador de acorde e tom por **microfone**. O app escuta, estima o **acorde
-tocado** e o **tom provável da música**, mostra um gráfico do que está ouvindo
-(chromagram) e abre o campo do tom com um toque. Toda a análise acontece no
-próprio aparelho — nada é gravado ou enviado. É uma estimativa: funciona melhor
-com acordes claros, um instrumento de cada vez e pouco ruído. Requer permissão
-de microfone.
+### Afinador
+Afinador por **microfone**, no estilo dos afinadores populares. Dois modos:
+**Corda por corda** (você toca na corda e ela fica travada; o app diz se está
+frouxa ou apertada) e **Livre/cromático** (detecta qualquer nota). Usa detecção
+de altura por autocorrelação (precisão em cents), com **ponteiro de velocímetro**,
+tom de referência curto e as afinações mais usadas — **Padrão, Drop D, ½ tom
+abaixo, Drop C, Open G e Open D**. Requer permissão de microfone.
 
 ### Progressões
 Sequências harmônicas consagradas já montadas no tom escolhido. Em destaque, a
@@ -53,10 +53,9 @@ menor.
 ### Ferramentas
 Utilitários para o dia a dia, todos sem depender de internet:
 
-- **Afinador PRO** — afinador cromático e corda a corda, por microfone, com
-  detecção de altura por autocorrelação (precisão em cents). Traz as afinações
-  mais usadas — Padrão, Drop D, ½ tom abaixo, Drop C, Open G e Open D — medidor
-  visual, guia passo a passo para iniciantes e tom de referência.
+- **Ouvir (identificar acorde)** — o app escuta e estima o **acorde tocado** e o
+  **tom provável da música** (com um gráfico do que está ouvindo). É uma
+  estimativa: funciona melhor com acordes claros e pouco ruído.
 - **Metrônomo** — som sintetizado, ajuste por slider ou passo, "marcar tempo"
   (tap tempo), escolha de compasso e indicador visual dos tempos.
 - **Capotraste** — indica em que casa colocar o capo para tocar com acordes

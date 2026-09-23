@@ -128,6 +128,9 @@ class TonePlayer {
         }
     }
 
+    /** Toca a nota até alguém chamar stop() (usado para um toque curto de referência). */
+    fun playOnce(key: String, frequency: Double) = play(key, frequency)
+
     private fun play(key: String, frequency: Double) {
         stop()
         running = true

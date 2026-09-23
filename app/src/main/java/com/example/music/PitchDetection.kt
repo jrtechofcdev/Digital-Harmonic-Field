@@ -105,6 +105,19 @@ fun midiToName(midi: Int): String {
 fun centsBetween(freq: Double, target: Double): Double =
     1200.0 * ln(freq / target) / ln(2.0)
 
+/**
+ * Cents até um alvo, dobrando a frequência para a oitava mais próxima do alvo.
+ * Assim, no modo "corda por corda", uma corda muito frouxa (que soa uma oitava
+ * abaixo) ainda aponta o desvio correto, sem o ponteiro estourar a escala.
+ */
+fun centsToTargetFolded(freq: Double, target: Double): Double {
+    var f = freq
+    val sqrt2 = 1.4142135623730951
+    while (f / target > sqrt2) f /= 2.0
+    while (target / f > sqrt2) f *= 2.0
+    return centsBetween(f, target)
+}
+
 data class NoteReading(
     val midi: Int,
     val name: String,

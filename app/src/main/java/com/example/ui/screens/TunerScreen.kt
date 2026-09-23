@@ -27,7 +27,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,15 +35,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -59,8 +61,7 @@ import com.example.audio.TunerListener
 import com.example.data.TunerSettings
 import com.example.music.Tuning
 import com.example.music.TuningLibrary
-import com.example.music.centsBetween
-import com.example.music.midiToName
+import com.example.music.centsToTargetFolded
 import com.example.music.ptPitchClass
 import com.example.music.readingForFrequency
 import com.example.ui.theme.Brass
@@ -73,21 +74,24 @@ import com.example.ui.theme.Surface2
 import com.example.ui.theme.TextBody
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextStrong
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun TunerScreen(
     settings: TunerSettings,
     onSettingsChange: (TunerSettings) -> Unit,
-    onBack: () -> Unit,
     contentPadding: PaddingValues,
 ) {
-    // IMPORTANTE: o microfone e os effects são criados ANTES do desvio para as
-    // configurações. Assim, abrir os ajustes não desmonta a escuta (o afinador
-    // continua ativo ao voltar).
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val listener = remember { TunerListener() }
     val tone = remember { TonePlayer() }
+    val toneJob = remember { mutableStateOf<Job?>(null) }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -97,27 +101,25 @@ fun TunerScreen(
     }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasPermission = granted
-        if (granted) listener.start()
-    }
+    ) { granted -> hasPermission = granted }
 
-    // Aplica o filtro de ruído às leituras.
     LaunchedEffect(settings.noiseFilter) {
         listener.minClarity = settings.noiseFilter.minClarity
         listener.silenceRms = settings.noiseFilter.silenceRms
     }
-
-    // Silencia a detecção enquanto o tom de referência toca, para o afinador não
-    // "ouvir" o próprio alto-falante e marcar como afinado sem motivo.
-    LaunchedEffect(tone.playingKey) {
-        listener.muted = tone.playingKey != null
-    }
+    // Silencia a detecção enquanto o tom de referência toca.
+    LaunchedEffect(tone.playingKey) { listener.muted = tone.playingKey != null }
+    // Começa a ouvir sozinho ao abrir a aba (como o CifraClub).
+    LaunchedEffect(hasPermission) { if (hasPermission) listener.start() }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) { listener.stop(); tone.stop() }
+            when (event) {
+                Lifecycle.Event.ON_STOP -> { listener.stop(); tone.stop() }
+                Lifecycle.Event.ON_START -> if (hasPermission) listener.start()
+                else -> Unit
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
@@ -126,6 +128,8 @@ fun TunerScreen(
         }
     }
 
+    // As Configurações são hospedadas AQUI (não como tela separada) para o
+    // afinador não desmontar — a corda travada e o microfone continuam ao voltar.
     var showSettings by remember { mutableStateOf(false) }
     BackHandler(enabled = showSettings) { showSettings = false }
     if (showSettings) {
@@ -139,14 +143,29 @@ fun TunerScreen(
     }
 
     var tuningId by remember { mutableStateOf(TuningLibrary.padrao.id) }
-    var chromatic by remember { mutableStateOf(false) }
-    var manualString by remember { mutableStateOf<Int?>(null) }
+    var guided by remember { mutableStateOf(true) }         // true = corda por corda
+    var selectedString by remember { mutableIntStateOf(0) } // 0 = 6ª corda (travada)
     val tuning = TuningLibrary.byId(tuningId)
     val refA = settings.refA.toDouble()
+    val tol = settings.precision.cents.toFloat()
+
+    fun pickString(index: Int) {
+        selectedString = index
+        guided = true
+        if (settings.sounds) {
+            val s = tuning.strings[index]
+            toneJob.value?.cancel()
+            tone.playOnce(s.noteName, s.targetFreq(refA))
+            toneJob.value = scope.launch {
+                delay(1300)
+                if (tone.playingKey == s.noteName) tone.stop()
+            }
+        }
+    }
 
     val freq = listener.frequency
     val analysis = if (freq != null) {
-        analyze(freq, chromatic, tuning, manualString, refA, settings.precision.cents)
+        analyze(freq, guided, tuning, selectedString, refA, tol)
     } else null
 
     Column(
@@ -155,14 +174,12 @@ fun TunerScreen(
             .verticalScroll(rememberScrollState())
             .padding(
                 start = 16.dp, end = 16.dp,
-                top = contentPadding.calculateTopPadding() + 8.dp,
+                top = contentPadding.calculateTopPadding() + 12.dp,
                 bottom = contentPadding.calculateBottomPadding() + 24.dp,
             ),
     ) {
         // Cabeçalho
         Row(verticalAlignment = Alignment.CenterVertically) {
-            RoundIcon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", onBack)
-            Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text("Afinador", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
                 Text(
@@ -171,151 +188,132 @@ fun TunerScreen(
                     color = Brass,
                 )
             }
-            RoundIcon(Icons.Filled.Settings, "Configurações") { showSettings = true }
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Surface1)
+                    .border(1.dp, Hairline, CircleShape)
+                    .clickable { showSettings = true },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Settings, "Configurações", tint = TextStrong, modifier = Modifier.size(18.dp))
+            }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(14.dp))
 
         if (!hasPermission) {
             PermissionBox { permissionLauncher.launch(Manifest.permission.RECORD_AUDIO) }
-        } else {
-            // Seleção de afinação
-            Text("Afinação", style = MaterialTheme.typography.labelSmall, color = TextMuted)
-            Spacer(Modifier.height(8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                TuningLibrary.all.forEach { t ->
-                    TuningChip(t, t.id == tuningId) {
-                        tuningId = t.id
-                        manualString = null
-                    }
-                }
-            }
-            Spacer(Modifier.height(8.dp))
-            Text(tuning.description, style = MaterialTheme.typography.bodyMedium, color = TextMuted)
-
-            Spacer(Modifier.height(16.dp))
-
-            // Medidor principal
-            MeterCard(
-                analysis = analysis,
-                listening = listener.isListening,
-                tolerance = settings.precision.cents.toFloat(),
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Cordas da afinação
-            StringsRow(
-                tuning = tuning,
-                refA = refA,
-                activeIndex = analysis?.activeIndex,
-                inTune = analysis?.inTune == true,
-                manualIndex = manualString,
-                onSelect = { idx ->
-                    manualString = if (manualString == idx) null else idx
-                    chromatic = false
-                    if (settings.sounds) {
-                        val s = tuning.strings[idx]
-                        tone.toggle(s.noteName, s.targetFreq(refA))
-                    }
-                },
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Modo cromático x por corda
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                ModeChip("Por corda", !chromatic, Modifier.weight(1f)) { chromatic = false }
-                ModeChip("Cromático", chromatic, Modifier.weight(1f)) {
-                    chromatic = true
-                    manualString = null
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Botão ouvir/parar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(if (listener.isListening) FuncDominant else Brass)
-                    .clickable { listener.toggle() }
-                    .padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    if (listener.isListening) "Parar" else "Começar a afinar",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Ink,
-                )
-            }
-
-            listener.error?.let {
-                Spacer(Modifier.height(10.dp))
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = FuncDominant)
-            }
-
-            Spacer(Modifier.height(16.dp))
-            GuideCard()
+            return@Column
         }
+
+        // Modo
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            ModeChip("Corda por corda", guided, Modifier.weight(1f)) { guided = true }
+            ModeChip("Livre", !guided, Modifier.weight(1f)) { guided = false }
+        }
+
+        Spacer(Modifier.height(14.dp))
+
+        // Medidor de ponteiro
+        GaugeCard(analysis = analysis, tolerance = tol, guided = guided, listening = listener.isListening)
+
+        Spacer(Modifier.height(14.dp))
+
+        // Cordas (no modo corda por corda, tocar trava na corda)
+        Text(
+            if (guided) "Toque na corda que vai afinar" else "Cordas da afinação",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextMuted,
+        )
+        Spacer(Modifier.height(8.dp))
+        StringsRow(
+            tuning = tuning,
+            selectedIndex = if (guided) selectedString else analysis?.activeIndex,
+            guided = guided,
+            inTune = analysis?.inTune == true,
+            onSelect = { pickString(it) },
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        // Seleção de afinação
+        Text("Afinação", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TuningLibrary.all.forEach { t ->
+                TuningChip(t, t.id == tuningId) {
+                    tuningId = t.id
+                    if (selectedString > t.strings.lastIndex) selectedString = 0
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(tuning.description, style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+
+        listener.error?.let {
+            Spacer(Modifier.height(12.dp))
+            Text(it, style = MaterialTheme.typography.bodyMedium, color = FuncDominant)
+        }
+
+        Spacer(Modifier.height(16.dp))
+        GuideCard()
     }
 }
 
 // ---------------------------------------------------------------------------
-// Lógica de afinação
+// Lógica
 // ---------------------------------------------------------------------------
 
 private data class TuneAnalysis(
-    val targetName: String,   // ex.: "E2"
-    val targetPt: String,     // ex.: "Mi"
-    val cents: Double,        // desvio em relação ao alvo
-    val activeIndex: Int?,    // corda ativa (modo por corda)
+    val bigNote: String,     // nota mostrada em destaque
+    val ptNote: String,
+    val cents: Double,
+    val activeIndex: Int?,
     val inTune: Boolean,
 )
 
 private fun analyze(
     freq: Double,
-    chromatic: Boolean,
+    guided: Boolean,
     tuning: Tuning,
-    manualString: Int?,
+    selectedString: Int,
     refA: Double,
-    tolerance: Double,
+    tolerance: Float,
 ): TuneAnalysis {
-    if (chromatic) {
-        val r = readingForFrequency(freq, refA)
-        return TuneAnalysis(r.name, ptPitchClass(r.midi), r.cents, null, abs(r.cents) <= tolerance)
+    if (guided) {
+        val s = tuning.strings[selectedString]
+        val cents = centsToTargetFolded(freq, s.targetFreq(refA))
+        return TuneAnalysis(s.letter, s.ptName, cents, selectedString, abs(cents) <= tolerance)
     }
-    val idx = manualString ?: nearestStringIndex(freq, tuning, refA)
-    val s = tuning.strings[idx]
-    val cents = centsBetween(freq, s.targetFreq(refA))
-    return TuneAnalysis(s.noteName, s.ptName, cents, idx, abs(cents) <= tolerance)
+    val r = readingForFrequency(freq, refA)
+    val nearest = nearestStringIndex(freq, tuning, refA)
+    return TuneAnalysis(r.name, ptPitchClass(r.midi), r.cents, nearest, abs(r.cents) <= tolerance)
 }
 
 private fun nearestStringIndex(freq: Double, tuning: Tuning, refA: Double): Int {
     var best = 0
     var bestCents = Double.MAX_VALUE
     tuning.strings.forEachIndexed { i, s ->
-        val c = abs(centsBetween(freq, s.targetFreq(refA)))
+        val c = abs(centsToTargetFolded(freq, s.targetFreq(refA)))
         if (c < bestCents) { bestCents = c; best = i }
     }
     return best
 }
 
 // ---------------------------------------------------------------------------
-// Componentes
+// Medidor de ponteiro (velocímetro)
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun MeterCard(analysis: TuneAnalysis?, listening: Boolean, tolerance: Float) {
+private fun GaugeCard(analysis: TuneAnalysis?, tolerance: Float, guided: Boolean, listening: Boolean) {
     val inTune = analysis?.inTune == true
-    val noteColor = if (inTune) FuncTonic else TextStrong
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -326,26 +324,26 @@ private fun MeterCard(analysis: TuneAnalysis?, listening: Boolean, tolerance: Fl
                 if (inTune) FuncTonic.copy(alpha = 0.6f) else Hairline,
                 RoundedCornerShape(16.dp),
             )
-            .padding(vertical = 20.dp, horizontal = 16.dp),
+            .padding(vertical = 18.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Gauge(cents = analysis?.cents?.toFloat(), tolerance = tolerance, inTune = inTune)
+        Spacer(Modifier.height(6.dp))
         Text(
-            text = analysis?.targetName ?: if (listening) "—" else "···",
-            fontSize = 64.sp,
+            text = analysis?.bigNote ?: if (listening) "—" else "···",
+            fontSize = 60.sp,
             fontWeight = FontWeight.Bold,
-            color = noteColor,
+            color = if (inTune) FuncTonic else TextStrong,
             style = MaterialTheme.typography.displaySmall,
         )
         Text(
-            text = analysis?.targetPt ?: if (listening) "toque uma corda" else "toque em começar",
+            text = analysis?.ptNote ?: if (listening) "toque uma corda" else "iniciando…",
             style = MaterialTheme.typography.titleMedium,
             color = TextBody,
         )
-        Spacer(Modifier.height(16.dp))
-        CentsMeter(cents = analysis?.cents?.toFloat(), tolerance = tolerance, inTune = inTune)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
-            text = directionText(analysis),
+            text = directionText(analysis, guided),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = when {
@@ -358,75 +356,99 @@ private fun MeterCard(analysis: TuneAnalysis?, listening: Boolean, tolerance: Fl
     }
 }
 
-private fun directionText(a: TuneAnalysis?): String = when {
+private fun directionText(a: TuneAnalysis?, guided: Boolean): String = when {
     a == null -> "Aguardando o som…"
-    a.inTune -> "Afinado ✓"
-    a.cents < 0 -> "Está grave — aperte a corda"
-    else -> "Está agudo — afrouxe a corda"
+    a.inTune -> "Afinada ✓"
+    guided && a.cents < 0 -> "Frouxa — aperte a corda"
+    guided -> "Apertada — afrouxe a corda"
+    a.cents < 0 -> "Abaixo — suba um pouco"
+    else -> "Acima — desça um pouco"
 }
 
 @Composable
-private fun CentsMeter(cents: Float?, tolerance: Float, inTune: Boolean) {
+private fun Gauge(cents: Float?, tolerance: Float, inTune: Boolean) {
+    val maxDeg = 70f
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
-            .height(96.dp)
+            .height(150.dp)
     ) {
         val w = size.width
         val h = size.height
         val cx = w / 2f
-        val baseY = h * 0.62f
-        val sidePad = 16.dp.toPx()
-        val halfW = cx - sidePad
-        fun xForCents(c: Float) = cx + (c.coerceIn(-50f, 50f) / 50f) * halfW
+        val pivotY = h * 0.92f
+        val r = minOf(cx - 24.dp.toPx(), pivotY - 12.dp.toPx())
 
-        // Zona verde de tolerância no centro.
-        val zoneHalf = (tolerance / 50f) * halfW
-        drawRoundRect(
-            color = FuncTonic.copy(alpha = 0.16f),
-            topLeft = Offset(cx - zoneHalf, baseY - 26.dp.toPx()),
-            size = androidx.compose.ui.geometry.Size(zoneHalf * 2f, 52.dp.toPx()),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()),
+        val rect = androidx.compose.ui.geometry.Rect(
+            Offset(cx - r, pivotY - r),
+            Size(2 * r, 2 * r),
         )
 
-        // Régua de marcas a cada 10 cents.
-        var c = -50
-        while (c <= 50) {
-            val x = xForCents(c.toFloat())
-            val tall = c == 0
+        // Arco base
+        drawArc(
+            color = Hairline,
+            startAngle = 270f - maxDeg,
+            sweepAngle = 2 * maxDeg,
+            useCenter = false,
+            topLeft = rect.topLeft,
+            size = rect.size,
+            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round),
+        )
+        // Zona verde de tolerância no centro
+        val tolDeg = (tolerance / 50f) * maxDeg
+        drawArc(
+            color = FuncTonic,
+            startAngle = 270f - tolDeg,
+            sweepAngle = 2 * tolDeg,
+            useCenter = false,
+            topLeft = rect.topLeft,
+            size = rect.size,
+            style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round),
+        )
+
+        // Marcas
+        var a = -maxDeg
+        while (a <= maxDeg + 0.1f) {
+            val d = Math.toRadians((270f + a).toDouble())
+            val cosD = cos(d).toFloat()
+            val sinD = sin(d).toFloat()
+            val big = a == 0f
+            val tickLen = if (big) 16.dp.toPx() else 9.dp.toPx()
+            val outer = Offset(cx + r * cosD, pivotY + r * sinD)
+            val inner = Offset(cx + (r - tickLen) * cosD, pivotY + (r - tickLen) * sinD)
             drawLine(
-                color = if (tall) Brass else Hairline,
-                start = Offset(x, baseY - if (tall) 22.dp.toPx() else 12.dp.toPx()),
-                end = Offset(x, baseY + if (tall) 22.dp.toPx() else 12.dp.toPx()),
-                strokeWidth = if (tall) 3.dp.toPx() else 1.5.dp.toPx(),
+                color = if (big) Brass else Hairline,
+                start = inner, end = outer,
+                strokeWidth = if (big) 3.dp.toPx() else 1.5.dp.toPx(),
                 cap = StrokeCap.Round,
             )
-            c += 10
+            a += 17.5f
         }
 
-        // Indicador de leitura.
+        // Ponteiro
         if (cents != null) {
-            val x = xForCents(cents)
+            val clamped = cents.coerceIn(-50f, 50f)
+            val d = Math.toRadians((270f + (clamped / 50f) * maxDeg).toDouble())
+            val tip = Offset(cx + (r * 0.82f) * cos(d).toFloat(), pivotY + (r * 0.82f) * sin(d).toFloat())
             val color = if (inTune) FuncTonic else Brass
-            drawLine(
-                color = color,
-                start = Offset(x, baseY - 30.dp.toPx()),
-                end = Offset(x, baseY + 30.dp.toPx()),
-                strokeWidth = 4.dp.toPx(),
-                cap = StrokeCap.Round,
-            )
-            drawCircle(color = color, radius = 7.dp.toPx(), center = Offset(x, baseY - 34.dp.toPx()))
+            drawLine(color = color, start = Offset(cx, pivotY), end = tip, strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round)
         }
+        // Eixo do ponteiro
+        drawCircle(color = if (inTune) FuncTonic else Brass, radius = 7.dp.toPx(), center = Offset(cx, pivotY))
+        drawCircle(color = Ink, radius = 3.dp.toPx(), center = Offset(cx, pivotY))
     }
 }
+
+// ---------------------------------------------------------------------------
+// Cordas
+// ---------------------------------------------------------------------------
 
 @Composable
 private fun StringsRow(
     tuning: Tuning,
-    refA: Double,
-    activeIndex: Int?,
+    selectedIndex: Int?,
+    guided: Boolean,
     inTune: Boolean,
-    manualIndex: Int?,
     onSelect: (Int) -> Unit,
 ) {
     Row(
@@ -434,21 +456,20 @@ private fun StringsRow(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         tuning.strings.forEachIndexed { i, s ->
-            val active = i == activeIndex
-            val done = active && inTune
-            val borderColor = when {
+            val active = i == selectedIndex
+            val done = active && inTune && guided
+            val border = when {
                 done -> FuncTonic
                 active -> Brass
-                manualIndex == i -> Brass.copy(alpha = 0.7f)
                 else -> Hairline
             }
+            val base = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(if (active) Surface2 else Surface1)
+                .border(if (active) 2.dp else 1.dp, border, RoundedCornerShape(10.dp))
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (active) Surface2 else Surface1)
-                    .border(if (active) 2.dp else 1.dp, borderColor, RoundedCornerShape(10.dp))
-                    .clickable { onSelect(i) }
+                modifier = (if (guided) base.clickable { onSelect(i) } else base)
                     .padding(vertical = 10.dp, horizontal = 2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -497,17 +518,18 @@ private fun TuningChip(tuning: Tuning, selected: Boolean, onClick: () -> Unit) {
 private fun ModeChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
         modifier = modifier
-            .height(44.dp)
-            .clip(RoundedCornerShape(11.dp))
-            .background(if (selected) Surface2 else Surface1)
-            .border(1.dp, if (selected) Brass else Hairline, RoundedCornerShape(11.dp))
+            .height(46.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (selected) Brass else Surface1)
+            .border(1.dp, if (selected) Brass else Hairline, RoundedCornerShape(12.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center,
     ) {
         Text(
             label,
             style = MaterialTheme.typography.titleMedium,
-            color = if (selected) Brass else TextBody,
+            fontWeight = FontWeight.Bold,
+            color = if (selected) Ink else TextBody,
         )
     }
 }
@@ -522,13 +544,13 @@ private fun GuideCard() {
             .border(1.dp, Hairline, RoundedCornerShape(14.dp))
             .padding(16.dp),
     ) {
-        Text("Como afinar (passo a passo)", style = MaterialTheme.typography.titleMedium, color = TextStrong)
+        Text("Como afinar", style = MaterialTheme.typography.titleMedium, color = TextStrong)
         Spacer(Modifier.height(8.dp))
-        GuideStep("1", "Escolha a afinação (comece na Padrão) e toque em Começar.")
-        GuideStep("2", "Toque UMA corda solta. O app mostra a nota mais próxima.")
-        GuideStep("3", "Gire a tarraxa: se o app disser \"grave\", aperte; se \"agudo\", afrouxe.")
-        GuideStep("4", "Deixe o ponteiro no centro (verde). Aí a corda está afinada.")
-        GuideStep("5", "Repita nas outras cordas, da 6ª (mais grossa) à 1ª (mais fina).")
+        GuideStep("1", "No modo Corda por corda, toque na 6ª corda (a mais grossa) para travá-la.")
+        GuideStep("2", "Toque a corda solta e olhe o ponteiro.")
+        GuideStep("3", "Se disser \"frouxa\", aperte a tarraxa; se \"apertada\", afrouxe.")
+        GuideStep("4", "Centralize o ponteiro (verde). Aí a corda está afinada.")
+        GuideStep("5", "Toque na próxima corda e repita, até a 1ª (a mais fina).")
     }
 }
 
@@ -575,24 +597,5 @@ private fun PermissionBox(onRequest: () -> Unit) {
         ) {
             Text("Permitir microfone", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Ink)
         }
-    }
-}
-
-@Composable
-private fun RoundIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    desc: String,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
-            .background(Surface1)
-            .border(1.dp, Hairline, CircleShape)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = desc, tint = TextStrong, modifier = Modifier.size(18.dp))
     }
 }

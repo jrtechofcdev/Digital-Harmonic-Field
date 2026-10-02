@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -25,15 +26,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.HarmonicDatabase
+import com.example.R
 import com.example.ui.components.BrandMark
 import com.example.ui.components.SectionLabel
 import com.example.ui.theme.Brass
 import com.example.ui.theme.Favorite
 import com.example.ui.theme.Hairline
+import com.example.ui.theme.Ink
 import com.example.ui.theme.Surface1
 import com.example.ui.theme.TextBody
 import com.example.ui.theme.TextMuted
@@ -48,6 +52,7 @@ private val ptNameByCipher: Map<String, String> = HarmonicDatabase.ptNameByCiphe
 fun FieldsScreen(
     favorites: Set<String>,
     onOpenKey: (String) -> Unit,
+    onDetectKey: () -> Unit,
     onSupport: () -> Unit,
     contentPadding: PaddingValues,
 ) {
@@ -61,6 +66,8 @@ fun FieldsScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         item { BrandHeader(onSupport = onSupport) }
+
+        item { DetectKeyCard(onClick = onDetectKey) }
 
         if (favorites.isNotEmpty()) {
             item {
@@ -135,6 +142,46 @@ private fun BrandHeader(onSupport: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             color = TextBody,
         )
+    }
+}
+
+/** Atalho para o detector de tom — o caminho mais rápido no meio do culto. */
+@Composable
+private fun DetectKeyCard(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Surface1)
+            .border(1.dp, Brass.copy(alpha = 0.55f), RoundedCornerShape(14.dp))
+            .clickable { onClick() }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(Brass),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painterResource(R.drawable.ic_mic),
+                contentDescription = null,
+                tint = Ink,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text("Detectar tom da música", style = MaterialTheme.typography.titleMedium, color = TextStrong)
+            Text(
+                "Ouve 5 segundos de canto e sugere o tom",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextMuted,
+            )
+        }
+        Text("Ouvir ›", style = MaterialTheme.typography.labelLarge, color = Brass)
     }
 }
 

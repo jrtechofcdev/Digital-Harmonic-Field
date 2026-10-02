@@ -53,9 +53,12 @@ menor.
 ### Ferramentas
 Utilitários para o dia a dia, todos sem depender de internet:
 
-- **Ouvir (identificar acorde)** — o app escuta e estima o **acorde tocado** e o
-  **tom provável da música** (com um gráfico do que está ouvindo). É uma
-  estimativa: funciona melhor com acordes claros e pouco ruído.
+- **Detectar tom** — também com atalho na tela inicial. Ouve **5 segundos** de
+  canto e mostra os **3 tons mais prováveis**, cada um com a chance, o nível de
+  confiança e os acordes principais para já começar. Um **foco na voz** filtra a
+  faixa vocal, tira o ruído constante do ambiente e só considera notas cantadas e
+  sustentadas (conversa, tosse e palmas ficam de fora). Compensa grupo desafinado
+  e, sem evidência suficiente, **não sugere tom** — pede para ouvir de novo.
 - **Metrônomo** — som sintetizado, ajuste por slider ou passo, "marcar tempo"
   (tap tempo), escolha de compasso e indicador visual dos tempos.
 - **Capotraste** — indica em que casa colocar o capo para tocar com acordes
@@ -83,25 +86,27 @@ A interface foi reconstruída em torno de três princípios:
 
 ```text
 app/src/main/java/com/example/
-├── MainActivity.kt              # Casca de navegação (4 abas + detalhe)
+├── MainActivity.kt              # Casca de navegação (5 abas + telas sobrepostas)
 ├── HarmonicData.kt              # Base dos 24 campos harmônicos
 ├── music/
 │   ├── MusicTheory.kt           # Funções tonais, transposição, formação de acordes
 │   ├── Progressions.kt          # Biblioteca de progressões
-│   ├── ChordAnalysis.kt         # FFT, chromagram, detecção de acorde e tom (puro/testável)
+│   ├── ChordAnalysis.kt         # Base espectral: FFT, classes de altura, chromagram
+│   ├── VoiceFocus.kt            # Foco na voz: filtro da faixa vocal + subtração de ruído
+│   ├── KeyDetection.kt          # Detector de tom (notas sustentadas → 3 tons candidatos)
 │   ├── PitchDetection.kt        # Detecção de altura (autocorrelação) + notas/cents
 │   └── Tunings.kt               # Presets de afinação (Padrão, Drop D, Open G…)
 ├── data/
 │   └── AppSettings.kt           # Configurações persistidas (DataStore)
 ├── audio/
 │   ├── AudioEngine.kt           # Metrônomo e tons de referência (AudioTrack)
-│   ├── ChordListener.kt         # Microfone → identificação de acorde/tom (AudioRecord)
+│   ├── KeyListener.kt           # Microfone → detector de tom, 5 segundos (AudioRecord)
 │   └── TunerListener.kt         # Microfone → afinador (AudioRecord)
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
     ├── components/              # Componentes reutilizáveis (inclui a marca/palheta)
-    └── screens/                 # Campos, Detalhe, Ouvir, Progressões, Aprender,
-                                 #  Ferramentas, Afinador, Configurações, Doação
+    └── screens/                 # Campos, Detalhe, Afinador, Progressões, Aprender,
+                                 #  Ferramentas, Detectar tom, Configurações, Doação
 ```
 
 ---

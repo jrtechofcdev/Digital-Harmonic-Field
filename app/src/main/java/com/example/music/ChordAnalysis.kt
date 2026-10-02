@@ -7,29 +7,19 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
- * Análise de áudio para identificar acorde e tom, sem bibliotecas externas.
- *
- * Estratégia (padrão da área de MIR — recuperação de informação musical):
- *  1. FFT do trecho de áudio → espectro de frequências.
- *  2. Dobra o espectro em 12 classes de altura (chromagram): Dó, Dó#, ... Si.
- *  3. Acorde: compara o chromagram com moldes de tríades maiores e menores.
- *  4. Tom: compara o chromagram acumulado com os perfis de Krumhansl-Schmuckler.
- *
- * As funções aqui são puras (sem Android), para poderem ser testadas.
+ * Base espectral do app: FFT, mapeamento frequência → classe de altura e
+ * chromagram. Funções puras (sem Android), usadas pelo detector de tom.
  */
 
 /** Nomes das 12 classes de altura, em cifra, começando em Dó (índice 0). */
 val pitchClassCiphers = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 
-data class ChordGuess(val cipher: String, val isMinor: Boolean, val score: Double) {
-    /** Cifra final (ex.: "C", "Am"). */
-    val label: String get() = if (isMinor) "${cipher}m" else cipher
-}
+private const val C0_HZ = 16.351597831287414 // Dó0
+private val LN2 = ln(2.0)
 
-data class KeyGuess(val root: Int, val isMinor: Boolean, val score: Double) {
-    /** Cifra do tom no padrão do app (ex.: "G", "Em", "A#m"). */
-    val keyCipher: String get() = pitchClassCiphers[root] + if (isMinor) "m" else ""
-}
+/** Classe de altura (0 = Dó … 11 = Si) mais próxima de uma frequência. */
+fun pitchClassOfFrequency(freq: Double): Int =
+    Math.floorMod(Math.round(12.0 * ln(freq / C0_HZ) / LN2).toInt(), 12)
 
 /** FFT radix-2 in-place (Cooley-Tukey). Requer tamanho potência de 2. */
 fun fft(re: DoubleArray, im: DoubleArray) {
@@ -77,10 +67,6 @@ fun fft(re: DoubleArray, im: DoubleArray) {
     }
 }
 
-/**
- * Calcula o chromagram (12 valores) de um trecho de áudio já janelado ou não.
- * Aplica janela de Hann internamente. Considera apenas frequências musicais úteis.
- */
 // Janelas de Hann memorizadas por tamanho (evita recomputar cos a cada quadro).
 private val hannWindows = HashMap<Int, DoubleArray>()
 
@@ -88,6 +74,10 @@ private fun hannWindow(n: Int): DoubleArray = hannWindows.getOrPut(n) {
     DoubleArray(n) { 0.5 - 0.5 * cos(2.0 * PI * it / (n - 1)) }
 }
 
+/**
+ * Chromagram (12 valores, máximo = 1) de um trecho de áudio. Um portão de ruído
+ * suave descarta o "chão" de banda larga e mantém as parciais musicais.
+ */
 fun computeChroma(
     samples: DoubleArray,
     sampleRate: Int,
@@ -101,128 +91,24 @@ fun computeChroma(
     for (i in 0 until n) re[i] = samples[i] * hann[i]
     fft(re, im)
 
-    val ln2 = ln(2.0)
-    val c0 = 16.351597831287414 // Dó0 em Hz
     val maxBin = n / 2
     val minK = (minFreq * n / sampleRate).toInt().coerceAtLeast(1)
     val maxK = (maxFreq * n / sampleRate).toInt().coerceAtMost(maxBin - 1)
 
-    // Portão de ruído suave: descarta apenas o "chão" de ruído de banda larga,
-    // mantendo terças e quintas do acorde (que podem ser bem mais fracas que a
-    // parcial dominante). O limiar é em potência; 0.003 ≈ 5,5% da amplitude do pico.
-    var maxMag = 0.0
+    var maxPower = 0.0
     for (k in minK..maxK) {
-        val mag = re[k] * re[k] + im[k] * im[k]
-        if (mag > maxMag) maxMag = mag
+        val power = re[k] * re[k] + im[k] * im[k]
+        if (power > maxPower) maxPower = power
     }
-    val gate = maxMag * 0.003
+    val gate = maxPower * 0.003 // ≈ 5,5% da amplitude do pico
 
     val chroma = FloatArray(12)
     for (k in minK..maxK) {
         val power = re[k] * re[k] + im[k] * im[k]
         if (power < gate) continue
-        val mag = sqrt(power)
-        val freq = k.toDouble() * sampleRate / n
-        val pc = Math.floorMod(Math.round(12.0 * ln(freq / c0) / ln2).toInt(), 12)
-        chroma[pc] += mag.toFloat()
+        chroma[pitchClassOfFrequency(k.toDouble() * sampleRate / n)] += sqrt(power).toFloat()
     }
-    return normalize(chroma)
+    val max = chroma.maxOrNull() ?: 0f
+    if (max > 0f) for (i in chroma.indices) chroma[i] /= max
+    return chroma
 }
-
-private fun normalize(v: FloatArray): FloatArray {
-    val max = v.maxOrNull() ?: 0f
-    if (max <= 0f) return v
-    val out = FloatArray(v.size)
-    for (i in v.indices) out[i] = v[i] / max
-    return out
-}
-
-// Moldes de tríade (maior: fundamental, 3ª maior, 5ª justa; menor: 3ª menor).
-private val majorIntervals = intArrayOf(0, 4, 7)
-private val minorIntervals = intArrayOf(0, 3, 7)
-
-/**
- * Estima o acorde mais provável a partir do chromagram, por similaridade de cosseno
- * com os 24 moldes de tríade. Retorna null se o sinal for fraco ou ambíguo.
- */
-fun detectChord(chroma: FloatArray, minScore: Double = 0.5): ChordGuess? {
-    val energy = chroma.sumOf { it.toDouble() }
-    if (energy <= 0.0) return null
-
-    var best: ChordGuess? = null
-    var second = 0.0
-    for (root in 0 until 12) {
-        for (isMinor in booleanArrayOf(false, true)) {
-            val intervals = if (isMinor) minorIntervals else majorIntervals
-            var dot = 0.0
-            for (iv in intervals) dot += chroma[(root + iv) % 12]
-            // Cosseno: molde tem norma sqrt(3); chroma norma abaixo.
-            val chromaNorm = sqrt(chroma.sumOf { (it * it).toDouble() })
-            val score = if (chromaNorm > 0) dot / (chromaNorm * sqrt(3.0)) else 0.0
-            if (best == null || score > best!!.score) {
-                second = best?.score ?: 0.0
-                best = ChordGuess(pitchClassCiphers[root], isMinor, score)
-            } else if (score > second) {
-                second = score
-            }
-        }
-    }
-    val b = best ?: return null
-    // Exige confiança mínima e alguma separação do segundo colocado.
-    if (b.score < minScore || b.score - second < 0.02) return null
-    return b
-}
-
-// Perfis de Krumhansl-Schmuckler (correlação de tonalidade).
-private val ksMajor = doubleArrayOf(6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
-private val ksMinor = doubleArrayOf(6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
-
-/**
- * Estima o tom da música a partir do chromagram acumulado, correlacionando com
- * os perfis de Krumhansl-Schmuckler em todas as 24 tonalidades.
- */
-fun detectKey(chroma: FloatArray): KeyGuess? {
-    if (chroma.sumOf { it.toDouble() } <= 0.0) return null
-    val v = DoubleArray(12) { chroma[it].toDouble() }
-
-    var best: KeyGuess? = null
-    for (root in 0 until 12) {
-        for (isMinor in booleanArrayOf(false, true)) {
-            val profile = if (isMinor) ksMinor else ksMajor
-            val rotated = DoubleArray(12) { profile[Math.floorMod(it - root, 12)] }
-            val score = pearson(v, rotated)
-            if (best == null || score > best!!.score) {
-                best = KeyGuess(root, isMinor, score)
-            }
-        }
-    }
-    return best
-}
-
-private fun pearson(a: DoubleArray, b: DoubleArray): Double {
-    val n = a.size
-    val ma = a.average()
-    val mb = b.average()
-    var num = 0.0
-    var da = 0.0
-    var db = 0.0
-    for (i in 0 until n) {
-        val xa = a[i] - ma
-        val xb = b[i] - mb
-        num += xa * xb
-        da += xa * xa
-        db += xb * xb
-    }
-    val den = sqrt(da * db)
-    return if (den == 0.0) 0.0 else num / den
-}
-
-/** Mistura exponencial de dois chromagrams (para suavizar no tempo). */
-fun blendChroma(previous: FloatArray, current: FloatArray, alpha: Float): FloatArray {
-    val out = FloatArray(12)
-    for (i in 0 until 12) out[i] = previous[i] * (1 - alpha) + current[i] * alpha
-    return out
-}
-
-/** Índice cromático de uma cifra (para testes). */
-fun pitchClassOf(cipher: String): Int = pitchClassCiphers.indexOf(cipher)

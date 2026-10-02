@@ -48,7 +48,7 @@ import com.example.ui.screens.DonationScreen
 import com.example.ui.screens.FieldDetailScreen
 import com.example.ui.screens.FieldsScreen
 import com.example.ui.screens.LearnScreen
-import com.example.ui.screens.ListenScreen
+import com.example.ui.screens.KeyFinderScreen
 import com.example.ui.screens.ProgressionsScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.ToolsScreen
@@ -116,13 +116,13 @@ private fun HarmonicApp() {
     var tab by remember { mutableStateOf(Tab.CAMPOS) }
     var detailKey by remember { mutableStateOf<String?>(null) }
     var showDonation by remember { mutableStateOf(false) }
-    var showListen by remember { mutableStateOf(false) }
+    var showKeyFinder by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = detailKey != null || showDonation || showListen || showSettings) {
+    BackHandler(enabled = detailKey != null || showDonation || showKeyFinder || showSettings) {
         when {
             showSettings -> showSettings = false
-            showListen -> showListen = false
+            showKeyFinder -> showKeyFinder = false
             showDonation -> showDonation = false
             else -> detailKey = null
         }
@@ -140,11 +140,11 @@ private fun HarmonicApp() {
                 contentPadding = insets,
             )
         }
-    } else if (showListen) {
+    } else if (showKeyFinder) {
         Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-            ListenScreen(
-                onOpenKey = { showListen = false; openKey(it) },
-                onBack = { showListen = false },
+            KeyFinderScreen(
+                onOpenKey = { showKeyFinder = false; openKey(it) },
+                onBack = { showKeyFinder = false },
                 contentPadding = insets,
             )
         }
@@ -198,7 +198,13 @@ private fun HarmonicApp() {
             },
         ) { innerPadding ->
             when (tab) {
-                Tab.CAMPOS -> FieldsScreen(favorites, openKey, { showDonation = true }, innerPadding)
+                Tab.CAMPOS -> FieldsScreen(
+                    favorites = favorites,
+                    onOpenKey = openKey,
+                    onDetectKey = { showKeyFinder = true },
+                    onSupport = { showDonation = true },
+                    contentPadding = innerPadding,
+                )
                 Tab.AFINADOR -> TunerScreen(
                     settings = settings,
                     onSettingsChange = onSettingsChange,
@@ -207,7 +213,7 @@ private fun HarmonicApp() {
                 Tab.PROGRESSOES -> ProgressionsScreen(openKey, innerPadding)
                 Tab.APRENDER -> LearnScreen(openKey, innerPadding)
                 Tab.FERRAMENTAS -> ToolsScreen(
-                    onOpenListen = { showListen = true },
+                    onOpenKeyFinder = { showKeyFinder = true },
                     onOpenSettings = { showSettings = true },
                     contentPadding = innerPadding,
                 )

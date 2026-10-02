@@ -123,27 +123,6 @@ fun transposePtChord(name: String, semitones: Int): String {
     return if (parts.size > 1) "$transposedNote ${parts[1]}" else transposedNote
 }
 
-/** Nome em português de uma cifra latina (ex.: "G#m" -> "Sol# menor"). */
-fun cipherToPtName(cipher: String): String {
-    if (cipher.isEmpty()) return cipher
-    val root: String
-    val suffix: String
-    if (cipher.length >= 2 && (cipher[1] == '#' || cipher[1] == 'b')) {
-        root = cipher.substring(0, 2); suffix = cipher.substring(2)
-    } else {
-        root = cipher.substring(0, 1); suffix = cipher.substring(1)
-    }
-    val normalized = flatToSharp[root] ?: root
-    val idx = chromaticRoots.indexOf(normalized)
-    val ptRoot = if (idx >= 0) ptNotesOutput[idx] else root
-    val quality = when {
-        suffix.contains("°") || suffix.contains("dim") -> " diminuto"
-        suffix.startsWith("m") -> " menor"
-        else -> " Maior"
-    }
-    return ptRoot + quality
-}
-
 // ---------------------------------------------------------------------------
 // Formação do acorde (fundamental, terça, quinta)
 // ---------------------------------------------------------------------------

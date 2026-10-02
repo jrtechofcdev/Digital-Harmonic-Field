@@ -51,7 +51,7 @@ import com.example.ui.theme.TextStrong
 
 @Composable
 fun ToolsScreen(
-    onOpenListen: () -> Unit,
+    onOpenKeyFinder: () -> Unit,
     onOpenSettings: () -> Unit,
     contentPadding: PaddingValues,
 ) {
@@ -75,9 +75,9 @@ fun ToolsScreen(
         }
         item {
             NavCard(
-                title = "Ouvir (identificar acorde)",
-                subtitle = "O app escuta e estima o acorde e o tom provável da música",
-                onClick = onOpenListen,
+                title = "Detectar tom",
+                subtitle = "Ouve 5 segundos de canto e sugere os 3 tons mais prováveis",
+                onClick = onOpenKeyFinder,
             )
         }
         item { MetronomeCard(metronome) }

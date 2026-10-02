@@ -176,7 +176,7 @@ private fun DetectKeyCard(onClick: () -> Unit) {
         Column(Modifier.weight(1f)) {
             Text("Detectar tom da música", style = MaterialTheme.typography.titleMedium, color = TextStrong)
             Text(
-                "Ouve 5 segundos de canto e sugere o tom",
+                "Ouve o canto e sugere o tom em segundos",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextMuted,
             )

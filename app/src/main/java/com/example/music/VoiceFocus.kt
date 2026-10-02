@@ -12,8 +12,9 @@ import kotlin.math.sqrt
  *
  * Não é separação de fontes por rede neural (como apps de estúdio); é processamento
  * de sinal leve, que roda instantaneamente no celular:
- *  1. [VoiceBandFilter] mantém só a faixa da voz cantada (90–1500 Hz) — corta
- *     graves de bateria/baixo, ronco de som e chiado agudo.
+ *  1. [VoiceBandFilter] mantém só a faixa da voz cantada (120–1500 Hz) — corta
+ *     graves de bateria/baixo, ronco de som e chiado agudo. O baixo não é jogado
+ *     fora: vai para um canal próprio ([BassBandFilter]), analisado à parte.
  *  2. [VoiceFocus] estima o ruído de fundo de cada frequência (mínimo móvel) e o
  *     subtrai — tira ventilador, ar-condicionado, burburinho constante.
  *  3. Depois, o detector de altura só aceita trechos com nota clara e sustentada
@@ -38,7 +39,7 @@ class Biquad private constructor(
     }
 
     companion object {
-        fun highPass(fc: Double, fs: Int, q: Double = 0.7071): Biquad {
+        fun highPass(fc: Double, fs: Double, q: Double = 0.7071): Biquad {
             val w = 2.0 * PI * fc / fs
             val c = cos(w)
             val alpha = sin(w) / (2.0 * q)
@@ -49,7 +50,7 @@ class Biquad private constructor(
             )
         }
 
-        fun lowPass(fc: Double, fs: Int, q: Double = 0.7071): Biquad {
+        fun lowPass(fc: Double, fs: Double, q: Double = 0.7071): Biquad {
             val w = 2.0 * PI * fc / fs
             val c = cos(w)
             val alpha = sin(w) / (2.0 * q)
@@ -59,26 +60,75 @@ class Biquad private constructor(
                 -2 * c / a0, (1 - alpha) / a0,
             )
         }
+
+        /** Rejeita-faixa estreito: apaga só [f0] (±f0/q), sem tocar no resto. */
+        fun notch(f0: Double, fs: Double, q: Double = 15.0): Biquad {
+            val w = 2.0 * PI * f0 / fs
+            val c = cos(w)
+            val alpha = sin(w) / (2.0 * q)
+            val a0 = 1.0 + alpha
+            return Biquad(
+                1 / a0, -2 * c / a0, 1 / a0,
+                -2 * c / a0, (1 - alpha) / a0,
+            )
+        }
     }
 }
 
 /**
- * Mantém só a faixa da voz (passa-altas 90 Hz + passa-baixas 1500 Hz de 4ª ordem)
- * e reduz a taxa pela metade (44 100 → 22 050 Hz), o que barateia a análise.
+ * Mantém só a faixa da voz (passa-altas 120 Hz + passa-baixas 1500 Hz, ambos de
+ * 4ª ordem) e reduz a taxa pela metade (44 100 → 22 050 Hz). O corte em 120 Hz
+ * tira o baixo do caminho da voz (senão o detector "canta" as notas do baixo),
+ * mas ainda deixa passar a voz masculina grave pelos harmônicos.
  */
 class VoiceBandFilter(inputRate: Int = 44100) {
-    private val hp = Biquad.highPass(90.0, inputRate)
-    private val lp1 = Biquad.lowPass(1500.0, inputRate)
-    private val lp2 = Biquad.lowPass(1500.0, inputRate)
+    private val fs = inputRate.toDouble()
+    private val hp1 = Biquad.highPass(120.0, fs)
+    private val hp2 = Biquad.highPass(120.0, fs)
+    private val lp1 = Biquad.lowPass(1500.0, fs)
+    private val lp2 = Biquad.lowPass(1500.0, fs)
     private var keep = true
 
     /** Filtra [count] amostras e escreve as decimadas em [out]. Retorna quantas escreveu. */
     fun process(input: DoubleArray, count: Int, out: DoubleArray): Int {
         var n = 0
         for (i in 0 until count) {
-            val y = lp2.process(lp1.process(hp.process(input[i])))
+            val y = lp2.process(lp1.process(hp2.process(hp1.process(input[i]))))
             if (keep) out[n++] = y
             keep = !keep
+        }
+        return n
+    }
+}
+
+/**
+ * Canal do baixo: guarda só 35–160 Hz (baixo elétrico, mão esquerda do teclado)
+ * e reduz a taxa 8× (44 100 → 5 512 Hz). Depois apaga o zumbido da rede
+ * elétrica (60, 120 e 180 Hz), que senão seria lido como uma "nota" grave fixa.
+ */
+class BassBandFilter(inputRate: Int = 44100) {
+    companion object {
+        const val DECIMATION = 8
+        private val HUM = doubleArrayOf(60.0, 120.0, 180.0)
+    }
+
+    private val fs = inputRate.toDouble()
+    private val hp = Biquad.highPass(35.0, fs)
+    private val lp1 = Biquad.lowPass(160.0, fs)
+    private val lp2 = Biquad.lowPass(160.0, fs)
+    private val notches = HUM.map { Biquad.notch(it, fs / DECIMATION) }
+    private var phase = 0
+
+    /** Filtra [count] amostras e escreve as decimadas em [out]. Retorna quantas escreveu. */
+    fun process(input: DoubleArray, count: Int, out: DoubleArray): Int {
+        var n = 0
+        for (i in 0 until count) {
+            var y = lp2.process(lp1.process(hp.process(input[i])))
+            if (phase == 0) {
+                for (notch in notches) y = notch.process(y)
+                out[n++] = y
+            }
+            phase = (phase + 1) % DECIMATION
         }
         return n
     }

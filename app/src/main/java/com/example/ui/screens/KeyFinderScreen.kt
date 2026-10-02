@@ -1,7 +1,12 @@
 package com.example.ui.screens
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -31,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,7 +75,6 @@ import com.example.ui.theme.TextBody
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextStrong
 import kotlin.math.abs
-import kotlin.math.ceil
 
 private val ptKeyName = HarmonicDatabase.ptNameByCipher
 
@@ -91,21 +96,31 @@ fun KeyFinderScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
+        // Ao mudar para true, o efeito abaixo é refeito e liga o microfone.
         hasPermission = granted
-        if (granted) listener.start()
     }
 
-    // Libera o microfone ao sair da tela ou quando o app vai para segundo plano.
+    // Com a tela visível, o microfone fica pronto (últimos 5 s só na memória).
+    // Ao sair da tela ou ir para segundo plano, desliga e apaga tudo.
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, hasPermission) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) listener.cancel()
+            when (event) {
+                Lifecycle.Event.ON_START -> if (hasPermission) listener.open()
+                Lifecycle.Event.ON_STOP -> listener.close()
+                else -> Unit
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            listener.cancel()
+            listener.close()
         }
+    }
+
+    // Vibra ao terminar: dá para saber o resultado sem olhar a tela.
+    LaunchedEffect(listener.result) {
+        listener.result?.let { vibrateFor(context, it.status) }
     }
 
     Column(
@@ -134,7 +149,7 @@ fun KeyFinderScreen(
             Column {
                 Text("Detectar tom", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
                 Text(
-                    "Ouve ${KeyListener.SECONDS} segundos de canto e sugere o tom",
+                    "Usa os últimos ${KeyListener.PREROLL_SECONDS} s de canto — resposta na hora",
                     style = MaterialTheme.typography.labelSmall,
                     color = Brass,
                 )
@@ -148,12 +163,12 @@ fun KeyFinderScreen(
             return@Column
         }
 
-        val listening = listener.phase == KeyListener.Phase.LISTENING
+        val listening = listener.phase == KeyListener.Phase.ANALYZING
         ListenDial(
-            listening = listening,
-            done = listener.phase == KeyListener.Phase.DONE,
-            progress = listener.progress,
-            onClick = { if (listening) listener.cancel() else listener.start() },
+            phase = listener.phase,
+            buffered = listener.buffered,
+            analyzedSeconds = listener.analyzedSeconds,
+            onClick = { if (listening) listener.cancelDetection() else listener.detect() },
         )
 
         Spacer(Modifier.height(16.dp))
@@ -164,6 +179,8 @@ fun KeyFinderScreen(
                 hearingVoice = listener.hearingVoice,
                 liveGuess = listener.liveGuess,
             )
+        } else if (listener.phase != KeyListener.Phase.OFF && listener.result == null) {
+            MemoryNote()
         }
 
         listener.error?.let {
@@ -186,7 +203,7 @@ fun KeyFinderScreen(
                     )
                     Spacer(Modifier.height(10.dp))
                 }
-                EvidenceCard(result)
+                EvidenceCard(result, listener.analyzedSeconds)
             } else {
                 NoAnswerCard(result.status)
             }
@@ -202,7 +219,15 @@ fun KeyFinderScreen(
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun ListenDial(listening: Boolean, done: Boolean, progress: Float, onClick: () -> Unit) {
+private fun ListenDial(
+    phase: KeyListener.Phase,
+    buffered: Float,
+    analyzedSeconds: Float,
+    onClick: () -> Unit,
+) {
+    val listening = phase == KeyListener.Phase.ANALYZING
+    // Ouvindo: o arco mostra o tempo até o limite. Pronto: o quanto já está guardado.
+    val arc = if (listening) (analyzedSeconds / MAX_SECONDS).coerceIn(0f, 1f) else buffered
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
@@ -215,28 +240,34 @@ private fun ListenDial(listening: Boolean, done: Boolean, progress: Float, onCli
             Canvas(Modifier.size(196.dp)) {
                 val stroke = 8.dp.toPx()
                 val inset = stroke / 2
+                val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
+                val arcSize = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke)
                 drawArc(
                     color = Hairline,
                     startAngle = 0f, sweepAngle = 360f, useCenter = false,
-                    topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
-                    size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
+                    topLeft = topLeft, size = arcSize,
                     style = Stroke(width = stroke),
                 )
-                if (listening) {
+                if (arc > 0f && phase != KeyListener.Phase.OFF) {
                     drawArc(
-                        color = Brass,
-                        startAngle = -90f, sweepAngle = 360f * progress, useCenter = false,
-                        topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
-                        size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
+                        color = if (listening) Brass else TextMuted,
+                        startAngle = -90f, sweepAngle = 360f * arc, useCenter = false,
+                        topLeft = topLeft, size = arcSize,
                         style = Stroke(width = stroke, cap = StrokeCap.Round),
                     )
                 }
             }
             if (listening) {
-                val remaining = ceil((1f - progress) * KeyListener.SECONDS).toInt().coerceAtLeast(1)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("$remaining", fontSize = 64.sp, fontWeight = FontWeight.Bold, color = TextStrong)
-                    Text("ouvindo… toque para cancelar", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    Text(
+                        "%.1f".format(analyzedSeconds).replace('.', ','),
+                        fontSize = 52.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextStrong,
+                    )
+                    Text("segundos analisados", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    Spacer(Modifier.height(2.dp))
+                    Text("toque para cancelar", style = MaterialTheme.typography.labelSmall, color = TextMuted)
                 }
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -248,15 +279,42 @@ private fun ListenDial(listening: Boolean, done: Boolean, progress: Float, onCli
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        if (done) "Ouvir de novo" else "Ouvir ${KeyListener.SECONDS} s",
+                        if (phase == KeyListener.Phase.DONE) "Detectar de novo" else "Detectar tom",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextStrong,
+                    )
+                    val seconds = (buffered * KeyListener.PREROLL_SECONDS).toInt()
+                    Text(
+                        when {
+                            phase == KeyListener.Phase.OFF -> "toque para ouvir"
+                            buffered >= 1f -> "últimos ${KeyListener.PREROLL_SECONDS} s prontos"
+                            else -> "guardando… $seconds s"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMuted,
                     )
                 }
             }
         }
     }
+}
+
+private const val MAX_SECONDS = 8f
+
+/** Explica por que o microfone fica ligado com a tela aberta. */
+@Composable
+private fun MemoryNote() {
+    Text(
+        "Com esta tela aberta, o microfone fica ligado e só os últimos " +
+            "${KeyListener.PREROLL_SECONDS} segundos ficam na memória, para a resposta sair na hora. " +
+            "Nada é gravado nem enviado; ao sair da tela, tudo é apagado.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = TextMuted,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+    )
+    Spacer(Modifier.height(16.dp))
 }
 
 @Composable
@@ -440,7 +498,7 @@ private fun CandidateCard(
 }
 
 @Composable
-private fun EvidenceCard(result: KeyResult) {
+private fun EvidenceCard(result: KeyResult, analyzedSeconds: Float) {
     val top = result.candidates.first()
     val scale = if (top.isMinor) intArrayOf(0, 2, 3, 5, 7, 8, 10) else intArrayOf(0, 2, 4, 5, 7, 9, 11)
     val inScale = scale.map { (top.root + it) % 12 }.toSet()
@@ -486,7 +544,10 @@ private fun EvidenceCard(result: KeyResult) {
             }
         }
         Spacer(Modifier.height(12.dp))
-        FactLine("Canto analisado", "%.1f s".format(result.voicedSeconds))
+        FactLine("Canto aproveitado", "%.1f s de %.1f s ouvidos".format(result.voicedSeconds, analyzedSeconds))
+        if (result.bassSeconds > 0) {
+            FactLine("Linha do baixo", "%.1f s (baixo/teclado)".format(result.bassSeconds))
+        }
         result.lastNote?.let { FactLine("Última nota sustentada", ptPitchClass(it)) }
         val off = result.tuningOffsetCents.toInt()
         if (abs(off) >= 10) {
@@ -542,11 +603,15 @@ private fun HowItWorksCard() {
     ) {
         SectionLabel("Como funciona")
         Spacer(Modifier.height(8.dp))
+        Tip("Com a tela aberta, guarda só os últimos 5 s na memória: ao tocar, a resposta sai na hora.")
+        Tip("Quando o canto está claro, responde em 2 a 3 s. Se estiver difícil, ouve até 8 s antes de responder.")
         Tip("Filtra só a faixa da voz e tira o ruído constante do ambiente.")
         Tip("Considera apenas notas cantadas e sustentadas — conversa, tosse e palmas ficam de fora.")
         Tip("Compensa se o grupo estiver um pouco acima ou abaixo do tom.")
+        Tip("Se houver banda, ouve o baixo à parte: ele ajuda a separar tons parecidos, como a relativa menor.")
         Tip("Compara as notas com o padrão de milhares de melodias e mostra os 3 tons mais compatíveis.")
         Tip("Sem evidência suficiente, ele não chuta: pede para ouvir de novo.")
+        Tip("Vibra ao terminar: duas vezes quando tem certeza, uma vez quando é provável e uma longa quando não deu.")
     }
 }
 
@@ -577,8 +642,9 @@ private fun PermissionPrompt(onRequest: () -> Unit) {
         Text("Permissão do microfone", style = MaterialTheme.typography.titleLarge, color = TextStrong)
         Spacer(Modifier.height(6.dp))
         Text(
-            "Para detectar o tom, o app ouve 5 segundos pelo microfone. O áudio é analisado no " +
-                "aparelho e não é gravado nem enviado.",
+            "Para detectar o tom, o app ouve pelo microfone enquanto esta tela está aberta. O áudio " +
+                "é analisado no aparelho, só os últimos 5 segundos ficam na memória e nada é gravado " +
+                "nem enviado.",
             style = MaterialTheme.typography.bodyMedium,
             color = TextBody,
         )
@@ -597,3 +663,27 @@ private fun PermissionPrompt(onRequest: () -> Unit) {
     }
 }
 
+
+/** Duas vibrações curtas = certeza; uma = provável; uma longa = sem resposta. */
+private fun vibrateFor(context: Context, status: KeyStatus) {
+    val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        context.getSystemService(VibratorManager::class.java)?.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    }
+    if (vibrator == null || !vibrator.hasVibrator()) return
+    val pattern = when (status) {
+        KeyStatus.ALTA -> longArrayOf(0, 60, 90, 60)
+        KeyStatus.MEDIA, KeyStatus.BAIXA -> longArrayOf(0, 90)
+        KeyStatus.SEM_VOZ, KeyStatus.INSUFICIENTE -> longArrayOf(0, 300)
+    }
+    runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(pattern, -1)
+        }
+    }
+}

@@ -76,7 +76,7 @@ fun ToolsScreen(
         item {
             NavCard(
                 title = "Detectar tom",
-                subtitle = "Ouve 5 segundos de canto e sugere os 3 tons mais prováveis",
+                subtitle = "Ouve o canto e mostra os 3 tons mais prováveis em segundos",
                 onClick = onOpenKeyFinder,
             )
         }

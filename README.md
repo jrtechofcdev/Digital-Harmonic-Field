@@ -53,12 +53,21 @@ menor.
 ### Ferramentas
 Utilitários para o dia a dia, todos sem depender de internet:
 
-- **Detectar tom** — também com atalho na tela inicial. Ouve **5 segundos** de
-  canto e mostra os **3 tons mais prováveis**, cada um com a chance, o nível de
-  confiança e os acordes principais para já começar. Um **foco na voz** filtra a
-  faixa vocal, tira o ruído constante do ambiente e só considera notas cantadas e
-  sustentadas (conversa, tosse e palmas ficam de fora). Compensa grupo desafinado
-  e, sem evidência suficiente, **não sugere tom** — pede para ouvir de novo.
+- **Detectar tom** — também com atalho na tela inicial. Mostra os **3 tons mais
+  prováveis**, cada um com a chance, o nível de confiança e os acordes principais
+  para já começar.
+  - **Resposta na hora:** com a tela aberta, o app guarda só os **últimos
+    5 segundos** na memória (nada é gravado em arquivo nem enviado; ao sair da
+    tela, tudo é apagado). Ao tocar, ele analisa esse trecho na hora.
+  - **Para quando tem certeza:** com canto claro, responde em 2 a 3 s; em caso
+    difícil, ouve até 8 s antes de responder, em vez de chutar. Vibra ao terminar
+    (duas vezes = certeza, uma = provável, longa = sem resposta).
+  - **Foco na voz + canal do baixo:** filtra a faixa vocal, tira o ruído
+    constante e só considera notas cantadas e sustentadas (conversa, tosse e
+    palmas ficam de fora). Se houver banda, ouve o baixo à parte — ele ajuda a
+    separar tons parecidos, como a relativa menor. O zumbido da rede elétrica é
+    descartado.
+  - Compensa grupo desafinado e, sem evidência suficiente, **não sugere tom**.
 - **Metrônomo** — som sintetizado, ajuste por slider ou passo, "marcar tempo"
   (tap tempo), escolha de compasso e indicador visual dos tempos.
 - **Capotraste** — indica em que casa colocar o capo para tocar com acordes
@@ -92,7 +101,7 @@ app/src/main/java/com/example/
 │   ├── MusicTheory.kt           # Funções tonais, transposição, formação de acordes
 │   ├── Progressions.kt          # Biblioteca de progressões
 │   ├── ChordAnalysis.kt         # Base espectral: FFT, classes de altura, chromagram
-│   ├── VoiceFocus.kt            # Foco na voz: filtro da faixa vocal + subtração de ruído
+│   ├── VoiceFocus.kt            # Foco na voz + canal do baixo + subtração de ruído
 │   ├── KeyDetection.kt          # Detector de tom (notas sustentadas → 3 tons candidatos)
 │   ├── PitchDetection.kt        # Detecção de altura (autocorrelação) + notas/cents
 │   └── Tunings.kt               # Presets de afinação (Padrão, Drop D, Open G…)
@@ -100,7 +109,7 @@ app/src/main/java/com/example/
 │   └── AppSettings.kt           # Configurações persistidas (DataStore)
 ├── audio/
 │   ├── AudioEngine.kt           # Metrônomo e tons de referência (AudioTrack)
-│   ├── KeyListener.kt           # Microfone → detector de tom, 5 segundos (AudioRecord)
+│   ├── KeyListener.kt           # Microfone → detector de tom (pré-buffer de 5 s em memória)
 │   └── TunerListener.kt         # Microfone → afinador (AudioRecord)
 └── ui/
     ├── theme/                   # Cores, tipografia e tema

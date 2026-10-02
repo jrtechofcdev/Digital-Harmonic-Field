@@ -39,15 +39,17 @@ com/example/
 │   ├── MusicTheory.kt     # HarmonicFunction (T/SD/D), transposição, formação de acordes
 │   ├── Progressions.kt    # ProgressionLibrary (inclui a Progressão da Harpa)
 │   ├── ChordAnalysis.kt   # Base espectral: FFT, pitchClassOfFrequency, chromagram
-│   ├── VoiceFocus.kt      # Foco na voz: biquads 90–1500 Hz + subtração espectral
-│   ├── KeyDetection.kt    # Detector de tom: KeyDetector (streaming) → KeyResult
+│   ├── VoiceFocus.kt      # Foco na voz (120–1500 Hz) + canal do baixo (35–160 Hz,
+│   │                      #   sem zumbido 60/120/180 Hz) + subtração espectral
+│   ├── KeyDetection.kt    # Detector de tom: KeyDetector (streaming) → KeyResult;
+│   │                      #   KeyStopRule (quando parar de ouvir)
 │   ├── PitchDetection.kt  # Detecção de altura (autocorrelação/MPM) + notas/cents
 │   └── Tunings.kt         # Presets de afinação do afinador
 ├── data/
 │   └── AppSettings.kt     # Configurações do afinador via DataStore (ref A, precisão…)
 ├── audio/
 │   ├── AudioEngine.kt     # Metronome e TonePlayer via AudioTrack (sem libs externas)
-│   ├── KeyListener.kt     # AudioRecord 5 s → KeyDetector (requer RECORD_AUDIO)
+│   ├── KeyListener.kt     # Pré-buffer de 5 s (só memória) + análise ao tocar (RECORD_AUDIO)
 │   └── TunerListener.kt   # AudioRecord do microfone → PitchDetection (afinador)
 └── ui/
     ├── theme/             # Color.kt (tokens), Type.kt (Space Grotesk), Theme.kt
@@ -77,6 +79,17 @@ Regra de ouro: **nunca sugerir tom sem evidência** — sem notas sustentadas o
 status é `SEM_VOZ`; notas incoerentes dão `INSUFICIENTE` e a lista de
 candidatos fica vazia. Ao mexer nos limiares de `KeyEvidence`, rode os testes
 de ruído/conversa/notas cromáticas além dos de acerto.
+
+- **Dois canais:** a melodia decide; o canal do baixo (`addBassFrame`) só
+  entra com energia de instrumento (≥20% da voz) e peso máximo 0,3. Vozes
+  graves e zumbido da rede não podem virar "baixo" (há testes para isso).
+- **Parada antecipada:** `KeyStopRule` encerra com ALTA estável (2 leituras) ou,
+  a partir de 5 s, com ALTA/MÉDIA; caso difícil ouve até 8 s em vez de chutar.
+- **Pré-buffer:** com a tela aberta, `KeyListener` mantém só os últimos 5 s em
+  memória (buffer circular). Nunca grave em arquivo nem envie áudio; ao sair da
+  tela (`close`) o buffer é apagado.
+- Calibração atual é sintética (Python → Kotlin). Gravações reais de hinos com
+  o tom conhecido são o próximo passo para ajustar os limiares.
 
 ## Ao adicionar tons/acordes
 

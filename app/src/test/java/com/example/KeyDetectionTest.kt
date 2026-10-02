@@ -3,6 +3,8 @@ package com.example
 import com.example.music.KeyDetector
 import com.example.music.KeyResult
 import com.example.music.KeyStatus
+import com.example.music.KeyStopRule
+import kotlin.math.exp
 import java.util.Random
 import kotlin.math.PI
 import kotlin.math.min
@@ -117,6 +119,29 @@ class KeyDetectionTest {
         return out
     }
 
+    /** Baixo tocando a fundamental de cada acorde (corda com harmônicos, decaindo). */
+    private fun bass(roots: List<Int>, amp: Double = 0.2): DoubleArray {
+        val out = DoubleArray(n)
+        val seg = n / roots.size
+        roots.forEachIndexed { c, m ->
+            val f = mtof(m.toDouble())
+            for (i in c * seg until min(n, (c + 1) * seg)) {
+                val tt = (i - c * seg).toDouble() / sr
+                var s = 0.0
+                var a = 1.0
+                for (k in 1..4) { s += a * sin(2 * PI * f * k * tt); a *= 0.5 }
+                out[i] += amp * exp(-tt * 0.8) * s
+            }
+        }
+        return out
+    }
+
+    /** Zumbido da rede elétrica (60 Hz + harmônicos), alto e constante. */
+    private fun hum(amp: Double = 0.08) = DoubleArray(n) {
+        val t = it.toDouble() / sr
+        amp * (sin(2 * PI * 60 * t) + 0.6 * sin(2 * PI * 120 * t) + 0.3 * sin(2 * PI * 180 * t))
+    }
+
     private fun mix(vararg parts: DoubleArray) = DoubleArray(n) { i -> parts.sumOf { it[i] } }
 
     private fun analyze(signal: DoubleArray): KeyResult {
@@ -130,6 +155,28 @@ class KeyDetectionTest {
             i += c
         }
         return detector.result()
+    }
+
+    /**
+     * Simula o uso no app: alimenta em blocos e consulta a regra de parada a cada
+     * ~0,28 s. Devolve (segundos até parar, resultado) — ou null se não parou.
+     */
+    private fun stopTime(signal: DoubleArray, rule: KeyStopRule = KeyStopRule()): Pair<Double, KeyResult>? {
+        val detector = KeyDetector(sr)
+        val chunk = DoubleArray(2048)
+        var i = 0
+        var chunks = 0
+        while (i < signal.size) {
+            val c = min(2048, signal.size - i)
+            System.arraycopy(signal, i, chunk, 0, c)
+            detector.feed(chunk, c)
+            i += c
+            if (++chunks % 6 == 0) {
+                val r = detector.result()
+                if (rule.shouldStop(r, detector.secondsFed)) return detector.secondsFed to r
+            }
+        }
+        return null
     }
 
     private val hymnG = listOf(67 to 1, 71 to 1, 74 to 1, 71 to 1, 67 to 1, 69 to 1, 71 to 1, 72 to 1, 71 to 1, 69 to 1, 67 to 2)
@@ -212,5 +259,74 @@ class KeyDetectionTest {
         r.candidates.forEach {
             assertTrue("${it.keyCipher} precisa existir no app", HarmonicDatabase.ptNameByCipher.containsKey(it.keyCipher))
         }
+    }
+
+    // ----- Canal do baixo -----
+
+    @Test
+    fun bandaComBaixo_identificaSolEUsaOBaixo() {
+        val signal = mix(
+            voice(hymnG, voices = 6, amp = 0.3),
+            pads(listOf(listOf(55, 59, 62), listOf(60, 64, 67), listOf(62, 66, 69), listOf(55, 59, 62)), amp = 0.05),
+            bass(listOf(43, 48, 50, 43)),
+            crowd(amp = 0.05),
+        )
+        val r = analyze(signal)
+        assertEquals("G", r.candidates.first().keyCipher)
+        assertTrue("baixo deveria entrar na análise: ${r.bassSeconds}", r.bassSeconds >= 1.0)
+    }
+
+    @Test
+    fun baixoDesempataMelodiaAmbigua() {
+        // Melodia só com Lá, Dó, Mi e Sol: serve tanto para Dó maior quanto Lá menor.
+        val ambiguous = listOf(69 to 1, 72 to 1, 76 to 1, 79 to 1, 76 to 1, 72 to 1, 69 to 1, 72 to 1)
+        val withMinorBass = analyze(mix(voice(ambiguous), bass(listOf(45, 50, 52, 45))))
+        val withMajorBass = analyze(mix(voice(ambiguous), bass(listOf(48, 53, 55, 48))))
+        assertEquals("Am", withMinorBass.candidates.first().keyCipher)
+        assertEquals("C", withMajorBass.candidates.first().keyCipher)
+    }
+
+    @Test
+    fun zumbidoDaRede_naoViraBaixo() {
+        val r = analyze(mix(voice(hymnG), hum()))
+        assertEquals("G", r.candidates.first().keyCipher)
+        assertEquals("zumbido não pode contar como baixo", 0.0, r.bassSeconds, 0.0)
+    }
+
+    @Test
+    fun congregacaoACapela_naoInventaBaixo() {
+        val r = analyze(mix(voice(hymnG, voices = 8, amp = 0.3), crowd()))
+        assertEquals("G", r.candidates.first().keyCipher)
+        assertEquals("vozes graves não são baixo", 0.0, r.bassSeconds, 0.0)
+    }
+
+    @Test
+    fun soBaixoSemCanto_naoResponde() {
+        val r = analyze(bass(listOf(43, 48, 50, 43)))
+        assertFalse("sem voz, o baixo sozinho não decide o tom", r.hasAnswer)
+    }
+
+    // ----- Parada antecipada -----
+
+    @Test
+    fun cantoClaro_respondeAntesDos5Segundos() {
+        val stop = stopTime(mix(voice(hymnG, voices = 6, amp = 0.3), crowd(amp = 0.04)))
+        assertTrue("deveria responder antes de 5 s", stop != null && stop.first < 4.5)
+        assertEquals(KeyStatus.ALTA, stop!!.second.status)
+        assertEquals("G", stop.second.candidates.first().keyCipher)
+    }
+
+    @Test
+    fun soRuido_naoParaAntesDoLimite() {
+        // Com 5 s de ruído e limite de 8 s, a regra nunca encerra "achando" um tom.
+        assertEquals(null, stopTime(crowd()))
+    }
+
+    @Test
+    fun regraDeParada_noLimiteEncerraMesmoSemResposta() {
+        val rule = KeyStopRule(maxSeconds = 4.0)
+        val stop = stopTime(crowd(), rule)
+        assertTrue(stop != null && stop.first >= 4.0)
+        assertFalse(stop!!.second.hasAnswer)
     }
 }

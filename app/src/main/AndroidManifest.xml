@@ -2,8 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Necessária para o identificador de acorde/tom por microfone. -->
+    <!-- Necessária para o detector de tom e o afinador (microfone). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Vibração curta ao terminar a detecção de tom. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <application

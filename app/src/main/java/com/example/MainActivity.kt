@@ -41,18 +41,15 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.example.data.TunerSettings
-import com.example.data.saveTunerSettings
-import com.example.data.tunerSettingsFlow
 import com.example.ui.screens.DonationScreen
 import com.example.ui.screens.FieldDetailScreen
 import com.example.ui.screens.FieldsScreen
 import com.example.ui.screens.LearnScreen
 import com.example.ui.screens.KeyFinderScreen
+import com.example.ui.screens.ProgressionStageScreen
 import com.example.ui.screens.ProgressionsScreen
-import com.example.ui.screens.SettingsScreen
+import com.example.music.Progression
 import com.example.ui.screens.ToolsScreen
-import com.example.ui.screens.TunerScreen
 import com.example.ui.theme.Brass
 import com.example.ui.theme.HarmonicTheme
 import com.example.ui.theme.Hairline
@@ -84,7 +81,6 @@ private enum class Tab(
     val iconRes: Int? = null,
 ) {
     CAMPOS("Campos", iconVector = Icons.Filled.Home),
-    AFINADOR("Afinador", iconRes = R.drawable.ic_tuner),
     PROGRESSOES("Progressões", iconVector = Icons.AutoMirrored.Filled.List),
     APRENDER("Aprender", iconVector = Icons.Filled.Info),
     FERRAMENTAS("Ferramentas", iconVector = Icons.Filled.Settings),
@@ -99,11 +95,6 @@ private fun HarmonicApp() {
         context.dataStore.data.map { it[FAVORITES_KEY] ?: emptySet() }
     }.collectAsState(initial = emptySet())
 
-    val settings by remember { context.tunerSettingsFlow() }.collectAsState(initial = TunerSettings())
-    val onSettingsChange: (TunerSettings) -> Unit = { new ->
-        scope.launch { context.saveTunerSettings(new) }
-    }
-
     fun toggleFavorite(key: String) {
         scope.launch {
             context.dataStore.edit { prefs ->
@@ -117,11 +108,11 @@ private fun HarmonicApp() {
     var detailKey by remember { mutableStateOf<String?>(null) }
     var showDonation by remember { mutableStateOf(false) }
     var showKeyFinder by remember { mutableStateOf(false) }
-    var showSettings by remember { mutableStateOf(false) }
+    var stage by remember { mutableStateOf<Pair<Progression, String>?>(null) }
 
-    BackHandler(enabled = detailKey != null || showDonation || showKeyFinder || showSettings) {
+    BackHandler(enabled = detailKey != null || showDonation || showKeyFinder || stage != null) {
         when {
-            showSettings -> showSettings = false
+            stage != null -> stage = null
             showKeyFinder -> showKeyFinder = false
             showDonation -> showDonation = false
             else -> detailKey = null
@@ -131,12 +122,12 @@ private fun HarmonicApp() {
     val openKey: (String) -> Unit = { detailKey = it }
     val insets = WindowInsets.safeDrawing.asPaddingValues()
 
-    if (showSettings) {
+    if (stage != null) {
         Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-            SettingsScreen(
-                settings = settings,
-                onChange = onSettingsChange,
-                onBack = { showSettings = false },
+            ProgressionStageScreen(
+                progression = stage!!.first,
+                keyCipher = stage!!.second,
+                onBack = { stage = null },
                 contentPadding = insets,
             )
         }
@@ -205,16 +196,14 @@ private fun HarmonicApp() {
                     onSupport = { showDonation = true },
                     contentPadding = innerPadding,
                 )
-                Tab.AFINADOR -> TunerScreen(
-                    settings = settings,
-                    onSettingsChange = onSettingsChange,
+                Tab.PROGRESSOES -> ProgressionsScreen(
+                    onOpenKey = openKey,
+                    onPlayFullScreen = { prog, key -> stage = prog to key },
                     contentPadding = innerPadding,
                 )
-                Tab.PROGRESSOES -> ProgressionsScreen(openKey, innerPadding)
                 Tab.APRENDER -> LearnScreen(openKey, innerPadding)
                 Tab.FERRAMENTAS -> ToolsScreen(
                     onOpenKeyFinder = { showKeyFinder = true },
-                    onOpenSettings = { showSettings = true },
                     contentPadding = innerPadding,
                 )
             }

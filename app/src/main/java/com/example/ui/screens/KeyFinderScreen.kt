@@ -149,7 +149,7 @@ fun KeyFinderScreen(
             Column {
                 Text("Detectar tom", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
                 Text(
-                    "Usa os últimos ${KeyListener.PREROLL_SECONDS} s de canto — resposta na hora",
+                    "Ouve em rodadas de ${KeyListener.PREROLL_SECONDS} s até ter certeza",
                     style = MaterialTheme.typography.labelSmall,
                     color = Brass,
                 )
@@ -168,7 +168,7 @@ fun KeyFinderScreen(
             phase = listener.phase,
             buffered = listener.buffered,
             analyzedSeconds = listener.analyzedSeconds,
-            onClick = { if (listening) listener.cancelDetection() else listener.detect() },
+            onClick = { if (listening) listener.stopAndUse() else listener.detect() },
         )
 
         Spacer(Modifier.height(16.dp))
@@ -177,8 +177,14 @@ fun KeyFinderScreen(
             LiveStatus(
                 level = listener.level,
                 hearingVoice = listener.hearingVoice,
-                liveGuess = listener.liveGuess,
+                liveResult = listener.liveResult,
+                analyzedSeconds = listener.analyzedSeconds,
             )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                ActionButton("Parar e usar", primary = true, modifier = Modifier.weight(1f)) { listener.stopAndUse() }
+                ActionButton("Cancelar", primary = false, modifier = Modifier.weight(1f)) { listener.cancelDetection() }
+            }
+            Spacer(Modifier.height(16.dp))
         } else if (listener.phase != KeyListener.Phase.OFF && listener.result == null) {
             MemoryNote()
         }
@@ -190,6 +196,14 @@ fun KeyFinderScreen(
 
         val result = listener.result
         if (!listening && result != null) {
+            // Mais certeza no mesmo hino, ou começar outro.
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (listener.canListenMore) {
+                    ActionButton("Ouvir mais 5 s", primary = true, modifier = Modifier.weight(1f)) { listener.listenMore() }
+                }
+                ActionButton("Novo hino", primary = !listener.canListenMore, modifier = Modifier.weight(1f)) { listener.detect() }
+            }
+            Spacer(Modifier.height(14.dp))
             if (result.hasAnswer) {
                 ConfidenceBanner(result)
                 Spacer(Modifier.height(12.dp))
@@ -226,8 +240,10 @@ private fun ListenDial(
     onClick: () -> Unit,
 ) {
     val listening = phase == KeyListener.Phase.ANALYZING
-    // Ouvindo: o arco mostra o tempo até o limite. Pronto: o quanto já está guardado.
-    val arc = if (listening) (analyzedSeconds / MAX_SECONDS).coerceIn(0f, 1f) else buffered
+    val roundLen = KeyListener.PREROLL_SECONDS.toFloat()
+    val round = (analyzedSeconds / roundLen).toInt().coerceAtLeast(0) + 1
+    // Ouvindo: o arco mostra o andamento da rodada atual. Pronto: o quanto já está guardado.
+    val arc = if (listening) ((analyzedSeconds % roundLen) / roundLen).coerceIn(0f, 1f) else buffered
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
@@ -259,15 +275,15 @@ private fun ListenDial(
             }
             if (listening) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Rodada", style = MaterialTheme.typography.labelLarge, color = TextMuted)
+                    Text("$round", fontSize = 56.sp, fontWeight = FontWeight.Bold, color = TextStrong)
                     Text(
-                        "%.1f".format(analyzedSeconds).replace('.', ','),
-                        fontSize = 52.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextStrong,
+                        "%.1f s ouvidos".format(analyzedSeconds),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMuted,
                     )
-                    Text("segundos analisados", style = MaterialTheme.typography.labelSmall, color = TextMuted)
                     Spacer(Modifier.height(2.dp))
-                    Text("toque para cancelar", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    Text("toque para parar e usar", style = MaterialTheme.typography.labelSmall, color = TextMuted)
                 }
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -279,7 +295,7 @@ private fun ListenDial(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        if (phase == KeyListener.Phase.DONE) "Detectar de novo" else "Detectar tom",
+                        if (phase == KeyListener.Phase.DONE) "Novo hino" else "Detectar tom",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextStrong,
@@ -300,8 +316,6 @@ private fun ListenDial(
     }
 }
 
-private const val MAX_SECONDS = 8f
-
 /** Explica por que o microfone fica ligado com a tela aberta. */
 @Composable
 private fun MemoryNote() {
@@ -318,24 +332,30 @@ private fun MemoryNote() {
 }
 
 @Composable
-private fun LiveStatus(level: Float, hearingVoice: Boolean, liveGuess: KeyCandidate?) {
+private fun LiveStatus(level: Float, hearingVoice: Boolean, liveResult: KeyResult?, analyzedSeconds: Float) {
     Column(Modifier.fillMaxWidth()) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Surface2),
-        ) {
-            Box(
-                Modifier
-                    .fillMaxWidth(level.coerceIn(0f, 1f))
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(if (hearingVoice) FuncTonic else TextMuted),
-            )
+        // Rodadas: 1, 2, 3 (cada uma com 5 s).
+        val roundLen = KeyListener.PREROLL_SECONDS.toFloat()
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            for (r in 0 until maxOf(3, (analyzedSeconds / roundLen).toInt() + 1)) {
+                val fill = ((analyzedSeconds - r * roundLen) / roundLen).coerceIn(0f, 1f)
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(Surface2),
+                ) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth(fill)
+                            .height(6.dp)
+                            .background(if (fill >= 1f) Brass else Brass.copy(alpha = 0.6f)),
+                    )
+                }
+            }
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
@@ -350,15 +370,72 @@ private fun LiveStatus(level: Float, hearingVoice: Boolean, liveGuess: KeyCandid
                 color = if (hearingVoice) FuncTonic else TextMuted,
             )
             Spacer(Modifier.weight(1f))
-            if (liveGuess != null) {
-                Text(
-                    "Parcial: ${ptKeyName[liveGuess.keyCipher] ?: liveGuess.keyCipher}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextMuted,
+            Box(
+                Modifier
+                    .width(60.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Surface2),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth(level.coerceIn(0f, 1f))
+                        .height(4.dp)
+                        .background(if (hearingVoice) FuncTonic else TextMuted),
                 )
             }
         }
-        Spacer(Modifier.height(16.dp))
+        // Palpite ao vivo: muda conforme a evidência chega.
+        val top = liveResult?.candidates?.firstOrNull()
+        if (top != null) {
+            Spacer(Modifier.height(12.dp))
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Surface1)
+                    .border(1.dp, Hairline, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("Palpite até agora", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    Text(
+                        ptKeyName[top.keyCipher] ?: top.keyCipher,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = TextStrong,
+                    )
+                }
+                Text(
+                    "${(top.probability * 100).toInt()}%",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (liveResult.status == KeyStatus.ALTA) FuncTonic else Brass,
+                )
+            }
+        }
+        Spacer(Modifier.height(14.dp))
+    }
+}
+
+@Composable
+private fun ActionButton(label: String, primary: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier
+            .height(50.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (primary) Brass else Surface1)
+            .border(1.dp, if (primary) Brass else Hairline, RoundedCornerShape(12.dp))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = if (primary) Ink else TextBody,
+        )
     }
 }
 
@@ -372,8 +449,8 @@ private fun ConfidenceBanner(result: KeyResult) {
     val topName = ptKeyName[top.keyCipher] ?: top.keyCipher
     val (title, body, color) = when (result.status) {
         KeyStatus.ALTA -> Triple("Tom identificado", "Pode começar em $topName.", FuncTonic)
-        KeyStatus.MEDIA -> Triple("Tom provável", "Confira com o primeiro acorde antes de entrar.", Brass)
-        else -> Triple("Incerto", "Ouvi pouca diferença entre os tons. Ouça de novo com mais canto.", FuncDominant)
+        KeyStatus.MEDIA -> Triple("Tom provável", "Confira com o primeiro acorde, ou toque em \"Ouvir mais 5 s\" para confirmar.", Brass)
+        else -> Triple("Incerto", "Os tons abaixo estão parecidos. \"Ouvir mais 5 s\" costuma desempatar.", FuncDominant)
     }
     Column(
         Modifier
@@ -587,7 +664,7 @@ private fun NoAnswerCard(status: KeyStatus) {
         Spacer(Modifier.height(10.dp))
         Tip("Aponte o celular para quem está cantando ou para a caixa do vocal.")
         Tip("Comece a ouvir no meio de uma frase cantada, não na introdução.")
-        Tip("Um trecho com o fim de uma frase ajuda a achar a tônica.")
+        Tip("Um trecho com o fim de uma frase ajuda a achar a tônica. Se puder, ouça 2 ou 3 rodadas.")
     }
 }
 
@@ -603,13 +680,12 @@ private fun HowItWorksCard() {
     ) {
         SectionLabel("Como funciona")
         Spacer(Modifier.height(8.dp))
-        Tip("Com a tela aberta, guarda só os últimos 5 s na memória: ao tocar, a resposta sai na hora.")
-        Tip("Quando o canto está claro, responde em 2 a 3 s. Se estiver difícil, ouve até 8 s antes de responder.")
-        Tip("Filtra só a faixa da voz e tira o ruído constante do ambiente.")
-        Tip("Considera apenas notas cantadas e sustentadas — conversa, tosse e palmas ficam de fora.")
-        Tip("Compensa se o grupo estiver um pouco acima ou abaixo do tom.")
-        Tip("Se houver banda, ouve o baixo à parte: ele ajuda a separar tons parecidos, como a relativa menor.")
-        Tip("Compara as notas com o padrão de milhares de melodias e mostra os 3 tons mais compatíveis.")
+        Tip("Ouve em rodadas de 5 s. A 1ª sai na hora (os últimos 5 s ficam guardados na memória); a 2ª e a 3ª somam mais canto e deixam o palpite mais seguro.")
+        Tip("Você pode parar quando quiser (\"Parar e usar\") ou pedir mais 5 s no mesmo hino. Ele só para sozinho quando tem certeza.")
+        Tip("Separa a voz do resto do som, tira o ruído constante e só usa notas cantadas e sustentadas — conversa, tosse e palmas ficam de fora.")
+        Tip("Um modelo treinado com milhares de trechos de hinos analisa o que um músico percebe de ouvido: as notas mais cantadas, onde a frase respira, a sensível subindo para a tônica e o baixo fazendo 5 → 1.")
+        Tip("Com banda, ouve o baixo e o teclado à parte: ajudam a separar tons vizinhos e a relativa menor.")
+        Tip("Dica de uso: 5 s às vezes servem para dois tons. Com 10 a 15 s (2 ou 3 rodadas), o acerto sobe bastante.")
         Tip("Sem evidência suficiente, ele não chuta: pede para ouvir de novo.")
         Tip("Vibra ao terminar: duas vezes quando tem certeza, uma vez quando é provável e uma longa quando não deu.")
     }

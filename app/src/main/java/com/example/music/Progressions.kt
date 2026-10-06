@@ -13,7 +13,15 @@ data class Progression(
     val forMinor: Boolean,      // true = pensada para tons menores
     val featured: Boolean = false, // aparece em destaque (ex.: a da Harpa)
     val tip: String = "",       // dica curta e prática para o iniciante
+    val group: ProgressionGroup = ProgressionGroup.LOUVOR,
 )
+
+/** Como a aba Progressões organiza as sequências (na ordem em que aparecem). */
+enum class ProgressionGroup(val title: String, val subtitle: String) {
+    HINOS("Essenciais para hinos", "Comece por aqui: servem na maioria dos hinos da Harpa."),
+    CADENCIAS("Finais de frase", "Como as frases e os hinos terminam — ajudam a achar a hora de voltar à tônica."),
+    LOUVOR("Louvor e outras", "Sequências comuns em corinhos e no louvor contemporâneo."),
+}
 
 object ProgressionLibrary {
 
@@ -30,16 +38,71 @@ object ProgressionLibrary {
             forMinor = false,
             featured = true,
             tip = "Decore este caminho: serve na maioria dos hinos, só trocando as notas conforme o tom.",
+            group = ProgressionGroup.HINOS,
         ),
         Progression(
             name = "Tríade 1 – 4 – 5",
             roman = "I – IV – V",
             description = "Os três acordes mais importantes do tom. Com eles você acompanha " +
-                "um número enorme de louvores. No tom de Sol é Sol – Dó – Ré.",
+                "um número enorme de hinos e louvores. No tom de Sol é Sol – Dó – Ré.",
             degrees = listOf(0, 3, 4),
             forMinor = false,
             featured = true,
             tip = "Se estiver perdido, tente 1, 4 e 5 do tom: quase sempre um deles encaixa.",
+            group = ProgressionGroup.HINOS,
+        ),
+        Progression(
+            name = "Estrofe de hino",
+            roman = "I – IV – I – V – I",
+            description = "O desenho de muitas estrofes: firma a tônica, passeia na subdominante, " +
+                "volta, cria tensão na dominante e fecha em casa.",
+            degrees = listOf(0, 3, 0, 4, 0),
+            forMinor = false,
+            group = ProgressionGroup.HINOS,
+        ),
+        Progression(
+            name = "Gospel clássico",
+            roman = "I – vi – IV – V",
+            description = "Circular e cantável. Muito usada em hinos de coro e clássicos gospel.",
+            degrees = listOf(0, 5, 3, 4),
+            forMinor = false,
+            group = ProgressionGroup.HINOS,
+        ),
+        Progression(
+            name = "Cadência perfeita",
+            roman = "V – I",
+            description = "A dominante resolvendo na tônica: é o \"ponto final\" da frase. " +
+                "Quando a melodia pede descanso, quase sempre vem um V – I.",
+            degrees = listOf(4, 0),
+            forMinor = false,
+            group = ProgressionGroup.CADENCIAS,
+        ),
+        Progression(
+            name = "Cadência do Amém",
+            roman = "IV – I",
+            description = "A subdominante indo para a tônica — o som do \"A-mém\" no fim dos hinos. " +
+                "Mais suave que o V – I.",
+            degrees = listOf(3, 0),
+            forMinor = false,
+            group = ProgressionGroup.CADENCIAS,
+        ),
+        Progression(
+            name = "Cadência completa",
+            roman = "ii – V – I",
+            description = "Prepara (ii), tensiona (V) e resolve (I). A resolução preferida de arranjos " +
+                "mais elaborados e de finais de refrão.",
+            degrees = listOf(1, 4, 0),
+            forMinor = false,
+            group = ProgressionGroup.CADENCIAS,
+        ),
+        Progression(
+            name = "Meia cadência",
+            roman = "I – IV – V",
+            description = "Para na dominante, como uma vírgula: a frase fica \"no ar\" esperando a " +
+                "próxima. Comum no meio das estrofes.",
+            degrees = listOf(0, 3, 4),
+            forMinor = false,
+            group = ProgressionGroup.CADENCIAS,
         ),
         Progression(
             name = "Eixo (louvor contemporâneo)",
@@ -56,17 +119,11 @@ object ProgressionLibrary {
             forMinor = false,
         ),
         Progression(
-            name = "Anos 50 / gospel",
-            roman = "I – vi – IV – V",
-            description = "Circular e cantável. Muito usada em hinos e clássicos.",
-            degrees = listOf(0, 5, 3, 4),
-            forMinor = false,
-        ),
-        Progression(
-            name = "Cadência ii – V – I",
-            roman = "ii – V – I",
-            description = "A resolução preferida de arranjos mais elaborados.",
-            degrees = listOf(1, 4, 0),
+            name = "Descida de adoração",
+            roman = "I – V – vi – iii – IV – I – IV – V",
+            description = "O baixo desce passo a passo (como no Cânon de Pachelbel). Bonita em " +
+                "momentos de adoração e introduções.",
+            degrees = listOf(0, 4, 5, 2, 3, 0, 3, 4),
             forMinor = false,
         ),
     )
@@ -79,6 +136,7 @@ object ProgressionLibrary {
             degrees = listOf(0, 5, 2, 6),
             forMinor = true,
             featured = true,
+            group = ProgressionGroup.HINOS,
         ),
         Progression(
             name = "Cadência menor",
@@ -87,6 +145,7 @@ object ProgressionLibrary {
             degrees = listOf(0, 3, 4),
             forMinor = true,
             featured = true,
+            group = ProgressionGroup.HINOS,
         ),
         Progression(
             name = "Andaluza",
@@ -101,6 +160,14 @@ object ProgressionLibrary {
             description = "Prepara a passagem para o tom maior relativo sem perder o clima menor.",
             degrees = listOf(0, 3, 6, 2),
             forMinor = true,
+        ),
+        Progression(
+            name = "Final em menor",
+            roman = "iv – i",
+            description = "A subdominante menor resolvendo na tônica: o \"Amém\" dos hinos em tom menor.",
+            degrees = listOf(3, 0),
+            forMinor = true,
+            group = ProgressionGroup.CADENCIAS,
         ),
     )
 

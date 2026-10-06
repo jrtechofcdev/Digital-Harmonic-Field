@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,6 +56,7 @@ import com.example.music.getChordFormulaNotes
 import com.example.music.transposeCipher
 import com.example.music.transposePtChord
 import com.example.music.transposePtNote
+import com.example.ui.components.ChordStrip
 import com.example.ui.components.FunctionTag
 import com.example.ui.theme.Brass
 import com.example.ui.theme.Favorite
@@ -612,35 +612,8 @@ private fun PathRow(prog: Progression, chords: List<ChordInfo>) {
     Column {
         Text(prog.name, style = MaterialTheme.typography.labelSmall, color = Brass)
         Spacer(Modifier.height(4.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            prog.degrees.forEachIndexed { position, degreeIndex ->
-                val chord = chords.getOrNull(degreeIndex) ?: return@forEachIndexed
-                if (position > 0) {
-                    Text("→", style = MaterialTheme.typography.bodyMedium, color = TextMuted)
-                }
-                val color = chord.function.color()
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Surface2)
-                        .border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 12.dp, vertical = 7.dp),
-                ) {
-                    Text(
-                        chord.cipher,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = color,
-                    )
-                }
-            }
-        }
+        // Sem rolagem lateral: os acordes dividem a largura (importante no modo paisagem).
+        ChordStrip(degrees = prog.degrees, chords = chords, compact = true)
     }
 }
 

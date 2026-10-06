@@ -22,9 +22,10 @@ import kotlin.math.sqrt
  * que é sobrescrito o tempo todo. Nada é gravado em arquivo nem enviado; ao
  * sair da tela ([close]) o buffer é apagado.
  *
- * Ao tocar em "Detectar" ([detect]) esses segundos já ouvidos são analisados na
- * hora; se ainda faltar evidência, o app continua ouvindo ao vivo e para assim
- * que tiver certeza ([KeyStopRule]) — até [KeyStopRule.maxSeconds] no máximo.
+ * Ao tocar em "Detectar" ([detect]) esses segundos já ouvidos viram a 1ª rodada,
+ * analisada na hora. Depois o app segue em rodadas de 5 s, somando evidência,
+ * até ter certeza ou completar 3 rodadas ([KeyStopRule]). O músico pode parar
+ * antes ([stopAndUse]) ou pedir mais uma rodada no mesmo hino ([listenMore]).
  * Requer permissão RECORD_AUDIO concedida.
  */
 class KeyListener {
@@ -34,6 +35,9 @@ class KeyListener {
         private const val SAMPLE_RATE = 44100
         private const val CHUNK = 2048
         private const val EVAL_EVERY_CHUNKS = 6 // ~0,28 s
+        // Depois do resultado, segue acumulando o mesmo hino (para "Ouvir mais")
+        // até este limite; passado isso, só o pré-buffer continua.
+        private const val MAX_ACCUMULATE_SECONDS = 60.0
     }
 
     /**
@@ -57,6 +61,9 @@ class KeyListener {
         private set
     var liveGuess by mutableStateOf<KeyCandidate?>(null) // parcial, durante a análise
         private set
+    /** Leitura parcial completa (com chances), atualizada a cada ~0,3 s. */
+    var liveResult by mutableStateOf<KeyResult?>(null)
+        private set
     var result by mutableStateOf<KeyResult?>(null)
         private set
     var error by mutableStateOf<String?>(null)
@@ -71,6 +78,12 @@ class KeyListener {
     // Pedidos da tela para a thread de áudio (que é quem mexe no detector).
     @Volatile private var detectRequested = false
     @Volatile private var cancelRequested = false
+    @Volatile private var stopRequested = false
+    @Volatile private var moreRequested = false
+
+    /** Já há um hino em análise que pode receber mais rodadas. */
+    var canListenMore by mutableStateOf(false)
+        private set
 
     /** Liga o microfone e começa a guardar os últimos segundos (só na memória). */
     fun open() {
@@ -82,18 +95,23 @@ class KeyListener {
         )
         if (minBuf <= 0) { error = "Este aparelho não permite captura de áudio."; return }
 
-        val rec = try {
+        // VOICE_RECOGNITION: pelas regras do Android, vem SEM supressão de ruído e
+        // SEM controle automático de volume — filtros que apagam notas sustentadas
+        // (o celular acha que música é "ruído"). Se o aparelho recusar, usa MIC.
+        fun create(source: Int): AudioRecord? = try {
             AudioRecord(
-                MediaRecorder.AudioSource.MIC,
+                source,
                 SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
                 // ~1 s de folga: cobre o instante em que o pré-buffer é analisado.
                 maxOf(minBuf, SAMPLE_RATE * 2),
-            )
+            ).let { r -> if (r.state == AudioRecord.STATE_INITIALIZED) r else { r.release(); null } }
         } catch (e: Exception) {
             null
         }
+        val rec = create(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            ?: create(MediaRecorder.AudioSource.MIC)
         if (rec == null || rec.state != AudioRecord.STATE_INITIALIZED) {
             error = "Microfone indisponível. Confira a permissão."
             rec?.release()
@@ -117,7 +135,7 @@ class KeyListener {
         worker = thread(name = "key-listener") { loop(rec, mySession) }
     }
 
-    /** Analisa os segundos já guardados e, se precisar, continua ouvindo. */
+    /** Novo hino: analisa os segundos já guardados e continua em rodadas. */
     fun detect() {
         if (phase == Phase.ANALYZING) return
         if (!running) open() // microfone caiu ou foi desligado: religa e ouve ao vivo
@@ -125,8 +143,20 @@ class KeyListener {
         error = null
         liveGuess = null
         analyzedSeconds = 0f
+        liveResult = null
         detectRequested = true
         phase = Phase.ANALYZING
+    }
+
+    /** Mais uma rodada de 5 s no MESMO hino (soma com o que já foi ouvido). */
+    fun listenMore() {
+        if (phase != Phase.DONE || !canListenMore || !running) return
+        moreRequested = true // a thread de áudio estende a regra e muda a fase
+    }
+
+    /** Encerra agora e mostra o melhor palpite até aqui. */
+    fun stopAndUse() {
+        if (phase == Phase.ANALYZING) stopRequested = true
     }
 
     /** Interrompe a leitura atual (sem resultado); o microfone continua pronto. */
@@ -151,6 +181,7 @@ class KeyListener {
         level = 0f
         hearingVoice = false
         liveGuess = null
+        canListenMore = false
     }
 
     private fun loop(rec: AudioRecord, mySession: Int) {
@@ -189,6 +220,7 @@ class KeyListener {
                 if (cancelRequested) {
                     cancelRequested = false
                     detector = null
+                    canListenMore = false
                 }
 
                 if (detectRequested) {
@@ -208,16 +240,36 @@ class KeyListener {
                     detector = d
                     stopRule = KeyStopRule()
                     chunks = 0
-                    if (evaluate(d, stopRule, mySession)) detector = null
+                    canListenMore = false
+                    stopRequested = false
+                    moreRequested = false
+                    evaluate(d, stopRule, mySession, force = false)
+                } else if (detector != null && phase != Phase.ANALYZING) {
+                    // 3) Resultado na tela: segue acumulando o mesmo hino em silêncio,
+                    //    para "Ouvir mais 5 s" já partir de tudo o que tocou.
+                    if (moreRequested) {
+                        moreRequested = false
+                        stopRule.extend(detector.secondsFed)
+                        phase = Phase.ANALYZING
+                    }
+                    if (detector.secondsFed < MAX_ACCUMULATE_SECONDS) {
+                        for (i in 0 until r) samples[i] = shorts[i] / 32768.0
+                        detector.feed(samples, r)
+                    } else {
+                        canListenMore = false
+                    }
+                    level = (sqrt(sumSq / r) * 8).coerceIn(0.0, 1.0).toFloat()
                 } else if (detector != null) {
-                    // 3) Já analisando: segue ao vivo.
+                    // 4) Analisando: segue ao vivo, rodada após rodada.
                     for (i in 0 until r) samples[i] = shorts[i] / 32768.0
                     detector.feed(samples, r)
                     level = detector.level
                     hearingVoice = detector.hearingVoice
                     analyzedSeconds = detector.secondsFed.toFloat()
-                    if (++chunks % EVAL_EVERY_CHUNKS == 0 && evaluate(detector, stopRule, mySession)) {
-                        detector = null
+                    val stopNow = stopRequested
+                    if (stopNow || ++chunks % EVAL_EVERY_CHUNKS == 0) {
+                        stopRequested = false
+                        evaluate(detector, stopRule, mySession, force = stopNow)
                     }
                 } else {
                     level = (sqrt(sumSq / r) * 8).coerceIn(0.0, 1.0).toFloat()
@@ -235,19 +287,20 @@ class KeyListener {
         }
     }
 
-    /** Lê o detector; publica o resultado e devolve true quando já pode parar. */
-    private fun evaluate(detector: KeyDetector, rule: KeyStopRule, mySession: Int): Boolean {
+    /** Lê o detector; publica o resultado quando a rodada encerra (ou se [force]). */
+    private fun evaluate(detector: KeyDetector, rule: KeyStopRule, mySession: Int, force: Boolean) {
         val r = detector.result()
         val seconds = detector.secondsFed
         analyzedSeconds = seconds.toFloat()
         liveGuess = r.candidates.firstOrNull()
-        if (!rule.shouldStop(r, seconds)) return false
-        if (session != mySession || !running || phase != Phase.ANALYZING) return true
+        liveResult = r
+        if (!force && !rule.shouldStop(r, seconds)) return
+        if (session != mySession || !running || phase != Phase.ANALYZING) return
         result = r
         liveGuess = null
         hearingVoice = false
+        canListenMore = true
         phase = Phase.DONE
-        return true
     }
 
     @Synchronized

@@ -4,11 +4,9 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
-import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -58,22 +56,24 @@ class KeyResult(
     val hasAnswer: Boolean get() = candidates.isNotEmpty()
 }
 
-// Perfis de Aarden (2003), derivados de milhares de melodias folclóricas — mais
-// adequados para MELODIA cantada do que os perfis de Krumhansl (feitos com acordes).
-private val AARDEN_MAJOR = doubleArrayOf(
-    17.7661, 0.145624, 14.9265, 0.160186, 19.8049, 11.3587,
-    0.291248, 22.062, 0.145624, 8.15494, 0.232998, 4.95122,
-)
-private val AARDEN_MINOR = doubleArrayOf(
-    18.2648, 0.737619, 14.0499, 16.8599, 0.702494, 14.4362,
-    0.702494, 18.6161, 4.56621, 1.93186, 7.37619, 1.75623,
-)
-// Onde o baixo costuma estar em cada tom: na fundamental dos acordes principais
-// (I, IV, V e, no menor, também VI). Usado só como apoio à melodia.
-private val BASS_MAJOR = doubleArrayOf(1.0, .02, .25, .02, .15, .5, .02, .55, .02, .3, .02, .05)
-private val BASS_MINOR = doubleArrayOf(1.0, .02, .1, .35, .02, .45, .02, .5, .4, .02, .35, .05)
 private val MAJOR_SCALE = intArrayOf(0, 2, 4, 5, 7, 9, 11)
 private val MINOR_SCALE = intArrayOf(0, 2, 3, 5, 7, 8, 10, 11) // natural + sensível
+
+/** Uma nota sustentada (voz ou baixo), com início/fim em segundos. */
+class NoteSegment(val startSec: Double, val endSec: Double, val midi: Double, val weight: Double)
+
+/** Tudo o que foi ouvido até agora, em forma de notas — a entrada do modelo de tom. */
+class EvidenceSnapshot(
+    val voice: List<NoteSegment>,
+    val bass: List<NoteSegment>,
+    /** Perfil harmônico (12 classes) somado nos quadros com som. */
+    val harmony: DoubleArray,
+    val seconds: Double,
+    /** Perfil espectral do grave (40–250 Hz): o que baixo/teclado sustentam. */
+    val bassChroma: DoubleArray = DoubleArray(12),
+    /** Grave com energia de instrumento (não só voz grave vazando)? */
+    val bassPresent: Boolean = false,
+)
 
 /** Acumula as notas sustentadas da voz (e do baixo) e calcula os tons candidatos. */
 class KeyEvidence(
@@ -82,22 +82,19 @@ class KeyEvidence(
 ) {
 
     private companion object {
-        const val MELODY_WEIGHT = 0.7      // notas cantadas (principal)
-        const val HARMONY_WEIGHT = 0.3     // perfil harmônico limpo (apoio)
-        const val TEMPERATURE = 0.05       // nitidez da distribuição de chances
-        const val FINAL_NOTE_BONUS = 0.06  // frases de hino costumam terminar na tônica
-        const val LONGEST_NOTE_BONUS = 0.03
         const val BETWEEN_KEYS_SEMITONES = 0.40
-
-        const val MAJOR_PRIOR = 0.02       // desempate: quase todo hino da Harpa é maior
-        const val BASS_WEIGHT = 0.3        // peso máximo do baixo (a melodia manda)
-        const val BASS_FULL_SECONDS = 3.0  // com 3 s de baixo, ele atinge o peso máximo
-        const val BASS_MIN_SECONDS = 0.5   // menos que isso: baixo ignorado
         const val BASS_MIN_FRAMES = 4      // nota de baixo: ≥4 quadros (~370 ms)
         // O "baixo" só conta se tiver energia de instrumento: ≥20% da voz.
         // Vozes graves vazando para o canal ficam bem abaixo disso (~5%).
         const val BASS_ENERGY_RATIO = 0.2
 
+        // Limiares sobre a chance calibrada do modelo (ver docs/detector-de-tom.md).
+        // ALTA só a partir da 2ª rodada: com ≥10 s e chance ≥70%, acertou 93–95%
+        // na bancada de hinos (95–98% nos hinos simples). Com 5 s a chance é menos
+        // confiável, então a 1ª rodada nunca crava o tom.
+        const val P_ALTA = 0.70
+        const val ALTA_MIN_SECONDS = 9.5
+        const val P_MEDIA = 0.50
         const val ALTA_MIN_NOTES = 4
         const val ALTA_MIN_VOICED = 1.5
     }
@@ -122,6 +119,39 @@ class KeyEvidence(
 
     fun addBassFrame(frame: Int, midi: Double, clarity: Double, energy: Double) {
         bassFrames.add(frame); bassMidis.add(midi); bassWeights.add(clarity); bassEnergies.add(energy)
+    }
+
+    private val harmonyAll = DoubleArray(12)
+    private val bassChroma = DoubleArray(12)
+    private var bassChromaEnergy = 0.0
+    private var bassChromaFrames = 0
+
+    /** Perfil espectral de um quadro do canal grave (já sem ruído constante). */
+    fun addBassChroma(chroma: FloatArray, energy: Double) {
+        for (i in 0 until 12) bassChroma[i] += chroma[i] * energy
+        bassChromaEnergy += energy
+        bassChromaFrames++
+    }
+
+    /** Perfil harmônico de um quadro com som (com ou sem voz detectada). */
+    fun addHarmonyFrame(chroma: FloatArray, energy: Double) {
+        for (i in 0 until 12) harmonyAll[i] += chroma[i] * energy
+    }
+
+    /** Notas da voz e do baixo (já com o filtro de energia do baixo) até agora. */
+    fun snapshot(seconds: Double): EvidenceSnapshot {
+        val voice = segments(frames, midis, weights).map {
+            NoteSegment((it.start - 1) * hopSeconds, it.end * hopSeconds, it.midi, it.weight)
+        }
+        val minEnergy = if (frames.isEmpty()) Double.MAX_VALUE else BASS_ENERGY_RATIO * voiceEnergy / frames.size
+        val w = List(bassWeights.size) { if (bassEnergies[it] >= minEnergy) bassWeights[it] else 0.0 }
+        val bass = segments(bassFrames, bassMidis, w, BASS_MIN_FRAMES).map {
+            NoteSegment((it.start - 1) * bassHopSeconds, it.end * bassHopSeconds, it.midi, it.weight)
+        }
+        val bassLevel = if (bassChromaFrames > 0) bassChromaEnergy / bassChromaFrames else 0.0
+        val voiceLevel = if (frames.isEmpty()) 0.0 else voiceEnergy / frames.size
+        val present = voiceLevel > 0 && bassLevel >= BASS_ENERGY_RATIO * voiceLevel
+        return EvidenceSnapshot(voice, bass, harmonyAll.copyOf(), seconds, bassChroma.copyOf(), present)
     }
 
     private class Segment(val start: Int, val end: Int, val midi: Double, val weight: Double) {
@@ -163,64 +193,6 @@ class KeyEvidence(
         return out
     }
 
-    private class Scored(
-        val root: Int, val minor: Boolean, val score: Double,
-        val fit: Double, val hist: DoubleArray, val lastNote: Int,
-    )
-
-    /** Perfil das notas do baixo (soma 1), já compensado pela afinação; null se pouco baixo. */
-    private class BassLine(val hist: DoubleArray, val seconds: Double)
-
-    private fun bassLine(): BassLine? {
-        if (frames.isEmpty() || bassFrames.isEmpty()) return null
-        val minEnergy = BASS_ENERGY_RATIO * voiceEnergy / frames.size
-        val w = List(bassWeights.size) { if (bassEnergies[it] >= minEnergy) bassWeights[it] else 0.0 }
-        val segs = segments(bassFrames, bassMidis, w, BASS_MIN_FRAMES)
-        val seconds = segs.sumOf { it.frames } * bassHopSeconds
-        if (segs.isEmpty() || seconds < BASS_MIN_SECONDS) return null
-        val offset = tuningOffset(segs)
-        val hist = DoubleArray(12)
-        for (seg in segs) hist[Math.floorMod((seg.midi - offset).roundToInt(), 12)] += seg.weight
-        val total = hist.sum()
-        for (i in 0 until 12) hist[i] /= total
-        return BassLine(hist, seconds)
-    }
-
-    private fun scoreKeys(segs: List<Segment>, offset: Double, bass: BassLine?): List<Scored> {
-        val pcs = IntArray(segs.size) { Math.floorMod((segs[it].midi - offset).roundToInt(), 12) }
-        val hist = DoubleArray(12)
-        for (i in segs.indices) hist[pcs[i]] += segs[i].weight
-        val total = hist.sum()
-        for (i in 0 until 12) hist[i] /= total
-
-        val harmonyTotal = harmony.sum()
-        val profile = DoubleArray(12) {
-            if (harmonyTotal > 0) MELODY_WEIGHT * hist[it] + HARMONY_WEIGHT * harmony[it] / harmonyTotal
-            else hist[it]
-        }
-        val lastNote = pcs.last()
-        val longestNote = pcs[segs.indices.maxBy { segs[it].frames }]
-
-        val out = ArrayList<Scored>(24)
-        for (root in 0 until 12) for (minor in booleanArrayOf(false, true)) {
-            val ref = if (minor) AARDEN_MINOR else AARDEN_MAJOR
-            val rotated = DoubleArray(12) { ref[Math.floorMod(it - root, 12)] }
-            var s = pearson(profile, rotated)
-            if (lastNote == root) s += FINAL_NOTE_BONUS
-            if (longestNote == root) s += LONGEST_NOTE_BONUS
-            if (!minor) s += MAJOR_PRIOR
-            if (bass != null) {
-                val bassRef = if (minor) BASS_MINOR else BASS_MAJOR
-                val bassRotated = DoubleArray(12) { bassRef[Math.floorMod(it - root, 12)] }
-                s += BASS_WEIGHT * min(1.0, bass.seconds / BASS_FULL_SECONDS) * pearson(bass.hist, bassRotated)
-            }
-            val scale = if (minor) MINOR_SCALE else MAJOR_SCALE
-            val fit = scale.sumOf { hist[(root + it) % 12] }
-            out.add(Scored(root, minor, s, fit, hist, lastNote))
-        }
-        return out
-    }
-
     /**
      * Afinação do grupo: média circular da parte fracionária das notas, em
      * semitons (−0,5..0,5). Uma congregação 30 cents "acima" continua sendo lida
@@ -236,7 +208,11 @@ class KeyEvidence(
         return atan2(sy, sx) / (2 * PI)
     }
 
-    fun result(): KeyResult {
+    /**
+     * Resultado até agora. As chances vêm do [KeyModel] (treinado com hinos); as
+     * travas abaixo garantem que, sem evidência, NÃO há resposta.
+     */
+    fun result(seconds: Double = 0.0): KeyResult {
         val segs = segments(frames, midis, weights)
         if (segs.isEmpty()) {
             return KeyResult(KeyStatus.SEM_VOZ, emptyList(), 0.0, 0.0, false, FloatArray(12), null)
@@ -244,32 +220,33 @@ class KeyEvidence(
 
         val offset = tuningOffset(segs)
         val between = abs(offset) > BETWEEN_KEYS_SEMITONES
-        val bass = bassLine()
+        val pcs = IntArray(segs.size) { Math.floorMod((segs[it].midi - offset).roundToInt(), 12) }
+        val hist = DoubleArray(12)
+        for (i in segs.indices) hist[pcs[i]] += segs[i].frames.toDouble()
+        val total = hist.sum()
+        for (i in 0 until 12) hist[i] /= total
 
-        var scored = scoreKeys(segs, offset, bass)
-        if (between) scored = scored + scoreKeys(segs, offset - sign(offset), bass)
-        // Mesmo tom vindo das duas leituras: fica a melhor.
-        val best = scored.groupBy { it.root * 2 + if (it.minor) 1 else 0 }
-            .map { (_, v) -> v.maxBy { it.score } }
-            .sortedByDescending { it.score }
+        val snap = snapshot(seconds)
+        val probs = KeyModel.probabilities(snap) ?: DoubleArray(24)
+        val order = (0 until 24).sortedByDescending { probs[it] }
+        val best = order.first()
+        val bestRoot = best % 12
+        val bestMinor = best >= 12
 
-        val maxScore = best.first().score
-        val expScores = best.map { exp((it.score - maxScore) / TEMPERATURE) }
-        val sum = expScores.sum()
-        val probs = expScores.map { it / sum }
-
-        val top = best.first()
         val voiced = segs.sumOf { it.frames } * hopSeconds
-        val distinct = top.hist.count { it > 0.05 }
+        val distinct = hist.count { it > 0.05 }
+        val scale = if (bestMinor) MINOR_SCALE else MAJOR_SCALE
+        val fit = scale.sumOf { hist[(bestRoot + it) % 12] }
+        val p0 = probs[best]
         val status = when {
-            voiced < 1.0 || distinct < 3 || top.fit < 0.80 -> KeyStatus.INSUFICIENTE
-            probs[0] >= 0.70 && top.fit >= 0.88 && voiced >= ALTA_MIN_VOICED &&
+            voiced < 1.0 || distinct < 3 || fit < 0.80 -> KeyStatus.INSUFICIENTE
+            p0 >= P_ALTA && seconds >= ALTA_MIN_SECONDS && voiced >= ALTA_MIN_VOICED &&
                 distinct >= ALTA_MIN_NOTES && !between -> KeyStatus.ALTA
-            probs[0] >= 0.45 -> KeyStatus.MEDIA
+            p0 >= P_MEDIA -> KeyStatus.MEDIA
             else -> KeyStatus.BAIXA
         }
         val candidates = if (status == KeyStatus.INSUFICIENTE) emptyList() else
-            best.take(3).mapIndexed { i, s -> KeyCandidate(s.root, s.minor, probs[i]) }
+            order.take(3).map { KeyCandidate(it % 12, it >= 12, probs[it]) }
 
         return KeyResult(
             status = status,
@@ -277,30 +254,15 @@ class KeyEvidence(
             voicedSeconds = voiced,
             tuningOffsetCents = offset * 100,
             betweenKeys = between,
-            noteWeights = FloatArray(12) { top.hist[it].toFloat() },
-            lastNote = top.lastNote,
-            bassSeconds = bass?.seconds ?: 0.0,
+            noteWeights = FloatArray(12) { hist[it].toFloat() },
+            lastNote = pcs.last(),
+            // Só conta como "baixo" a partir de meio segundo (mesmo critério do modelo).
+            bassSeconds = snap.bass.sumOf { it.endSec - it.startSec }.takeIf { it >= 0.5 } ?: 0.0,
         )
     }
-
     private fun median(v: List<Double>): Double {
         val s = v.sorted()
         return if (s.size % 2 == 1) s[s.size / 2] else (s[s.size / 2 - 1] + s[s.size / 2]) / 2
-    }
-
-    private fun pearson(a: DoubleArray, b: DoubleArray): Double {
-        val ma = a.average()
-        val mb = b.average()
-        var num = 0.0
-        var da = 0.0
-        var db = 0.0
-        for (i in a.indices) {
-            val xa = a[i] - ma
-            val xb = b[i] - mb
-            num += xa * xb; da += xa * xa; db += xb * xb
-        }
-        val den = sqrt(da * db)
-        return if (den == 0.0) 0.0 else num / den
     }
 }
 
@@ -338,7 +300,7 @@ class KeyDetector(inputRate: Int = 44100) {
     private var frame = 0
 
     private val bassBand = BassBandFilter(inputRate)
-    private val bassFocus = VoiceFocus(BASS_FRAME, bassRate)
+    private val bassFocus = VoiceFocus(BASS_FRAME, bassRate, chromaMinHz = 40.0, chromaMaxHz = 250.0)
     private val bassWindow = DoubleArray(BASS_FRAME)
     private val bassPending = DoubleArray(BASS_HOP)
     private var bassPendingCount = 0
@@ -393,6 +355,7 @@ class KeyDetector(inputRate: Int = 44100) {
 
         val clean = focus.process(window)
         if (rms < MIN_RMS || frame < 2) { hearingVoice = false; return }
+        evidence.addHarmonyFrame(focus.chroma, rms(clean))
 
         val pitch = detectPitch(clean, RATE, minFreq = 100.0, maxFreq = 1000.0, minClarity = MIN_CLARITY)
         if (pitch == null) { hearingVoice = false; return }
@@ -411,6 +374,7 @@ class KeyDetector(inputRate: Int = 44100) {
         val clean = bassFocus.process(bassWindow)
         val cleanRms = rms(clean)
         if (rms < MIN_RMS || bassFrame < BASS_FRAME / BASS_HOP || cleanRms < BASS_MIN_CLEAN * rms) return
+        evidence.addBassChroma(bassFocus.chroma, cleanRms)
 
         val pitch = detectPitch(clean, bassRate, minFreq = 38.0, maxFreq = 170.0, minClarity = BASS_MIN_CLARITY)
             ?: return
@@ -424,21 +388,25 @@ class KeyDetector(inputRate: Int = 44100) {
         return sqrt(sumSq / x.size)
     }
 
-    fun result(): KeyResult = evidence.result()
+    fun result(): KeyResult = evidence.result(secondsFed)
+
+    fun snapshot(): EvidenceSnapshot = evidence.snapshot(secondsFed)
 }
 
 /**
- * Quando parar de ouvir. Responde assim que der — sem chutar:
- *  - confiança ALTA no mesmo tom em 2 leituras seguidas (~0,3 s) → para já;
- *    com 5 s ou mais de áudio, uma leitura ALTA basta;
- *  - a partir de 5 s, confiança MÉDIA também encerra;
- *  - caso difícil (pouco canto, tons empatados) → continua até [maxSeconds]
- *    em vez de adivinhar, e aí mostra o que tiver (ou nenhum tom).
+ * Escuta em RODADAS de [roundSeconds] (5 s): a cada rodada a evidência se soma e
+ * o palpite fica mais seguro. Encerra sozinha só quando:
+ *  - a confiança é ALTA no mesmo tom em 2 leituras seguidas (~0,3 s) e já há
+ *    pelo menos meia rodada de áudio; ou
+ *  - chegou ao limite ([limitSeconds], 3 rodadas = 15 s) — e aí mostra o que tiver.
+ * O músico pode interromper antes e pedir mais rodadas depois ([extend]).
  */
 class KeyStopRule(
-    private val answerSeconds: Double = 5.0,
-    val maxSeconds: Double = 8.0,
+    val roundSeconds: Double = 5.0,
+    limitSeconds: Double = 15.0,
 ) {
+    var limitSeconds = limitSeconds
+        private set
     private var lastKey = -1
     private var streak = 0
 
@@ -453,9 +421,13 @@ class KeyStopRule(
             streak = 0
             lastKey = -1
         }
-        return streak >= 2 ||
-            (streak >= 1 && seconds >= answerSeconds) ||
-            (result.status == KeyStatus.MEDIA && seconds >= answerSeconds) ||
-            seconds >= maxSeconds
+        return (streak >= 2 && seconds >= roundSeconds / 2) || seconds >= limitSeconds
+    }
+
+    /** Mais uma rodada a partir de [fromSeconds]. */
+    fun extend(fromSeconds: Double) {
+        limitSeconds = fromSeconds + roundSeconds
+        streak = 0
+        lastKey = -1
     }
 }

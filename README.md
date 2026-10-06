@@ -12,7 +12,7 @@ Mantido por **JR TECH** — José Renato, guitarrista e developer.
 
 ## O que o app faz
 
-O app é organizado em cinco áreas, acessíveis pela barra inferior:
+O app é organizado em quatro áreas, acessíveis pela barra inferior:
 
 ### Campos
 A função central. Uma grade com os 24 tons (12 maiores e 12 menores). Ao abrir
@@ -30,18 +30,14 @@ um tom você vê:
 - **Modo paisagem** compacto: todos os graus na tela, sem rolagem, para uso
   ao vivo.
 
-### Afinador
-Afinador por **microfone**, no estilo dos afinadores populares. Dois modos:
-**Corda por corda** (você toca na corda e ela fica travada; o app diz se está
-frouxa ou apertada) e **Livre/cromático** (detecta qualquer nota). Usa detecção
-de altura por autocorrelação (precisão em cents), com **ponteiro de velocímetro**,
-tom de referência curto e as afinações mais usadas — **Padrão, Drop D, ½ tom
-abaixo, Drop C, Open G e Open D**. Requer permissão de microfone.
-
 ### Progressões
-Sequências harmônicas consagradas já montadas no tom escolhido. Em destaque, a
-**Progressão da Harpa** (I – vi – ii – V – I) — a "volta" presente em quase todo
-hino — além do 1‑4‑5, eixo do louvor, cadências e progressões menores.
+Sequências harmônicas já montadas no tom escolhido, organizadas por uso:
+**Essenciais para hinos** (com destaque para a **Progressão da Harpa**,
+I – vi – ii – V – I, e o 1‑4‑5), **Finais de frase** (cadência perfeita, do
+"Amém", ii – V – I, meia cadência) e **Louvor e outras**. Os acordes ocupam a
+largura da tela — nada de arrastar a linha para o lado — e cada progressão abre
+em **tela cheia para tocar**: acordes gigantes, passo atual destacado, troca de
+tom na hora (− / +) e tela sempre acesa.
 
 ### Aprender
 Um guia para o tocador iniciante da assembleia: o que é campo harmônico, as três
@@ -53,27 +49,27 @@ menor.
 ### Ferramentas
 Utilitários para o dia a dia, todos sem depender de internet:
 
-- **Detectar tom** — também com atalho na tela inicial. Mostra os **3 tons mais
-  prováveis**, cada um com a chance, o nível de confiança e os acordes principais
-  para já começar.
-  - **Resposta na hora:** com a tela aberta, o app guarda só os **últimos
-    5 segundos** na memória (nada é gravado em arquivo nem enviado; ao sair da
-    tela, tudo é apagado). Ao tocar, ele analisa esse trecho na hora.
-  - **Para quando tem certeza:** com canto claro, responde em 2 a 3 s; em caso
-    difícil, ouve até 8 s antes de responder, em vez de chutar. Vibra ao terminar
-    (duas vezes = certeza, uma = provável, longa = sem resposta).
-  - **Foco na voz + canal do baixo:** filtra a faixa vocal, tira o ruído
-    constante e só considera notas cantadas e sustentadas (conversa, tosse e
-    palmas ficam de fora). Se houver banda, ouve o baixo à parte — ele ajuda a
-    separar tons parecidos, como a relativa menor. O zumbido da rede elétrica é
-    descartado.
-  - Compensa grupo desafinado e, sem evidência suficiente, **não sugere tom**.
+- **Detectar tom** — também com atalho na tela inicial. Ouve em **rodadas de
+  5 segundos** e mostra os **3 tons mais prováveis**, com a chance de cada um e
+  os acordes para começar.
+  - **1ª rodada na hora:** com a tela aberta, os últimos 5 s ficam só na memória
+    (nada é gravado nem enviado; ao sair, tudo é apagado).
+  - **2ª e 3ª rodadas:** somam mais canto e mostram o palpite ao vivo. Para
+    sozinho quando tem certeza; dá para **parar e usar** a qualquer momento ou
+    pedir **mais 5 s** no mesmo hino. Vibra ao terminar.
+  - **Modelo treinado:** uma rede neural pequena, treinada com milhares de
+    trechos de hinos, analisa o que o músico percebe de ouvido — notas mais
+    cantadas, fim de frase, sensível subindo para a tônica, baixo fazendo 5 → 1.
+    Roda no aparelho, sem internet.
+  - **Foco na voz + canal do baixo**, filtro de ruído constante e do zumbido da
+    rede elétrica. Sem evidência suficiente, **não sugere tom**.
+  - Na bancada de testes (hinos que o modelo nunca viu, áudio simulado de
+    culto), acerta ~**8,5 em 10** hinos simples no estilo da Harpa. Detalhes em
+    [`docs/detector-de-tom.md`](docs/detector-de-tom.md).
 - **Metrônomo** — som sintetizado, ajuste por slider ou passo, "marcar tempo"
   (tap tempo), escolha de compasso e indicador visual dos tempos.
 - **Capotraste** — indica em que casa colocar o capo para tocar com acordes
   abertos (formatos CAGED) e soar no tom desejado.
-- **Configurações** — filtro de ruído, precisão do afinador, frequência de
-  referência (Lá) e sons.
 
 ---
 
@@ -95,27 +91,26 @@ A interface foi reconstruída em torno de três princípios:
 
 ```text
 app/src/main/java/com/example/
-├── MainActivity.kt              # Casca de navegação (5 abas + telas sobrepostas)
+├── MainActivity.kt              # Casca de navegação (4 abas + telas sobrepostas)
 ├── HarmonicData.kt              # Base dos 24 campos harmônicos
 ├── music/
 │   ├── MusicTheory.kt           # Funções tonais, transposição, formação de acordes
-│   ├── Progressions.kt          # Biblioteca de progressões
+│   ├── Progressions.kt          # Biblioteca de progressões (por grupo de uso)
 │   ├── ChordAnalysis.kt         # Base espectral: FFT, classes de altura, chromagram
 │   ├── VoiceFocus.kt            # Foco na voz + canal do baixo + subtração de ruído
-│   ├── KeyDetection.kt          # Detector de tom (notas sustentadas → 3 tons candidatos)
-│   ├── PitchDetection.kt        # Detecção de altura (autocorrelação) + notas/cents
-│   └── Tunings.kt               # Presets de afinação (Padrão, Drop D, Open G…)
-├── data/
-│   └── AppSettings.kt           # Configurações persistidas (DataStore)
+│   ├── PitchDetection.kt        # Detecção de altura (autocorrelação) + nomes das notas
+│   ├── KeyDetection.kt          # Detector de tom: notas sustentadas, travas, rodadas
+│   └── KeyModel.kt              # Modelo treinado (pesos em resources/…/key_model.bin)
 ├── audio/
-│   ├── AudioEngine.kt           # Metrônomo e tons de referência (AudioTrack)
-│   ├── KeyListener.kt           # Microfone → detector de tom (pré-buffer de 5 s em memória)
-│   └── TunerListener.kt         # Microfone → afinador (AudioRecord)
+│   ├── AudioEngine.kt           # Metrônomo (AudioTrack)
+│   └── KeyListener.kt           # Microfone → detector de tom (pré-buffer de 5 s em memória)
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
-    ├── components/              # Componentes reutilizáveis (inclui a marca/palheta)
-    └── screens/                 # Campos, Detalhe, Afinador, Progressões, Aprender,
-                                 #  Ferramentas, Detectar tom, Configurações, Doação
+    ├── components/              # Componentes reutilizáveis (marca, ChordStrip…)
+    └── screens/                 # Campos, Detalhe, Progressões (+ tela cheia), Aprender,
+                                 #  Ferramentas, Detectar tom, Doação
+tools/key-model/                 # Bancada de hinos e treino do modelo (Python)
+docs/detector-de-tom.md          # Como o detector funciona e como retreinar
 ```
 
 ---

@@ -23,8 +23,9 @@ import org.junit.Test
 class KeyDetectionTest {
 
     private val sr = 44100
-    private val total = 5.0
-    private val n = (total * sr).toInt()
+    // Duração dos sinais gerados (cada teste pode aumentar, ex.: 15 s = 3 rodadas).
+    private var total = 5.0
+    private val n get() = (total * sr).toInt()
 
     private fun mtof(m: Double) = 440.0 * 2.0.pow((m - 69) / 12)
 
@@ -183,7 +184,16 @@ class KeyDetectionTest {
     private val melodyAm = listOf(69 to 1, 72 to 1, 76 to 1, 69 to 1, 71 to 1, 72 to 1, 74 to 1, 72 to 1, 71 to 1, 69 to 2)
 
     @Test
-    fun vozLimpaEmSol_identificaSolComConfiancaAlta() {
+    fun vozLimpaEmSol_primeiraRodadaAcertaSemCravar() {
+        val r = analyze(voice(hymnG))
+        assertEquals("G", r.candidates.first().keyCipher)
+        // Com só 5 s, o app mostra o palpite mas não crava ("identificado" só a partir de ~10 s).
+        assertNotEquals(KeyStatus.ALTA, r.status)
+    }
+
+    @Test
+    fun vozLimpaEmSol_tresRodadasCravaSol() {
+        total = 15.0
         val r = analyze(voice(hymnG))
         assertEquals("G", r.candidates.first().keyCipher)
         assertEquals(KeyStatus.ALTA, r.status)
@@ -277,13 +287,19 @@ class KeyDetectionTest {
     }
 
     @Test
-    fun baixoDesempataMelodiaAmbigua() {
-        // Melodia só com Lá, Dó, Mi e Sol: serve tanto para Dó maior quanto Lá menor.
-        val ambiguous = listOf(69 to 1, 72 to 1, 76 to 1, 79 to 1, 76 to 1, 72 to 1, 69 to 1, 72 to 1)
-        val withMinorBass = analyze(mix(voice(ambiguous), bass(listOf(45, 50, 52, 45))))
-        val withMajorBass = analyze(mix(voice(ambiguous), bass(listOf(48, 53, 55, 48))))
-        assertEquals("Am", withMinorBass.candidates.first().keyCipher)
-        assertEquals("C", withMajorBass.candidates.first().keyCipher)
+    fun bandaComBaixo_tresRodadasCravaFa() {
+        total = 15.0
+        // Hino em Fá maior com teclado e baixo (I–IV–V–I).
+        val hymnF = hymnG.map { (m, d) -> (m - 2) to d }
+        val signal = mix(
+            voice(hymnF, voices = 6, amp = 0.3),
+            pads(listOf(listOf(53, 57, 60), listOf(58, 62, 65), listOf(60, 64, 67), listOf(53, 57, 60)), amp = 0.05),
+            bass(listOf(41, 46, 48, 41)),
+            crowd(amp = 0.04),
+        )
+        val r = analyze(signal)
+        assertEquals("F", r.candidates.first().keyCipher)
+        assertTrue("baixo deveria entrar na análise: ${r.bassSeconds}", r.bassSeconds >= 1.0)
     }
 
     @Test
@@ -309,22 +325,24 @@ class KeyDetectionTest {
     // ----- Parada antecipada -----
 
     @Test
-    fun cantoClaro_respondeAntesDos5Segundos() {
+    fun cantoClaro_paraSozinhoNaSegundaRodada() {
+        total = 15.0
         val stop = stopTime(mix(voice(hymnG, voices = 6, amp = 0.3), crowd(amp = 0.04)))
-        assertTrue("deveria responder antes de 5 s", stop != null && stop.first < 4.5)
-        assertEquals(KeyStatus.ALTA, stop!!.second.status)
+        assertTrue("deveria encerrar sozinho antes do fim das 3 rodadas", stop != null && stop.first < 14.0)
+        assertTrue("nunca crava na 1ª rodada", stop!!.first >= 9.0)
+        assertEquals(KeyStatus.ALTA, stop.second.status)
         assertEquals("G", stop.second.candidates.first().keyCipher)
     }
 
     @Test
     fun soRuido_naoParaAntesDoLimite() {
-        // Com 5 s de ruído e limite de 8 s, a regra nunca encerra "achando" um tom.
+        // Ruído nunca faz a regra encerrar "achando" um tom antes do limite (15 s).
         assertEquals(null, stopTime(crowd()))
     }
 
     @Test
     fun regraDeParada_noLimiteEncerraMesmoSemResposta() {
-        val rule = KeyStopRule(maxSeconds = 4.0)
+        val rule = KeyStopRule(limitSeconds = 4.0)
         val stop = stopTime(crowd(), rule)
         assertTrue(stop != null && stop.first >= 4.0)
         assertFalse(stop!!.second.hasAnswer)

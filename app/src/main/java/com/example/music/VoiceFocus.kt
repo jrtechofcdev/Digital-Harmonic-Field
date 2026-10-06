@@ -139,7 +139,13 @@ class BassBandFilter(inputRate: Int = 44100) {
  * O piso proporcional (BETA) garante que, no pior caso, o quadro só é atenuado
  * por inteiro — a periodicidade da voz nunca é destruída.
  */
-class VoiceFocus(private val n: Int = 2048, sampleRate: Int = 22050, history: Int = 32) {
+class VoiceFocus(
+    private val n: Int = 2048,
+    sampleRate: Int = 22050,
+    history: Int = 32,
+    chromaMinHz: Double = 90.0,
+    chromaMaxHz: Double = 1500.0,
+) {
 
     private companion object {
         const val ALPHA = 1.3   // sobre-subtração do ruído estimado
@@ -159,7 +165,7 @@ class VoiceFocus(private val n: Int = 2048, sampleRate: Int = 22050, history: In
     private val cleaned = DoubleArray(n)
     private val pcOfBin = IntArray(bins) { k ->
         val f = k.toDouble() * sampleRate / n
-        if (k > 0 && f in 90.0..1500.0) pitchClassOfFrequency(f) else -1
+        if (k > 0 && f in chromaMinHz..chromaMaxHz) pitchClassOfFrequency(f) else -1
     }
 
     /** Perfil harmônico (12 classes, soma 1) do último quadro limpo. */

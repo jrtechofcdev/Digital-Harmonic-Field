@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Necessária para o detector de tom e o afinador (microfone). -->
+    <!-- Necessária para o detector de tom (microfone). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Vibração curta ao terminar a detecção de tom. -->
     <uses-permission android:name="android.permission.VIBRATE" />

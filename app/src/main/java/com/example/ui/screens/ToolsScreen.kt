@@ -52,7 +52,6 @@ import com.example.ui.theme.TextStrong
 @Composable
 fun ToolsScreen(
     onOpenKeyFinder: () -> Unit,
-    onOpenSettings: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     val metronome = remember { Metronome() }
@@ -82,13 +81,6 @@ fun ToolsScreen(
         }
         item { MetronomeCard(metronome) }
         item { CapoCard() }
-        item {
-            NavCard(
-                title = "Configurações",
-                subtitle = "Filtro de ruído, precisão, frequência de referência e sons",
-                onClick = onOpenSettings,
-            )
-        }
     }
 }
 

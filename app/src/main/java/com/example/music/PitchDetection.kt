@@ -1,25 +1,25 @@
 package com.example.music
 
-import kotlin.math.ln
-import kotlin.math.pow
-import kotlin.math.roundToInt
 
 /**
- * Detecção de altura (pitch) para o afinador. Diferente da identificação de
- * acorde (polifônica), afinar exige precisão fina em UMA nota por vez.
+ * Detecção de altura (pitch) de UMA nota por vez — usada pelo detector de tom
+ * para seguir a melodia cantada e a linha do baixo.
  *
- * Usamos autocorrelação normalizada (NSDF), base do McLeod Pitch Method — o
- * padrão para afinadores: robusto para corda solta, com interpolação parabólica
- * para precisão de subamostra. Funções puras, sem Android, para poder testar.
+ * Usamos autocorrelação normalizada (NSDF), base do McLeod Pitch Method, com
+ * interpolação parabólica para precisão de subamostra. Funções puras, sem
+ * Android, para poder testar.
  */
 
 data class PitchResult(val frequency: Double, val clarity: Double)
 
-private val noteNames = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
+private val ptPitchNames = listOf("Dó", "Dó#", "Ré", "Ré#", "Mi", "Fá", "Fá#", "Sol", "Sol#", "Lá", "Lá#", "Si")
+
+/** Nome da nota em português (ex.: 7 ou 67 → "Sol"). */
+fun ptPitchClass(midi: Int): String = ptPitchNames[Math.floorMod(midi, 12)]
 
 /**
  * Estima a frequência fundamental de um trecho de áudio, ou null se não houver
- * um tom claro (silêncio/ruído). `minClarity` vem do filtro de ruído.
+ * um tom claro (silêncio/ruído). `minClarity` é a exigência de periodicidade (0..1).
  */
 fun detectPitch(
     samples: DoubleArray,
@@ -88,47 +88,4 @@ fun detectPitch(
     if (clarity < minClarity) return null
     if (freq < minFreq || freq > maxFreq) return null
     return PitchResult(freq, clarity)
-}
-
-/** Frequência de uma nota MIDI, dado o Lá de referência (A4 = MIDI 69). */
-fun midiToFrequency(midi: Int, refA: Double = 440.0): Double =
-    refA * 2.0.pow((midi - 69) / 12.0)
-
-/** Nome + oitava de uma nota MIDI (ex.: 40 → "E2"). */
-fun midiToName(midi: Int): String {
-    val pc = Math.floorMod(midi, 12)
-    val octave = midi / 12 - 1
-    return noteNames[pc] + octave
-}
-
-/** Desvio em cents entre uma frequência e um alvo (positivo = acima/agudo). */
-fun centsBetween(freq: Double, target: Double): Double =
-    1200.0 * ln(freq / target) / ln(2.0)
-
-/**
- * Cents até um alvo, dobrando a frequência para a oitava mais próxima do alvo.
- * Assim, no modo "corda por corda", uma corda muito frouxa (que soa uma oitava
- * abaixo) ainda aponta o desvio correto, sem o ponteiro estourar a escala.
- */
-fun centsToTargetFolded(freq: Double, target: Double): Double {
-    var f = freq
-    val sqrt2 = 1.4142135623730951
-    while (f / target > sqrt2) f /= 2.0
-    while (target / f > sqrt2) f *= 2.0
-    return centsBetween(f, target)
-}
-
-data class NoteReading(
-    val midi: Int,
-    val name: String,
-    val cents: Double,   // -50..+50 em relação à nota cromática mais próxima
-    val frequency: Double,
-)
-
-/** Nota cromática mais próxima de uma frequência (modo cromático do afinador). */
-fun readingForFrequency(freq: Double, refA: Double = 440.0): NoteReading {
-    val midiExact = 69.0 + 12.0 * ln(freq / refA) / ln(2.0)
-    val nearest = midiExact.roundToInt()
-    val cents = (midiExact - nearest) * 100.0
-    return NoteReading(nearest, midiToName(nearest), cents, freq)
 }

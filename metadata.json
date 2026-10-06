@@ -1,6 +1,6 @@
 {
   "name": "Digital Harmonic Field",
-  "description": "Acesso rápido, visual e offline aos campos harmônicos de todos os tons para músicos de igreja.",
+  "description": "Campos harmônicos, progressões, círculo das quintas, metrônomo, diapasão e capotraste — tudo offline, para músicos que tocam ao vivo.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

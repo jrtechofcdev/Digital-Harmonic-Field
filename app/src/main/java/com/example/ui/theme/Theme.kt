@@ -1,37 +1,40 @@
 package com.example.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
-private val CustomColorScheme = darkColorScheme(
-  primary = AzulPrimario,
-  onPrimary = TextoPrincipal,
-  primaryContainer = FundoSecundario,
-  secondary = AzulClaro,
-  onSecondary = TextoPrincipal,
-  background = FundoPrincipal,
-  onBackground = TextoPrincipal,
-  surface = FundoSecundario,
-  onSurface = TextoPrincipal,
-  surfaceVariant = FundoTerciario,
-  onSurfaceVariant = TextoSecundario,
-  tertiary = AcentoAtivo
+// App é dark por natureza (uso em palco/culto com pouca luz). Mantemos um único
+// esquema escuro, consistente, em vez de depender de cores dinâmicas do sistema
+// — que descaracterizariam a identidade.
+private val AppDarkScheme = darkColorScheme(
+    primary = Brass,
+    onPrimary = Ink,
+    primaryContainer = Surface2,
+    onPrimaryContainer = TextStrong,
+    secondary = FuncSubdominant,
+    onSecondary = Ink,
+    tertiary = FuncTonic,
+    background = Ink,
+    onBackground = TextStrong,
+    surface = Surface1,
+    onSurface = TextStrong,
+    surfaceVariant = Surface2,
+    onSurfaceVariant = TextBody,
+    outline = Hairline,
+    outlineVariant = Hairline,
+    error = FuncDominant,
 )
 
 @Composable
-fun MyApplicationTheme(
-  content: @Composable () -> Unit,
+fun HarmonicTheme(
+    @Suppress("UNUSED_PARAMETER") darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit,
 ) {
-  MaterialTheme(
-    colorScheme = CustomColorScheme,
-    typography = Typography,
-    content = content
-  )
+    MaterialTheme(
+        colorScheme = AppDarkScheme,
+        typography = AppTypography,
+        content = content,
+    )
 }

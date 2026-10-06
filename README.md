@@ -1,135 +1,167 @@
-# Digital Harmonic Field 🎵
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.0-blue.svg?logo=kotlin)](https://kotlinlang.org/)
-[![Compose](https://img.shields.io/badge/Jetpack_Compose-Material_3-green.svg?logo=android)](https://developer.android.com/jetpack/compose)
-[![Platform](https://img.shields.io/badge/Platform-Android_Mobile_%26_Tablets-brightgreen.svg?logo=android)](https://developer.android.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Creator](https://img.shields.io/badge/Creator-JR__TECH__OFC-cyan.svg)](https://github.com/jr-tech-ofc)
+# Digital Harmonic Field
 
-O **Digital Harmonic Field** é um aplicativo Android nativo contemporâneo, desenvolvido em **Kotlin** e **Jetpack Compose**, sob as diretrizes do **Material Design 3**. O app foi construído de forma sob medida para instrumentistas, músicos de igreja e produtores que precisam de acesso visual e instantâneo a campos harmônicos em tempo real sem distrações.
+Aplicativo Android para consulta rápida de **campos harmônicos**, pensado para
+músicos que tocam ao vivo — em cultos, ensaios e eventos. Escolha um tom e veja,
+na hora, os sete graus, a função de cada acorde e as notas que o formam. Tudo
+offline e em modo escuro, para uso confortável em palco.
 
-Totalmente off-line, o aplicativo oferece um layout inteligente, de alto contraste visual e focado em navegação reativa extremamente rápida (máximo dois toques).
-
----
-
-## 🎨 Logotipo e Identidade Visual Premium
-O aplicativo apresenta um logotipo customizado programático e responsivo diretamente construído via Compose `Canvas` e em formato vetorial adaptativo:
-
-* **Minimalist Fretboard Matrix:** Representação geométrica de um braço de guitarra ou contrabaixo com trastes prateados (`#94A3B8`) e azuis luminosos (`#3B82F6` / `#22D3EE`), com nós e círculos que representam acordes vivos.
-* **Tipografia Futurista de Alto Impacto:** Títulos com espaçamentos marcantes de fontes contemporâneas que dão ao projeto um visual profissional de alto nível.
+Desenvolvido em **Kotlin** com **Jetpack Compose** e **Material 3**.
+Mantido por **JR TECH** — José Renato, guitarrista e developer.
 
 ---
 
-## 🧠 Psicologia das Cores e Sensações Musicais
-Cada grau do campo harmônico não é apenas representado por números romanos ou cifras neutras. O app mapeia individualmente cada grau da escala cromática para sua correspondente **função harmônica e sensação acústica**, trazendo a psicologia das cores para expressar o sentimento gerado no cérebro do ouvinte:
+## O que o app faz
 
-| Grau | Termologia Musical | Sensação Psicoacústica | Cor Clave | Representação Visual |
-| :---: | :--- | :--- | :---: | :--- |
-| **I** | **Tônica** | Ponto de Chegada / Repouso Absoluto | **Verde Esmeralda** | `#10B981` (Terapeuticamente seguro e de descanso) |
-| **II** | **Subdominante** | Afastamento / Início do Movimento | **Azul Céu** | `#3B82F6` (Intelecto, foco e direcionamento seguro) |
-| **III** | **Tônica Mediana** | Transição Suave / Repouso Flutuante | **Verde Piscina/Teal** | `#2DD4BF` (Equilíbrio místico e flutuação suave) |
-| **IV** | **Subdominante** | Abertura / Expansão | **Âmbar Luminoso** | `#F59E0B` (Luz solar, aconchego quente e abertura) |
-| **V** | **Dominante** | Gatilho de Puxada / Tensão Máxima | **Vermelho Intenso** | `#EF4444` (Instabilidade urgente, chamego estressado) |
-| **VI** | **Tônica Relativa** | Falsa Resolução / Desvio Emocional | **Roxo Real** | `#8B5CF6` (Magia, introspecção e desvio surpresa) |
-| **VII** | **Dominante Simétrico** | Instabilidade Pura / Suspense | **Fúcsia Néon** | `#D946EF` (Mistério definitivo, tensão não comedida) |
+O app é organizado em quatro áreas, acessíveis pela barra inferior:
 
-Este mapeamento dinâmico é aplicado tanto a escalas **Maiores** quanto **Menores**, garantindo consistência visual-auditiva sem igual.
+### Campos
+A função central. Uma grade com os 24 tons (12 maiores e 12 menores). Ao abrir
+um tom você vê:
+
+- Os **sete graus** do campo, cada um com sua **função tonal** — Tônica,
+  Subdominante ou Dominante — sinalizada por cor, com a **tendência** de cada
+  acorde (para onde ele "puxa").
+- **Transposição** em tempo real (± semitons), útil para adequar a música ao
+  vocal ou ao instrumento.
+- A **formação** de cada acorde (fundamental, terça e quinta).
+- **Caminhos comuns** já montados no tom (a Progressão da Harpa e o 1‑4‑5),
+  para bater o olho e saber para onde ir.
+- As **notas da escala** e **favoritos** salvos no aparelho.
+- **Modo paisagem** compacto: todos os graus na tela, sem rolagem, para uso
+  ao vivo.
+
+### Progressões
+Sequências harmônicas já montadas no tom escolhido, organizadas por uso:
+**Essenciais para hinos** (com destaque para a **Progressão da Harpa**,
+I – vi – ii – V – I, e o 1‑4‑5), **Finais de frase** (cadência perfeita, do
+"Amém", ii – V – I, meia cadência) e **Louvor e outras**. Os acordes ocupam a
+largura da tela — nada de arrastar a linha para o lado — e cada progressão abre
+em **tela cheia para tocar**: acordes gigantes, passo atual destacado, troca de
+tom na hora (− / +) e tela sempre acesa.
+
+### Aprender
+Um guia para o tocador iniciante da assembleia: o que é campo harmônico, as três
+funções, a progressão da Harpa, **como tirar música de ouvido**, o sistema de
+números (1‑4‑5) e o **círculo das quintas explicado com uso prático** — um mapa
+interativo que mostra, para cada tom, sua subdominante, dominante e relativa
+menor.
+
+### Ferramentas
+Utilitários para o dia a dia, todos sem depender de internet:
+
+- **Detectar tom** — também com atalho na tela inicial. Ouve em **rodadas de
+  5 segundos** e mostra os **3 tons mais prováveis**, com a chance de cada um e
+  os acordes para começar.
+  - **1ª rodada na hora:** com a tela aberta, os últimos 5 s ficam só na memória
+    (nada é gravado nem enviado; ao sair, tudo é apagado).
+  - **2ª e 3ª rodadas:** somam mais canto e mostram o palpite ao vivo. Para
+    sozinho quando tem certeza; dá para **parar e usar** a qualquer momento ou
+    pedir **mais 5 s** no mesmo hino. Vibra ao terminar.
+  - **Modelo treinado:** uma rede neural pequena, treinada com milhares de
+    trechos de hinos, analisa o que o músico percebe de ouvido — notas mais
+    cantadas, fim de frase, sensível subindo para a tônica, baixo fazendo 5 → 1.
+    Roda no aparelho, sem internet.
+  - **Sensibilidade do microfone:** automático ou fader manual, com atalhos
+    *Culto forte*, *Normal* e *Capela baixa* e um medidor com a faixa ideal.
+  - **Foco na voz + canal do baixo**, filtro de ruído constante e do zumbido da
+    rede elétrica. Sem evidência suficiente, **não sugere tom**.
+  - Na bancada de testes (hinos que o modelo nunca viu, áudio simulado de
+    culto), acerta ~**8,5 em 10** hinos simples no estilo da Harpa. Detalhes em
+    [`docs/detector-de-tom.md`](docs/detector-de-tom.md).
+- **Metrônomo** — som sintetizado, ajuste por slider ou passo, "marcar tempo"
+  (tap tempo), escolha de compasso e indicador visual dos tempos.
+- **Capotraste** — indica em que casa colocar o capo para tocar com acordes
+  abertos (formatos CAGED) e soar no tom desejado.
+
+### Versão DEV — treino real
+Uma variante para **testar no culto e gerar material de treino** (`gradle
+:app:assembleDev`). Instala ao lado do app normal e, a cada hino detectado,
+salva o trecho de áudio e o que o detector pensou em cada rodada. Abaixo do
+resultado você marca o **tom certo** (um toque no sugerido ou num seletor),
+dá **estrelas** e **etiquetas**; tudo vai para uma única pasta (`sessoes.json`,
+`log.jsonl`, áudios) que o app compacta e **compartilha em .zip**. Inclui um
+painel com o acerto real nos seus hinos e um **treinador** que só troca o
+modelo se melhorar. Guia completo em [`docs/treino-real.md`](docs/treino-real.md).
+O app normal **não grava nada**.
 
 ---
 
-## 🏎️ Navegação Fluida e Comportamento Adaptativo (Anti-Scroll Móvel)
+## Design
 
-O aplicativo resolve de forma cirúrgica os desafios práticos de tocar ao vivo com o instrumento nas mãos:
+A interface foi reconstruída em torno de três princípios:
 
-* **Visualização Sem Toques:** No modo retrato (*Portrait*), a tela de acordes se expande verticalmente para leitura estável.
-* **Modo Paisagem Otimizado (Landscape):** Ao rotacionar a tela para o modo horizontal, o aplicativo **oculta automaticamente o logotipo e as decorações da marca**, permitindo que a grade e os cards dos acordes preencham 100% da área útil disponível. Isso elimina a necessidade de rolagens acidentais de tela (*zero-scroll*) durante apresentações e cultos!
-* **Acesso Instantâneo:** Sem telas lentas de carregamento (splash screens) ou menus aninhados complexos. O músico abre o aplicativo e, com **um único toque** na tonalidade desejada, todos os 7 graus harmônicos ideais são carregados na tela instantaneamente.
-
----
-
-## 🛠️ Arquitetura e Tech Stack
-
-O projeto segue padrões industriais de engenharia de software Android:
-
-* **Linguagem:** [Kotlin 2.0.0](https://kotlinlang.org/) (Sintaxe moderna, nula e concisa).
-* **Kit de UI:** [Jetpack Compose (Material Core 3)](https://developer.android.com/jetpack/compose) reativo.
-* **Gerenciamento de Estado:** `ViewModel` emparelhado com `MutableStateFlow` para fluxos de dados unidirecionais seguros e reativos ao ciclo de vida da Activity (`collectAsStateWithLifecycle`).
-* **Edge-to-Edge:** Implementado nativamente usando `enableEdgeToEdge()` do AndroidX, garantindo que o aplicativo flua de forma imersiva sob as barras de status e navegação do sistema sem cortes de barras.
-* **Testabilidade:** Suíte de testes unitários integrados com **Robolectric** e screenshot-testing integrado via **Roborazzi** para garantir resiliência contra regressões na renderização visual.
+- **Sobriedade**: fundo quase-preto, superfícies em camadas e um único acento
+  (latão) usado apenas para ação e foco. Sem brilhos ou gradientes decorativos.
+- **Cor com significado**: em vez de tons avulsos, cada acorde recebe a cor da
+  sua função tonal (Tônica / Subdominante / Dominante) — o que também ensina
+  teoria enquanto se usa.
+- **Tipografia própria**: a família *Space Grotesk*, com dígitos marcantes,
+  dá identidade e legibilidade às cifras.
 
 ---
 
-## 📂 Organização Prática dos Arquivos
+## Estrutura do projeto
+
 ```text
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/example/
-│   │   │   │   ├── MainActivity.kt        # Interfaces de UI com suporte inteligente a rotação responsiva
-│   │   │   │   ├── HarmonicData.kt        # Banco de dados portátil com suporte dinâmico para os 24 tons
-│   │   │   │   └── ui/theme/
-│   │   │   │       ├── Theme.kt           # Centralização de paletas de alto contraste baseadas em Night-Mode
-│   │   │   │       └── Color.kt           # Cores oficiais da matriz harmônica
-│   │   │   └── res/
-│   │   │       └── drawable/
-│   │   │           ├── ic_launcher_background.xml
-│   │   │           └── ic_launcher_foreground.xml # Ícone adaptativo desenhado programaticamente
-│   │   └── test/
-│   │       └── java/com/example/          # Suíte de testes automatizados com Robolectric
-│   └── build.gradle.kts                   # Declaração das dependências e plugins atualizados
+app/src/main/java/com/example/
+├── MainActivity.kt              # Casca de navegação (4 abas + telas sobrepostas)
+├── HarmonicData.kt              # Base dos 24 campos harmônicos
+├── music/
+│   ├── MusicTheory.kt           # Funções tonais, transposição, formação de acordes
+│   ├── Progressions.kt          # Biblioteca de progressões (por grupo de uso)
+│   ├── ChordAnalysis.kt         # Base espectral: FFT, classes de altura, chromagram
+│   ├── VoiceFocus.kt            # Foco na voz + canal do baixo + subtração de ruído
+│   ├── PitchDetection.kt        # Detecção de altura (autocorrelação) + nomes das notas
+│   ├── KeyDetection.kt          # Detector de tom: notas sustentadas, travas, rodadas
+│   ├── KeyModel.kt              # Modelo treinado (pesos em resources/…/key_model.bin)
+│   └── KeyTrainer.kt            # Treinador leve (versão DEV)
+├── audio/
+│   ├── AudioEngine.kt           # Metrônomo (AudioTrack)
+│   └── KeyListener.kt           # Microfone → detector de tom (pré-buffer de 5 s em memória)
+├── dev/                         # Só na versão DEV: pasta de treino real, gravador de sessões
+└── ui/
+    ├── theme/                   # Cores, tipografia e tema
+    ├── components/              # Componentes reutilizáveis (marca, ChordStrip…)
+    └── screens/                 # Campos, Detalhe, Progressões (+ tela cheia), Aprender,
+                                 #  Ferramentas, Detectar tom, Doação (+ ui/dev na versão DEV)
+tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
+docs/detector-de-tom.md          # Como o detector funciona e como retreinar
+docs/treino-real.md              # Versão DEV: como captar, rotular e enviar
 ```
 
 ---
 
-## 🚀 Como Executar e Testar o App
+## Como compilar
 
 ### Pré-requisitos
-* **JDK 17** ou superior instalado no sistema operacional.
-* **Android Studio Ladybug** (ou posterior) para deploy direto no seu dispositivo físico por Wi-Fi ou cabo USB.
+- JDK 17 ou superior.
+- Android SDK com a plataforma **android-36.1** e **build-tools 36.1.0**.
+- **Gradle 9.3.1+** (exigido pelo Android Gradle Plugin 9.1.1).
 
-### Compilação por Linha de Comando (Gradle)
-No terminal, utilize os comandos do Gradle integrados na raiz do projeto (não use `./gradlew`, use `gradle` direto no nosso ambiente):
+### Comandos
+```bash
+# Gerar o APK de depuração
+gradle :app:assembleDebug
 
-1. **Compilar e buildar aplicativo inteiro:**
-   ```bash
-   gradle compileDebugSources
-   ```
+# Rodar os testes de lógica musical (Robolectric)
+gradle :app:testDebugUnitTest
+```
 
-2. **Gerar pacote APK executável de depuração (Debug APK):**
-   ```bash
-   gradle assembleDebug
-   ```
-   *O APK será instalado e disponibilizado automaticamente no seu diretório de outputs compilados.*
-
-3. **Rodar todos os testes unitários do Robolectric:**
-   ```bash
-   gradle :app:testDebugUnitTest
-   ```
+O APK é gerado em `app/build/outputs/apk/debug/`. Uma cópia da última build é
+mantida em `.build-outputs/app-debug.apk` para instalação direta.
 
 ---
 
-## 🤝 Como Contribuir
+## Apoiar
 
-Este projeto é **100% open-source**! Se deseja adicionar novos recursos (como suporte a acordes com sétimas e nonas enriquecidas, bemóis equivalentes ou suporte a MIDI nativo), siga estes passos:
+O app é gratuito. Quem quiser apoiar o projeto encontra, no cabeçalho da tela
+inicial, o botão **Apoiar** — uma tela com contribuição via Mercado Pago
+(Pix ou cartão), com valores sugeridos ou valor livre. Nada é cobrado dentro
+do app.
 
-1. Faça um **Fork** do projeto.
-2. Crie sua branch para a alteração desejada:
-   ```bash
-   git checkout -b feature/minha-melhoria
-   ```
-3. Realize o commit das suas modificações de código (mantenha o linter ativo):
-   ```bash
-   git commit -m "feat: adiciona suporte a acordes com sétima menor no campo"
-   ```
-4. Envie as alterações para o seu repositório remoto:
-   ```bash
-   git push origin feature/minha-melhoria
-   ```
-5. Abra um **Pull Request** detalhando sua alteração técnica.
+## Licença
 
----
+Projeto open-source sob licença MIT. Contribuições são bem-vindas via
+Pull Request.
 
-## ⛪ Propósito e Idealização
-
-O **Digital Harmonic Field** nasceu para resolver os conflitos visuais reais de transição harmônica em ensaios e momentos litúrgicos ao vivo. Idealizado para libertar músicos da dependência de pastas de cifras confusas, proporcionando velocidade mental em 2 segundos de foco visual.
-
-Idealizado e mantido com carinho por **JR_TECH_OFC** &copy; 2026.
+© JR TECH — 2026.

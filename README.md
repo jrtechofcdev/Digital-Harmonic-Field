@@ -71,6 +71,17 @@ Utilitários para o dia a dia, todos sem depender de internet:
 - **Capotraste** — indica em que casa colocar o capo para tocar com acordes
   abertos (formatos CAGED) e soar no tom desejado.
 
+### Versão DEV — treino real
+Uma variante para **testar no culto e gerar material de treino** (`gradle
+:app:assembleDev`). Instala ao lado do app normal e, a cada hino detectado,
+salva o trecho de áudio e o que o detector pensou em cada rodada. Abaixo do
+resultado você marca o **tom certo** (um toque no sugerido ou num seletor),
+dá **estrelas** e **etiquetas**; tudo vai para uma única pasta (`sessoes.json`,
+`log.jsonl`, áudios) que o app compacta e **compartilha em .zip**. Inclui um
+painel com o acerto real nos seus hinos e um **treinador** que só troca o
+modelo se melhorar. Guia completo em [`docs/treino-real.md`](docs/treino-real.md).
+O app normal **não grava nada**.
+
 ---
 
 ## Design
@@ -100,17 +111,20 @@ app/src/main/java/com/example/
 │   ├── VoiceFocus.kt            # Foco na voz + canal do baixo + subtração de ruído
 │   ├── PitchDetection.kt        # Detecção de altura (autocorrelação) + nomes das notas
 │   ├── KeyDetection.kt          # Detector de tom: notas sustentadas, travas, rodadas
-│   └── KeyModel.kt              # Modelo treinado (pesos em resources/…/key_model.bin)
+│   ├── KeyModel.kt              # Modelo treinado (pesos em resources/…/key_model.bin)
+│   └── KeyTrainer.kt            # Treinador leve (versão DEV)
 ├── audio/
 │   ├── AudioEngine.kt           # Metrônomo (AudioTrack)
 │   └── KeyListener.kt           # Microfone → detector de tom (pré-buffer de 5 s em memória)
+├── dev/                         # Só na versão DEV: pasta de treino real, gravador de sessões
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
     ├── components/              # Componentes reutilizáveis (marca, ChordStrip…)
     └── screens/                 # Campos, Detalhe, Progressões (+ tela cheia), Aprender,
-                                 #  Ferramentas, Detectar tom, Doação
-tools/key-model/                 # Bancada de hinos e treino do modelo (Python)
+                                 #  Ferramentas, Detectar tom, Doação (+ ui/dev na versão DEV)
+tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar
+docs/treino-real.md              # Versão DEV: como captar, rotular e enviar
 ```
 
 ---

@@ -16,6 +16,8 @@ android {
     targetSdk = 36
     versionCode = 1
     versionName = "1.0"
+    // Ferramentas de treino (gravação de trechos) — só a variante "dev" liga.
+    buildConfigField("boolean", "DEV_TOOLS", "false")
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -45,6 +47,16 @@ android {
     }
     debug {
       signingConfig = signingConfigs.getByName("debugConfig")
+    }
+    // Versão DEV de treino: instala ao lado do app normal e é a ÚNICA que grava
+    // trechos de áudio (para treinar o detector de tom com hinos reais).
+    // Gerar: gradle :app:assembleDev → app/build/outputs/apk/dev/
+    create("dev") {
+      initWith(getByName("debug"))
+      applicationIdSuffix = ".dev"
+      versionNameSuffix = "-dev"
+      matchingFallbacks += listOf("debug")
+      buildConfigField("boolean", "DEV_TOOLS", "true")
     }
   }
   compileOptions {

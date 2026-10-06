@@ -59,6 +59,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.HarmonicDatabase
 import com.example.R
 import com.example.audio.KeyListener
+import com.example.dev.DevStore
+import com.example.ui.dev.DevLabelForm
 import com.example.music.KeyCandidate
 import com.example.music.KeyResult
 import com.example.music.KeyStatus
@@ -83,9 +85,11 @@ fun KeyFinderScreen(
     onOpenKey: (String) -> Unit,
     onBack: () -> Unit,
     contentPadding: PaddingValues,
+    onOpenDevPanel: () -> Unit = {},
 ) {
     val context = LocalContext.current
-    val listener = remember { KeyListener() }
+    // Na versão DEV, o gravador de sessões acompanha o detector (no app normal: nada).
+    val listener = remember { KeyListener().apply { if (DevStore.enabled) tap = DevStore.recorder } }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -156,6 +160,11 @@ fun KeyFinderScreen(
             }
         }
 
+        if (DevStore.enabled) {
+            Spacer(Modifier.height(12.dp))
+            DevBanner(onOpenDevPanel)
+        }
+
         Spacer(Modifier.height(20.dp))
 
         if (!hasPermission) {
@@ -217,9 +226,14 @@ fun KeyFinderScreen(
                     )
                     Spacer(Modifier.height(10.dp))
                 }
+                if (DevStore.enabled) DevLabelSlot(result)
                 EvidenceCard(result, listener.analyzedSeconds)
             } else {
                 NoAnswerCard(result.status)
+                if (DevStore.enabled) {
+                    Spacer(Modifier.height(12.dp))
+                    DevLabelSlot(result)
+                }
             }
             Spacer(Modifier.height(16.dp))
         }
@@ -762,4 +776,42 @@ private fun vibrateFor(context: Context, status: KeyStatus) {
             vibrator.vibrate(pattern, -1)
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// Versão DEV (treino real)
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun DevBanner(onOpen: () -> Unit) {
+    val count = androidx.compose.runtime.remember(DevStore.version.intValue) { DevStore.stats().total }
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(FuncDominant.copy(alpha = 0.12f))
+            .border(1.dp, FuncDominant.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+            .clickable { onOpen() }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("MODO DEV · gravando trechos para treino", style = MaterialTheme.typography.labelLarge, color = FuncDominant)
+            Text("$count hinos na pasta de treino", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        }
+        Text("Painel ›", style = MaterialTheme.typography.labelLarge, color = FuncDominant)
+    }
+}
+
+/** Cartão de rótulo do hino atual (tom certo, estrelas, etiquetas). */
+@Composable
+private fun DevLabelSlot(result: KeyResult) {
+    val id = DevStore.recorder.currentId ?: return
+    val existing = androidx.compose.runtime.remember(id) { DevStore.session(id)?.optJSONObject("rotulo") }
+    DevLabelForm(
+        sessionId = id,
+        detected = result.candidates.map { it.keyCipher },
+        existing = existing,
+    )
+    Spacer(Modifier.height(12.dp))
 }

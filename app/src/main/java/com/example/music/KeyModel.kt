@@ -60,29 +60,58 @@ object KeyModel {
     const val DIM = 12 * BLOCKS12 + 144 * 2
 
     /**
+     * Última camada da rede (16 → maior/menor). A versão DEV pode trocá-la por
+     * uma ajustada com rótulos reais ([adaptedHead]); o resto da rede não muda.
+     */
+    class Head(val w2: DoubleArray, val b2: DoubleArray, val temperature: Double)
+
+    /** Cabeça original, vinda do treinamento. */
+    val baseHead: Head by lazy {
+        val w = weights
+        Head(
+            DoubleArray(w.w2.size) { w.w2[it].toDouble() },
+            DoubleArray(2) { w.b2[it].toDouble() },
+            w.temperature.toDouble(),
+        )
+    }
+
+    /** Cabeça ajustada (só a versão DEV define; null = usa a original). */
+    @Volatile var adaptedHead: Head? = null
+
+    /** Nome do modelo em uso, para os registros de treino. */
+    val activeName: String get() = if (adaptedHead != null) "ajustado" else "base"
+
+    /**
      * Chances (soma 1) dos 24 tons: índice = tônica (0 = Dó) + 12 se menor.
      * Retorna null se não houver nota cantada nenhuma.
      */
     fun probabilities(snapshot: EvidenceSnapshot): DoubleArray? {
         if (snapshot.voice.isEmpty()) return null
-        val x = features(snapshot)
+        return probabilitiesFromHidden(hidden(features(snapshot)), adaptedHead ?: baseHead)
+    }
+
+    /** Camada oculta (12 tônicas × 16 neurônios) para features absolutas [x]. */
+    fun hidden(x: DoubleArray): Array<DoubleArray> {
         val w = weights
         require(w.dim == DIM) { "modelo incompatível: ${w.dim} ≠ $DIM" }
-        val logits = DoubleArray(24)
         val rotated = DoubleArray(DIM)
-        val h = DoubleArray(w.hidden)
-        for (k in 0 until 12) {
+        return Array(12) { k ->
             rotate(x, k, rotated)
-            for (j in 0 until w.hidden) {
+            DoubleArray(w.hidden) { j ->
                 var acc = w.b1[j].toDouble()
                 for (d in 0 until DIM) acc += rotated[d] * w.w1[d * w.hidden + j]
-                h[j] = if (acc > 0) acc else 0.0
+                if (acc > 0) acc else 0.0
             }
-            for (m in 0 until 2) {
-                var acc = w.b2[m].toDouble()
-                for (j in 0 until w.hidden) acc += h[j] * w.w2[j * 2 + m]
-                logits[k + 12 * m] = acc / w.temperature
-            }
+        }
+    }
+
+    /** Chances dos 24 tons a partir da camada oculta e de uma [head]. */
+    fun probabilitiesFromHidden(h: Array<DoubleArray>, head: Head): DoubleArray {
+        val logits = DoubleArray(24)
+        for (k in 0 until 12) for (m in 0 until 2) {
+            var acc = head.b2[m]
+            for (j in h[k].indices) acc += h[k][j] * head.w2[j * 2 + m]
+            logits[k + 12 * m] = acc / head.temperature
         }
         val max = logits.max()
         var sum = 0.0

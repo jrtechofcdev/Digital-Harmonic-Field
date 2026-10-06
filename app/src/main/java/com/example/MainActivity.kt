@@ -67,6 +67,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Versão DEV de treino: prepara a pasta de trechos (no app normal não faz nada).
+        if (BuildConfig.DEV_TOOLS) com.example.dev.DevStore.init(applicationContext)
         setContent {
             HarmonicTheme {
                 HarmonicApp()
@@ -109,9 +111,11 @@ private fun HarmonicApp() {
     var showDonation by remember { mutableStateOf(false) }
     var showKeyFinder by remember { mutableStateOf(false) }
     var stage by remember { mutableStateOf<Pair<Progression, String>?>(null) }
+    var showDevPanel by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = detailKey != null || showDonation || showKeyFinder || stage != null) {
+    BackHandler(enabled = detailKey != null || showDonation || showKeyFinder || stage != null || showDevPanel) {
         when {
+            showDevPanel -> showDevPanel = false
             stage != null -> stage = null
             showKeyFinder -> showKeyFinder = false
             showDonation -> showDonation = false
@@ -122,7 +126,11 @@ private fun HarmonicApp() {
     val openKey: (String) -> Unit = { detailKey = it }
     val insets = WindowInsets.safeDrawing.asPaddingValues()
 
-    if (stage != null) {
+    if (showDevPanel) {
+        Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            com.example.ui.dev.DevPanelScreen(onBack = { showDevPanel = false }, contentPadding = insets)
+        }
+    } else if (stage != null) {
         Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
             ProgressionStageScreen(
                 progression = stage!!.first,
@@ -136,6 +144,7 @@ private fun HarmonicApp() {
             KeyFinderScreen(
                 onOpenKey = { showKeyFinder = false; openKey(it) },
                 onBack = { showKeyFinder = false },
+                onOpenDevPanel = { showKeyFinder = false; showDevPanel = true },
                 contentPadding = insets,
             )
         }
@@ -204,6 +213,7 @@ private fun HarmonicApp() {
                 Tab.APRENDER -> LearnScreen(openKey, innerPadding)
                 Tab.FERRAMENTAS -> ToolsScreen(
                     onOpenKeyFinder = { showKeyFinder = true },
+                    onOpenDevPanel = { showDevPanel = true },
                     contentPadding = innerPadding,
                 )
             }

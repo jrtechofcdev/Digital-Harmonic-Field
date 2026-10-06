@@ -53,6 +53,7 @@ import com.example.ui.theme.TextStrong
 fun ToolsScreen(
     onOpenKeyFinder: () -> Unit,
     contentPadding: PaddingValues,
+    onOpenDevPanel: () -> Unit = {},
 ) {
     val metronome = remember { Metronome() }
 
@@ -78,6 +79,15 @@ fun ToolsScreen(
                 subtitle = "Ouve o canto e mostra os 3 tons mais prováveis em segundos",
                 onClick = onOpenKeyFinder,
             )
+        }
+        if (com.example.BuildConfig.DEV_TOOLS) {
+            item {
+                NavCard(
+                    title = "Treino real (DEV)",
+                    subtitle = "Trechos captados, rótulos, desempenho, treinador e envio do .zip",
+                    onClick = onOpenDevPanel,
+                )
+            }
         }
         item { MetronomeCard(metronome) }
         item { CapoCard() }

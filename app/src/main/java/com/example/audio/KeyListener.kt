@@ -15,12 +15,30 @@ import kotlin.concurrent.thread
 import kotlin.math.sqrt
 
 /**
+ * Ganchos da thread de áudio para registrar uma sessão de detecção. Só a versão
+ * DEV (treino) instala um; no app normal [KeyListener.tap] é null e nada é gravado.
+ */
+interface SessionTap {
+    /** Começou um hino novo ("Detectar"/"Novo hino"). */
+    fun onStart(sampleRate: Int)
+    /** Áudio que entrou no detector (pré-buffer e ao vivo), na ordem. */
+    fun onAudio(samples: ShortArray, count: Int)
+    /** Uma leitura (~a cada 0,3 s). */
+    fun onEvaluation(detector: KeyDetector, result: KeyResult)
+    /** Rodada encerrada; [reason] = "sozinho", "usuario" ou "limite". */
+    fun onDone(detector: KeyDetector, result: KeyResult, reason: String)
+    fun onListenMore()
+    fun onCancel()
+}
+
+/**
  * Microfone → detector de tom, com resposta quase instantânea.
  *
  * Enquanto a tela está aberta ([open]), o microfone fica ligado e os últimos
  * [PREROLL_SECONDS] segundos ficam guardados SÓ NA MEMÓRIA, num buffer circular
  * que é sobrescrito o tempo todo. Nada é gravado em arquivo nem enviado; ao
- * sair da tela ([close]) o buffer é apagado.
+ * sair da tela ([close]) o buffer é apagado. (Exceção: a versão DEV de treino,
+ * que instala um [tap] e salva os trechos numa pasta do próprio app.)
  *
  * Ao tocar em "Detectar" ([detect]) esses segundos já ouvidos viram a 1ª rodada,
  * analisada na hora. Depois o app segue em rodadas de 5 s, somando evidência,
@@ -79,6 +97,9 @@ class KeyListener {
     @Volatile private var detectRequested = false
     @Volatile private var cancelRequested = false
     @Volatile private var stopRequested = false
+
+    /** Registro da sessão (só na versão DEV de treino). */
+    @Volatile var tap: SessionTap? = null
     @Volatile private var moreRequested = false
 
     /** Já há um hino em análise que pode receber mais rodadas. */
@@ -219,6 +240,7 @@ class KeyListener {
 
                 if (cancelRequested) {
                     cancelRequested = false
+                    if (detector != null) tap?.onCancel()
                     detector = null
                     canListenMore = false
                 }
@@ -228,11 +250,17 @@ class KeyListener {
                     //    (inclui o trecho que acabou de chegar).
                     detectRequested = false
                     val d = KeyDetector(SAMPLE_RATE)
+                    tap?.onStart(SAMPLE_RATE)
                     var idx = (ringPos - ringFilled + ringSize) % ringSize
                     var left = ringFilled
+                    val pre = ShortArray(CHUNK)
                     while (left > 0) {
                         val c = minOf(CHUNK, left)
-                        for (i in 0 until c) samples[i] = ring[(idx + i) % ringSize] / 32768.0
+                        for (i in 0 until c) {
+                            pre[i] = ring[(idx + i) % ringSize]
+                            samples[i] = pre[i] / 32768.0
+                        }
+                        tap?.onAudio(pre, c)
                         d.feed(samples, c)
                         idx = (idx + c) % ringSize
                         left -= c
@@ -250,10 +278,12 @@ class KeyListener {
                     if (moreRequested) {
                         moreRequested = false
                         stopRule.extend(detector.secondsFed)
+                        tap?.onListenMore()
                         phase = Phase.ANALYZING
                     }
                     if (detector.secondsFed < MAX_ACCUMULATE_SECONDS) {
                         for (i in 0 until r) samples[i] = shorts[i] / 32768.0
+                        tap?.onAudio(shorts, r)
                         detector.feed(samples, r)
                     } else {
                         canListenMore = false
@@ -262,6 +292,7 @@ class KeyListener {
                 } else if (detector != null) {
                     // 4) Analisando: segue ao vivo, rodada após rodada.
                     for (i in 0 until r) samples[i] = shorts[i] / 32768.0
+                    tap?.onAudio(shorts, r)
                     detector.feed(samples, r)
                     level = detector.level
                     hearingVoice = detector.hearingVoice
@@ -294,8 +325,15 @@ class KeyListener {
         analyzedSeconds = seconds.toFloat()
         liveGuess = r.candidates.firstOrNull()
         liveResult = r
+        tap?.onEvaluation(detector, r)
         if (!force && !rule.shouldStop(r, seconds)) return
         if (session != mySession || !running || phase != Phase.ANALYZING) return
+        val reason = when {
+            force -> "usuario"
+            seconds >= rule.limitSeconds -> "limite"
+            else -> "sozinho"
+        }
+        tap?.onDone(detector, r, reason)
         result = r
         liveGuess = null
         hearingVoice = false

@@ -20,6 +20,7 @@ for cp in ('5.0','10.0','15.0'):
     print(f"{cp:>5}s  top1 {t1/n:5.1%}  top3 {t3/n:5.1%}  respondeu {ans/n:5.1%}  | erros: relativa {relerr}, quinta {fifth}  | ALTA {len(alta)} ({altaok/max(1,len(alta)):.0%} certas)")
 R=[r for r in rows if r['checkpoint']=='15.0']
 def show(name,RR):
+    if not RR: return
     n=len(RR); ok=sum(r['stop_k1']==truth(r) for r in RR); ans=sum(r['stop_k1']!='-' for r in RR)
     alta=[r for r in RR if r['stop_status']=='ALTA']
     print(f"FLUXO DO APP ({name}, n={n}): acerta {ok/n:.1%} | responde {ans/n:.0%} | quando responde acerta {ok/max(1,ans):.1%}"

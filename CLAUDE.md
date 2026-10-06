@@ -20,6 +20,9 @@ gradle :app:assembleDebug          # saída em app/build/outputs/apk/debug/
 
 # Testes de lógica musical (Robolectric)
 gradle :app:testDebugUnitTest
+
+# Versão DEV de treino (grava trechos rotulados; instala ao lado do app)
+gradle :app:assembleDev            # saída em app/build/outputs/apk/dev/
 ```
 
 `local.properties` (com `sdk.dir=...`), `.env` e `debug.keystore` são gerados
@@ -44,10 +47,13 @@ com/example/
 │   ├── KeyDetection.kt    # Detector de tom: KeyDetector (streaming) → KeyResult;
 │   │                      #   KeyStopRule (rodadas de 5 s)
 │   ├── KeyModel.kt        # Modelo treinado (pesos em resources/com/example/music/key_model.bin)
+│   ├── KeyTrainer.kt      # Treinador leve (ajuste seguro da última camada + validação cruzada)
 │   └── PitchDetection.kt  # Detecção de altura (autocorrelação/MPM) + ptPitchClass
 ├── audio/
 │   ├── AudioEngine.kt     # Metronome via AudioTrack (sem libs externas)
-│   └── KeyListener.kt     # Pré-buffer de 5 s (só memória) + rodadas (RECORD_AUDIO)
+│   └── KeyListener.kt     # Pré-buffer de 5 s (só memória) + rodadas (RECORD_AUDIO) + SessionTap
+├── dev/                   # SÓ versão DEV: DevStore (pasta treino-real), DevRecorder, DevJson
+│                          #   (ui/dev: DevLabelForm, DevPanelScreen)
 └── ui/
     ├── theme/             # Color.kt (tokens), Type.kt (Space Grotesk), Theme.kt
     ├── components/         # CommonUi.kt (SectionLabel, AppCard, FunctionTag), ChordStrip.kt
@@ -91,6 +97,11 @@ incoerentes dão `INSUFICIENTE` e a lista de candidatos fica vazia.
   `KeyListener` permite parar e usar ou pedir mais 5 s no mesmo hino.
 - **Pré-buffer:** com a tela aberta, só os últimos 5 s ficam em memória (buffer
   circular). Nunca grave em arquivo nem envie áudio; ao sair (`close`) apaga.
+  **Única exceção: a variante `dev`** (`gradle :app:assembleDev`, ID `.dev`),
+  que liga `BuildConfig.DEV_TOOLS` e instala `DevStore.recorder` como
+  `KeyListener.tap` para gravar trechos de treino (ver `docs/treino-real.md`).
+  Todo código que grava deve checar `DevStore.enabled`; no app normal o `tap`
+  fica null.
 - Calibração é sintética (hinos reais, áudio gerado). Gravações reais de hinos da
   Harpa com o tom conhecido são o próximo passo.
 

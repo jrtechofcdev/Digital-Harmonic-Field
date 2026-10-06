@@ -58,10 +58,20 @@ def calibrate(P,X,Y):
 
 if __name__=='__main__':
     X,Y,T,F,E=load('train_notes.jsonl','train/labels.csv')
+    # Dados reais do app DEV: --extra notas.jsonl:labels.csv (pode repetir; peso 3×,
+    # porque um hino real vale mais que um sintético).
+    for i,arg in enumerate(sys.argv):
+        if arg=='--extra':
+            nj,lc=sys.argv[i+1].split(':')
+            Xr,Yr,_,_,_=load(nj,lc)
+            if len(Xr):
+                X=np.concatenate([X]+[Xr]*3); Y=np.concatenate([Y]+[Yr]*3)
+                print('reais',len(Xr),'(peso 3×)')
     Xv,Yv,Tv,Fv,Ev=load('val_notes.jsonl','val/labels.csv')
     print('treino',X.shape,'validação',Xv.shape)
-    hidden=int(sys.argv[1]) if len(sys.argv)>1 else 0
-    P=train(X,Y,hidden=hidden,Xv=Xv,Yv=Yv,epochs=int(sys.argv[2]) if len(sys.argv)>2 else 60)
+    pos=[a for a in sys.argv[1:] if not a.startswith('--') and ':' not in a]
+    hidden=int(pos[0]) if pos else 16
+    P=train(X,Y,hidden=hidden,Xv=Xv,Yv=Yv,epochs=int(pos[1]) if len(pos)>1 else 30)
     Tcal=calibrate(P,Xv,Yv); print('temperatura',round(Tcal,3))
     logits,_=forward(P,Xv); p=softmax(logits/Tcal)
     for t in sorted(set(Tv)):

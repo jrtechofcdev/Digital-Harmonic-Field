@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,6 +91,15 @@ fun KeyFinderScreen(
     val context = LocalContext.current
     // Na versão DEV, o gravador de sessões acompanha o detector (no app normal: nada).
     val listener = remember { KeyListener().apply { if (DevStore.enabled) tap = DevStore.recorder } }
+
+    // Fader de sensibilidade do microfone (salvo no aparelho).
+    val prefs = remember { context.getSharedPreferences("detector_prefs", android.content.Context.MODE_PRIVATE) }
+    var faderAuto by remember { mutableStateOf(prefs.getBoolean("fader_auto", true)) }
+    var faderDb by remember { mutableFloatStateOf(prefs.getFloat("fader_db", 0f)) }
+    LaunchedEffect(faderAuto, faderDb) {
+        listener.manualGainDb = if (faderAuto) null else faderDb.toDouble()
+        prefs.edit().putBoolean("fader_auto", faderAuto).putFloat("fader_db", faderDb).apply()
+    }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -181,6 +191,18 @@ fun KeyFinderScreen(
         )
 
         Spacer(Modifier.height(16.dp))
+
+        if (listener.phase != KeyListener.Phase.OFF) {
+            MicSensitivityCard(
+                auto = faderAuto,
+                db = faderDb,
+                level = listener.level,
+                appliedDb = listener.gainDb,
+                onAuto = { faderAuto = it },
+                onDb = { faderAuto = false; faderDb = it },
+            )
+            Spacer(Modifier.height(16.dp))
+        }
 
         if (listening) {
             LiveStatus(
@@ -825,4 +847,140 @@ private fun DevLabelSlot(result: KeyResult) {
         existing = existing,
     )
     Spacer(Modifier.height(12.dp))
+}
+
+// ---------------------------------------------------------------------------
+// Fader de sensibilidade do microfone
+// ---------------------------------------------------------------------------
+
+private val FADER_PRESETS = listOf(
+    Triple("Culto forte", -12f, "banda alta, igreja cheia"),
+    Triple("Normal", 0f, "sem ganho"),
+    Triple("Capela baixa", 18f, "poucas vozes, sem som"),
+)
+
+/** Faixa do medidor (0..1, escala em dB) onde o canto fica bom para o detector. */
+private const val IDEAL_LOW = 0.50f   // ≈ −35 dB
+private const val IDEAL_HIGH = 0.85f  // ≈ −17 dB
+
+/**
+ * Sensibilidade do microfone: no automático o app ajusta sozinho; no manual o
+ * músico fixa o ganho no fader. Culto forte → abaixe (só o que está alto conta,
+ * conversa e barulho de fundo ficam de fora). Capela baixa → aumente.
+ */
+@Composable
+private fun MicSensitivityCard(
+    auto: Boolean,
+    db: Float,
+    level: Float,
+    appliedDb: Float,
+    onAuto: (Boolean) -> Unit,
+    onDb: (Float) -> Unit,
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Surface1)
+            .border(1.dp, Hairline, RoundedCornerShape(14.dp))
+            .padding(14.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Sensibilidade do microfone", style = MaterialTheme.typography.titleMedium, color = TextStrong)
+                Text(
+                    if (auto) "Automático · ganho agora %+.0f dB".format(appliedDb)
+                    else "Manual · fader %+.0f dB".format(db),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Brass,
+                )
+            }
+            Text("Automático", style = MaterialTheme.typography.labelLarge, color = TextBody)
+            Spacer(Modifier.width(8.dp))
+            androidx.compose.material3.Switch(
+                checked = auto,
+                onCheckedChange = onAuto,
+                colors = androidx.compose.material3.SwitchDefaults.colors(checkedThumbColor = Ink, checkedTrackColor = Brass),
+            )
+        }
+
+        Spacer(Modifier.height(12.dp))
+        // Medidor com a faixa ideal marcada.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(12.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(Surface2),
+        ) {
+            Row(Modifier.fillMaxWidth().height(12.dp)) {
+                Spacer(Modifier.weight(IDEAL_LOW))
+                Box(Modifier.weight(IDEAL_HIGH - IDEAL_LOW).height(12.dp).background(FuncTonic.copy(alpha = 0.18f)))
+                Spacer(Modifier.weight(1f - IDEAL_HIGH))
+            }
+            Box(
+                Modifier
+                    .fillMaxWidth(level.coerceIn(0f, 1f))
+                    .height(12.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(
+                        when {
+                            level > IDEAL_HIGH -> FuncDominant
+                            level >= IDEAL_LOW -> FuncTonic
+                            else -> TextMuted
+                        }
+                    ),
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            when {
+                level > IDEAL_HIGH -> "Alto demais — abaixe o fader"
+                level >= IDEAL_LOW -> "Bom — o canto está na faixa ideal"
+                else -> "Baixo — com o canto acontecendo, suba o fader (ou use o automático)"
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = when {
+                level > IDEAL_HIGH -> FuncDominant
+                level >= IDEAL_LOW -> FuncTonic
+                else -> TextMuted
+            },
+        )
+
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FADER_PRESETS.forEach { (label, value, _) ->
+                val on = !auto && kotlin.math.abs(db - value) < 0.5f
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (on) Brass else Surface2)
+                        .border(1.dp, if (on) Brass else Hairline, RoundedCornerShape(10.dp))
+                        .clickable { onDb(value) }
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = if (on) Ink else TextBody, maxLines = 1)
+                    Text("%+.0f dB".format(value), style = MaterialTheme.typography.labelSmall, color = if (on) Ink else TextMuted)
+                }
+            }
+        }
+
+        // Fader: −24 a +30 dB. Mexer nele passa para o modo manual.
+        androidx.compose.material3.Slider(
+            value = db,
+            onValueChange = { onDb(Math.round(it).toFloat()) },
+            valueRange = com.example.music.InputLeveler.MIN_MANUAL_DB.toFloat()..com.example.music.InputLeveler.MAX_MANUAL_DB.toFloat(),
+            colors = androidx.compose.material3.SliderDefaults.colors(
+                thumbColor = if (auto) TextMuted else Brass,
+                activeTrackColor = if (auto) Hairline else Brass,
+                inactiveTrackColor = Surface2,
+            ),
+        )
+        Row {
+            Text("menos sensível", style = MaterialTheme.typography.labelSmall, color = TextMuted, modifier = Modifier.weight(1f))
+            Text("mais sensível", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        }
+    }
 }

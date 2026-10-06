@@ -3,7 +3,7 @@
 ## Visão geral
 
 ```
-microfone → ganho automático + limitador (InputLeveler, até +30 dB)
+microfone → ganho automático OU fader manual (−24…+30 dB) + limitador (InputLeveler)
           ─┬─ canal da voz  (120–1500 Hz) → foco na voz → altura (NSDF) → notas sustentadas ─┐
            └─ canal do baixo (35–160 Hz, sem zumbido 60/120/180 Hz) → notas + perfil grave ───┤
                                                                                               ▼
@@ -53,6 +53,16 @@ com 15 s — por isso a 1ª rodada nunca crava o tom e o app ouve em rodadas.
 
 **Limite honesto:** a bancada é sintética (hinos reais, áudio gerado). O passo
 seguinte é medir com gravações reais de cultos e hinos da Harpa.
+
+## Sensibilidade do microfone (fader)
+
+Na tela "Detectar tom": **Automático** (o app ajusta o ganho sozinho) ou fader
+manual de −24 a +30 dB, com atalhos **Culto forte** (−12 dB), **Normal** (0) e
+**Capela baixa** (+18 dB). O medidor mostra o volume depois do fader, com a
+faixa ideal marcada (≈ −35 a −17 dB). Abaixar a sensibilidade faz o detector
+ignorar o que está fraco (conversa, barulho de fundo); subir faz ele ouvir vozes
+fracas. O ajuste é digital: não muda o microfone em si (o Android não expõe o
+ganho do hardware), mas decide o que o detector considera.
 
 ## O que o material real ensinou (out/2026, 25 sessões, 12 hinos rotulados)
 

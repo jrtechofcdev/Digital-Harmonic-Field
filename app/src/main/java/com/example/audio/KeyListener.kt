@@ -20,8 +20,8 @@ import kotlin.math.sqrt
  * DEV (treino) instala um; no app normal [KeyListener.tap] é null e nada é gravado.
  */
 interface SessionTap {
-    /** Começou um hino novo ("Detectar"/"Novo hino"). */
-    fun onStart(sampleRate: Int)
+    /** Começou um hino novo ("Detectar"/"Novo hino"); [manualGainDb] null = ganho automático. */
+    fun onStart(sampleRate: Int, manualGainDb: Double?)
     /** Áudio que entrou no detector (pré-buffer e ao vivo), na ordem. */
     fun onAudio(samples: ShortArray, count: Int)
     /** Uma leitura (~a cada 0,3 s). */
@@ -81,6 +81,12 @@ class KeyListener {
     /** Ganho automático aplicado ao microfone (dB) — som baixo é levado a um nível de trabalho. */
     var gainDb by mutableFloatStateOf(0f)
         private set
+
+    /**
+     * Fader de sensibilidade do microfone em dB (null = automático). Vale na hora,
+     * inclusive no meio de uma escuta. Ver [com.example.music.InputLeveler].
+     */
+    @Volatile var manualGainDb: Double? = null
     var liveGuess by mutableStateOf<KeyCandidate?>(null) // parcial, durante a análise
         private set
     /** Leitura parcial completa (com chances), atualizada a cada ~0,3 s. */
@@ -216,6 +222,19 @@ class KeyListener {
         var ringFilled = 0
         val shorts = ShortArray(CHUNK)
         val samples = DoubleArray(CHUNK)
+        // Medidor com a tela parada: mostra o volume DEPOIS do fader/ganho.
+        val monitor = com.example.music.InputLeveler(SAMPLE_RATE)
+        val monitorIn = DoubleArray(CHUNK)
+        val monitorOut = DoubleArray(CHUNK)
+        fun monitorLevel(r: Int): Float {
+            monitor.manualGainDb = manualGainDb
+            for (i in 0 until r) monitorIn[i] = shorts[i] / 32768.0
+            monitor.process(monitorIn, r, monitorOut)
+            var sq = 0.0
+            for (i in 0 until r) sq += monitorOut[i] * monitorOut[i]
+            gainDb = (20 * kotlin.math.log10(monitor.gain)).toFloat()
+            return levelOf(sqrt(sq / r))
+        }
 
         var detector: KeyDetector? = null
         var stopRule = KeyStopRule()
@@ -249,12 +268,15 @@ class KeyListener {
                     canListenMore = false
                 }
 
+                detector?.manualGainDb = manualGainDb
+
                 if (detectRequested) {
                     // 2) Novo pedido: analisa de uma vez tudo o que já foi ouvido
                     //    (inclui o trecho que acabou de chegar).
                     detectRequested = false
                     val d = KeyDetector(SAMPLE_RATE)
-                    tap?.onStart(SAMPLE_RATE)
+                    d.manualGainDb = manualGainDb
+                    tap?.onStart(SAMPLE_RATE, manualGainDb)
                     var idx = (ringPos - ringFilled + ringSize) % ringSize
                     var left = ringFilled
                     val pre = ShortArray(CHUNK)
@@ -292,7 +314,7 @@ class KeyListener {
                     } else {
                         canListenMore = false
                     }
-                    level = levelOf(sqrt(sumSq / r))
+                    level = monitorLevel(r)
                 } else if (detector != null) {
                     // 4) Analisando: segue ao vivo, rodada após rodada.
                     for (i in 0 until r) samples[i] = shorts[i] / 32768.0
@@ -308,7 +330,7 @@ class KeyListener {
                         evaluate(detector, stopRule, mySession, force = stopNow)
                     }
                 } else {
-                    level = levelOf(sqrt(sumSq / r))
+                    level = monitorLevel(r)
                 }
             }
         } finally {

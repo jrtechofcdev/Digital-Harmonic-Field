@@ -91,8 +91,9 @@ incoerentes dão `INSUFICIENTE` e a lista de candidatos fica vazia.
 - **Status:** ALTA só com ≥9,5 s e chance ≥0,70 (calibrado na bancada: 93–95%
   de acerto); a 1ª rodada nunca crava. Ao mexer em limiares, meça com
   `runbench.sh` + `score.py` e rode os testes de ruído/conversa/cromático.
-- **Entrada:** `InputLeveler` (ganho automático até +30 dB + limitador suave)
-  antes dos filtros — no culto o celular capta baixo. As notas sustentadas
+- **Entrada:** `InputLeveler` antes dos filtros: ganho automático (até +30 dB)
+  **ou fader manual** de sensibilidade (−24…+30 dB, `KeyListener.manualGainDb`,
+  salvo em `detector_prefs`), sempre com limitador suave (teto 0,98). As notas sustentadas
   aceitam ±0,8 semitom (`NOTE_TOLERANCE`) e clareza ≥0,60; a trava de escala é
   75% (`MIN_SCALE_FIT`) — abaixo disso notas cromáticas passam a ganhar tom. Valores medidos no material real (docs/detector-de-tom.md).
 - **Dois canais:** voz (120–1500 Hz) e baixo (35–160 Hz). O baixo só conta com

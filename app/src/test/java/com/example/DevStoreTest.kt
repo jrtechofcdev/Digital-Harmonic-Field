@@ -56,7 +56,7 @@ class DevStoreTest {
         val det = KeyDetector(sr)
         val pcm = hymn(12.0)
 
-        rec.onStart(sr)
+        rec.onStart(sr, null)
         val chunk = ShortArray(2048)
         val samples = DoubleArray(2048)
         var i = 0

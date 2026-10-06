@@ -61,6 +61,8 @@ Utilitários para o dia a dia, todos sem depender de internet:
     trechos de hinos, analisa o que o músico percebe de ouvido — notas mais
     cantadas, fim de frase, sensível subindo para a tônica, baixo fazendo 5 → 1.
     Roda no aparelho, sem internet.
+  - **Sensibilidade do microfone:** automático ou fader manual, com atalhos
+    *Culto forte*, *Normal* e *Capela baixa* e um medidor com a faixa ideal.
   - **Foco na voz + canal do baixo**, filtro de ruído constante e do zumbido da
     rede elétrica. Sem evidência suficiente, **não sugere tom**.
   - Na bancada de testes (hinos que o modelo nunca viu, áudio simulado de

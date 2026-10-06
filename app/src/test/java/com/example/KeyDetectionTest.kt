@@ -145,8 +145,9 @@ class KeyDetectionTest {
 
     private fun mix(vararg parts: DoubleArray) = DoubleArray(n) { i -> parts.sumOf { it[i] } }
 
-    private fun analyze(signal: DoubleArray): KeyResult {
+    private fun analyze(signal: DoubleArray, faderDb: Double? = null): KeyResult {
         val detector = KeyDetector(sr)
+        detector.manualGainDb = faderDb
         val chunk = DoubleArray(2048)
         var i = 0
         while (i < signal.size) {
@@ -346,5 +347,36 @@ class KeyDetectionTest {
         val stop = stopTime(crowd(), rule)
         assertTrue(stop != null && stop.first >= 4.0)
         assertFalse(stop!!.second.hasAnswer)
+    }
+
+    // ----- Fader de sensibilidade do microfone -----
+
+    @Test
+    fun fader_cultoForteIgnoraCantoFraco_capelaBaixaOuve() {
+        // Canto bem baixo (−34 dB), como de longe ou capela fraca.
+        val faint = voice(hymnG).map { it * 0.02 }.toDoubleArray()
+        val loudService = analyze(faint, faderDb = -12.0)
+        assertFalse("com 'Culto forte' o canto fraco fica abaixo da sensibilidade", loudService.hasAnswer)
+        val quietChapel = analyze(faint, faderDb = 18.0)
+        assertEquals("G", quietChapel.candidates.first().keyCipher)
+    }
+
+    @Test
+    fun fader_ganhoManualELimitador() {
+        val lev = com.example.music.InputLeveler(sr)
+        fun peakAfter(amp: Double, db: Double): Double {
+            lev.manualGainDb = db
+            // O ganho muda suave (~0,25 s, sem estalo): mede depois de estabilizar.
+            val n = 2 * sr
+            val x = DoubleArray(n) { amp * sin(2 * PI * 220.0 * it / sr) }
+            val y = DoubleArray(n)
+            lev.process(x, n, y)
+            return (n - sr / 4 until n).maxOf { kotlin.math.abs(y[it]) }
+        }
+        assertEquals(0.5 * 0.251, peakAfter(0.5, -12.0), 0.01)   // atenua
+        assertEquals(0.1, peakAfter(0.01, 20.0), 0.01)            // amplifica
+        assertTrue("limitador segura os picos", peakAfter(0.5, 30.0) < 1.0)
+        lev.manualGainDb = 99.0
+        assertEquals(com.example.music.InputLeveler.MAX_MANUAL_DB, lev.manualGainDb!!, 0.0)
     }
 }

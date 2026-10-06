@@ -55,6 +55,7 @@ segundo** de áudio (~1,3 MB por hino de 15 s).
   "duracao_s": 14.9,
   "modelo": "base",
   "ouvir_mais": 1,
+  "ganho": {"modo": "manual", "fader_db": -12, "aplicado_db": -12.0},
   "paradas": [{"t": 10.2, "motivo": "sozinho"}],
   "rodadas": [{"t": 5.0, "status": "MEDIA", "top": [{"tom": "G", "nome": "Sol Maior", "chance": 0.61}, …],
                "voz_s": 3.4, "baixo_s": 1.2, "afinacao_cents": -14, "entre_tons": false}, …],

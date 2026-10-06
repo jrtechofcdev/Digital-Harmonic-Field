@@ -331,6 +331,11 @@ class KeyDetector(inputRate: Int = 44100) {
     private val inputRateD = inputRate.toDouble()
 
     private val leveler = InputLeveler(inputRate)
+
+    /** Fader de sensibilidade (dB); null = ganho automático. */
+    var manualGainDb: Double?
+        get() = leveler.manualGainDb
+        set(value) { leveler.manualGainDb = value }
     private var leveled = DoubleArray(0)
 
     /** Ganho automático aplicado agora, em dB (0 = sem ganho). */

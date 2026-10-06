@@ -37,6 +37,10 @@ class SessionDraft(val id: String, val startedAt: Long, val sampleRate: Int) {
     val stops = ArrayList<Pair<Double, String>>()
     var listenMore = 0
     var final: Reading? = null
+    /** Fader de sensibilidade no início (null = automático). */
+    var manualGainDb: Double? = null
+    /** Ganho realmente aplicado no fim da rodada (dB). */
+    var appliedGainDb: Double = 0.0
     var model: String = KeyModel.activeName
 }
 
@@ -66,8 +70,9 @@ class DevRecorder(private val store: DevStore) : SessionTap {
     var currentId by mutableStateOf<String?>(null)
         private set
 
-    override fun onStart(sampleRate: Int) {
+    override fun onStart(sampleRate: Int, manualGainDb: Double?) {
         val d = SessionDraft(store.newSessionId(), System.currentTimeMillis(), sampleRate)
+        d.manualGainDb = manualGainDb
         synchronized(lock) {
             audio = ShortArray(sampleRate * 20)
             size = 0
@@ -114,6 +119,7 @@ class DevRecorder(private val store: DevStore) : SessionTap {
         val saved = synchronized(lock) {
             val d = draft ?: return
             d.final = Reading.of(result, t)
+            d.appliedGainDb = detector.gainDb
             d.stops.add(t to reason)
             if (d.features.none { kotlin.math.abs(it.first - t) < 0.3 }) {
                 d.features.add(t to KeyModel.features(detector.snapshot()))

@@ -77,17 +77,30 @@ class Biquad private constructor(
 }
 
 /**
- * Ganho automático + limitador na entrada. No culto o celular costuma captar o
- * canto baixo (−40 a −50 dB): aqui o som é levado a um nível de trabalho
- * ([targetRms] ≈ −26 dB), com no máximo [maxGainDb] de ganho, mudando devagar
- * (~1,5 s) para não "bombear". Picos acima de 0,8 são arredondados (limitador
- * suave), então nada estoura nem distorce a altura das notas.
+ * Entrada do microfone: ganho + limitador, antes de qualquer análise.
+ *
+ * - **Automático** ([manualGainDb] = null): leva o som a um nível de trabalho
+ *   ([targetRms] ≈ −26 dB), com no máximo [maxGainDb] de ganho, mudando devagar
+ *   (~1,5 s) para não "bombear".
+ * - **Manual (fader de sensibilidade)**: ganho fixo escolhido pelo músico, de
+ *   [MIN_MANUAL_DB] a [MAX_MANUAL_DB]. Abaixar (ex.: −12 dB em culto forte) faz o
+ *   detector só considerar o que está alto — conversa e barulho de fundo ficam
+ *   abaixo do volume mínimo. Subir (ex.: +18 dB em capela baixa) faz ele ouvir
+ *   vozes fracas.
+ *
+ * Em qualquer modo, picos acima de 0,8 são arredondados (limitador suave), então
+ * nada estoura nem distorce a altura das notas.
  */
 class InputLeveler(
     sampleRate: Int = 44100,
     private val targetRms: Double = 0.05,
     maxGainDb: Double = 30.0,
 ) {
+    companion object {
+        const val MIN_MANUAL_DB = -24.0
+        const val MAX_MANUAL_DB = 30.0
+    }
+
     private val maxGain = Math.pow(10.0, maxGainDb / 20)
     private val envCoef = 1.0 / (1.5 * sampleRate)    // média do volume (~1,5 s)
     private val gainCoef = 1.0 / (0.25 * sampleRate)  // suavização do ganho (~0,25 s)
@@ -96,11 +109,16 @@ class InputLeveler(
     var gain = 1.0
         private set
 
+    /** Fader manual em dB; null = automático. Pode mudar a qualquer momento. */
+    @Volatile var manualGainDb: Double? = null
+        set(value) { field = value?.coerceIn(MIN_MANUAL_DB, MAX_MANUAL_DB) }
+
     fun process(input: DoubleArray, count: Int, out: DoubleArray) {
+        val manual = manualGainDb?.let { Math.pow(10.0, it / 20) }
         for (i in 0 until count) {
             val x = input[i]
             meanSquare += envCoef * (x * x - meanSquare)
-            val wanted = (targetRms / sqrt(meanSquare + 1e-12)).coerceIn(1.0, maxGain)
+            val wanted = manual ?: (targetRms / sqrt(meanSquare + 1e-12)).coerceIn(1.0, maxGain)
             gain += gainCoef * (wanted - gain)
             out[i] = limit(x * gain)
         }
@@ -109,7 +127,8 @@ class InputLeveler(
     private fun limit(y: Double): Double {
         val a = abs(y)
         if (a <= 0.8) return y
-        return Math.copySign(0.8 + 0.2 * kotlin.math.tanh((a - 0.8) / 0.2), y)
+        // Teto em 0,98: mesmo com +30 dB num som forte, nunca bate no limite digital.
+        return Math.copySign(0.8 + 0.18 * kotlin.math.tanh((a - 0.8) / 0.18), y)
     }
 }
 

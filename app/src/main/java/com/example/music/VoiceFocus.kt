@@ -1,6 +1,7 @@
 package com.example.music
 
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -72,6 +73,43 @@ class Biquad private constructor(
                 -2 * c / a0, (1 - alpha) / a0,
             )
         }
+    }
+}
+
+/**
+ * Ganho automático + limitador na entrada. No culto o celular costuma captar o
+ * canto baixo (−40 a −50 dB): aqui o som é levado a um nível de trabalho
+ * ([targetRms] ≈ −26 dB), com no máximo [maxGainDb] de ganho, mudando devagar
+ * (~1,5 s) para não "bombear". Picos acima de 0,8 são arredondados (limitador
+ * suave), então nada estoura nem distorce a altura das notas.
+ */
+class InputLeveler(
+    sampleRate: Int = 44100,
+    private val targetRms: Double = 0.05,
+    maxGainDb: Double = 30.0,
+) {
+    private val maxGain = Math.pow(10.0, maxGainDb / 20)
+    private val envCoef = 1.0 / (1.5 * sampleRate)    // média do volume (~1,5 s)
+    private val gainCoef = 1.0 / (0.25 * sampleRate)  // suavização do ganho (~0,25 s)
+    private var meanSquare = targetRms * targetRms    // começa sem ganho
+    /** Ganho atual (1 = sem ganho). */
+    var gain = 1.0
+        private set
+
+    fun process(input: DoubleArray, count: Int, out: DoubleArray) {
+        for (i in 0 until count) {
+            val x = input[i]
+            meanSquare += envCoef * (x * x - meanSquare)
+            val wanted = (targetRms / sqrt(meanSquare + 1e-12)).coerceIn(1.0, maxGain)
+            gain += gainCoef * (wanted - gain)
+            out[i] = limit(x * gain)
+        }
+    }
+
+    private fun limit(y: Double): Double {
+        val a = abs(y)
+        if (a <= 0.8) return y
+        return Math.copySign(0.8 + 0.2 * kotlin.math.tanh((a - 0.8) / 0.2), y)
     }
 }
 

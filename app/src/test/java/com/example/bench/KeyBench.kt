@@ -48,8 +48,10 @@ object KeyBench {
             val det = KeyDetector(44100)
             val rule = KeyStopRule()
             var stop: Triple<Double, String, String>? = null
-            val checkpoints = mutableListOf(5.0, 10.0, 15.0)
             val endSeconds = x.size / 44100.0
+            // Pontos de medida a cada 5 s até o fim (gravações reais passam de 15 s).
+            val checkpoints = generateSequence(5.0) { it + 5.0 }.takeWhile { it <= maxOf(15.0, endSeconds + 0.05) }
+                .toMutableList()
             var i = 0
             var chunks = 0
             var nextDump = 2.5

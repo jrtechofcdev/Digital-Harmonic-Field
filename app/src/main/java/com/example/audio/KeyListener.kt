@@ -11,6 +11,7 @@ import com.example.music.KeyCandidate
 import com.example.music.KeyDetector
 import com.example.music.KeyResult
 import com.example.music.KeyStopRule
+import com.example.music.levelOf
 import kotlin.concurrent.thread
 import kotlin.math.sqrt
 
@@ -76,6 +77,9 @@ class KeyListener {
     var level by mutableFloatStateOf(0f)
         private set
     var hearingVoice by mutableStateOf(false)
+        private set
+    /** Ganho automático aplicado ao microfone (dB) — som baixo é levado a um nível de trabalho. */
+    var gainDb by mutableFloatStateOf(0f)
         private set
     var liveGuess by mutableStateOf<KeyCandidate?>(null) // parcial, durante a análise
         private set
@@ -288,7 +292,7 @@ class KeyListener {
                     } else {
                         canListenMore = false
                     }
-                    level = (sqrt(sumSq / r) * 8).coerceIn(0.0, 1.0).toFloat()
+                    level = levelOf(sqrt(sumSq / r))
                 } else if (detector != null) {
                     // 4) Analisando: segue ao vivo, rodada após rodada.
                     for (i in 0 until r) samples[i] = shorts[i] / 32768.0
@@ -296,6 +300,7 @@ class KeyListener {
                     detector.feed(samples, r)
                     level = detector.level
                     hearingVoice = detector.hearingVoice
+                    gainDb = detector.gainDb.toFloat()
                     analyzedSeconds = detector.secondsFed.toFloat()
                     val stopNow = stopRequested
                     if (stopNow || ++chunks % EVAL_EVERY_CHUNKS == 0) {
@@ -303,7 +308,7 @@ class KeyListener {
                         evaluate(detector, stopRule, mySession, force = stopNow)
                     }
                 } else {
-                    level = (sqrt(sumSq / r) * 8).coerceIn(0.0, 1.0).toFloat()
+                    level = levelOf(sqrt(sumSq / r))
                 }
             }
         } finally {

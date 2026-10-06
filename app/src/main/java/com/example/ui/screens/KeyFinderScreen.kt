@@ -188,6 +188,7 @@ fun KeyFinderScreen(
                 hearingVoice = listener.hearingVoice,
                 liveResult = listener.liveResult,
                 analyzedSeconds = listener.analyzedSeconds,
+                gainDb = listener.gainDb,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 ActionButton("Parar e usar", primary = true, modifier = Modifier.weight(1f)) { listener.stopAndUse() }
@@ -346,7 +347,7 @@ private fun MemoryNote() {
 }
 
 @Composable
-private fun LiveStatus(level: Float, hearingVoice: Boolean, liveResult: KeyResult?, analyzedSeconds: Float) {
+private fun LiveStatus(level: Float, hearingVoice: Boolean, liveResult: KeyResult?, analyzedSeconds: Float, gainDb: Float) {
     Column(Modifier.fillMaxWidth()) {
         // Rodadas: 1, 2, 3 (cada uma com 5 s).
         val roundLen = KeyListener.PREROLL_SECONDS.toFloat()
@@ -384,6 +385,15 @@ private fun LiveStatus(level: Float, hearingVoice: Boolean, liveResult: KeyResul
                 color = if (hearingVoice) FuncTonic else TextMuted,
             )
             Spacer(Modifier.weight(1f))
+            // Ganho automático: no culto o celular capta baixo; o app aumenta sozinho.
+            if (gainDb >= 3f) {
+                Text(
+                    "ganho +${gainDb.toInt()} dB",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextMuted,
+                )
+                Spacer(Modifier.width(8.dp))
+            }
             Box(
                 Modifier
                     .width(60.dp)
@@ -676,7 +686,7 @@ private fun NoAnswerCard(status: KeyStatus) {
         Spacer(Modifier.height(6.dp))
         Text(body, style = MaterialTheme.typography.bodyMedium, color = TextBody)
         Spacer(Modifier.height(10.dp))
-        Tip("Aponte o celular para quem está cantando ou para a caixa do vocal.")
+        Tip("Aponte o celular para quem está cantando ou para a caixa do vocal — perto do canto, ele ouve muito melhor.")
         Tip("Comece a ouvir no meio de uma frase cantada, não na introdução.")
         Tip("Um trecho com o fim de uma frase ajuda a achar a tônica. Se puder, ouça 2 ou 3 rodadas.")
     }
@@ -696,6 +706,7 @@ private fun HowItWorksCard() {
         Spacer(Modifier.height(8.dp))
         Tip("Ouve em rodadas de 5 s. A 1ª sai na hora (os últimos 5 s ficam guardados na memória); a 2ª e a 3ª somam mais canto e deixam o palpite mais seguro.")
         Tip("Você pode parar quando quiser (\"Parar e usar\") ou pedir mais 5 s no mesmo hino. Ele só para sozinho quando tem certeza.")
+        Tip("Ganho automático com limitador: se o celular capta o canto baixo, o app aumenta sozinho (até +30 dB) sem distorcer.")
         Tip("Separa a voz do resto do som, tira o ruído constante e só usa notas cantadas e sustentadas — conversa, tosse e palmas ficam de fora.")
         Tip("Um modelo treinado com milhares de trechos de hinos analisa o que um músico percebe de ouvido: as notas mais cantadas, onde a frase respira, a sensível subindo para a tônica e o baixo fazendo 5 → 1.")
         Tip("Com banda, ouve o baixo e o teclado à parte: ajudam a separar tons vizinhos e a relativa menor.")

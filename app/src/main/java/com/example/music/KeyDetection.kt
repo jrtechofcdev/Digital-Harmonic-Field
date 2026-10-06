@@ -83,6 +83,10 @@ class KeyEvidence(
 
     private companion object {
         const val BETWEEN_KEYS_SEMITONES = 0.40
+        // Medido nos hinos reais: a congregação oscila mais que voz de estúdio;
+        // ±0,8 semitom ainda é a MESMA nota sustentada (fala desliza muito mais).
+        const val NOTE_TOLERANCE = 0.8     // quadro ainda pertence à nota (semitons)
+        const val NOTE_RANGE = 1.2         // variação total máxima de uma nota
         const val BASS_MIN_FRAMES = 4      // nota de baixo: ≥4 quadros (~370 ms)
         // O "baixo" só conta se tiver energia de instrumento: ≥20% da voz.
         // Vozes graves vazando para o canal ficam bem abaixo disso (~5%).
@@ -92,6 +96,10 @@ class KeyEvidence(
         // ALTA só a partir da 2ª rodada: com ≥10 s e chance ≥70%, acertou 93–95%
         // na bancada de hinos (95–98% nos hinos simples). Com 5 s a chance é menos
         // confiável, então a 1ª rodada nunca crava o tom.
+        // Quanto do canto precisa cair na escala do tom sugerido. No culto real
+        // ficou entre ~70% e 98% (eco, vozes desencontradas); 75% ainda recusa
+        // notas cromáticas ao acaso (regra de ouro: sem evidência, sem tom).
+        const val MIN_SCALE_FIT = 0.75
         const val P_ALTA = 0.70
         const val ALTA_MIN_SECONDS = 9.5
         const val P_MEDIA = 0.50
@@ -174,7 +182,7 @@ class KeyEvidence(
         var curMidis = ArrayList<Double>()
         var curW = 0.0
         fun flush() {
-            if (curMidis.size >= minFrames && (curMidis.max() - curMidis.min()) <= 0.8) {
+            if (curMidis.size >= minFrames && (curMidis.max() - curMidis.min()) <= NOTE_RANGE) {
                 out.add(Segment(curFrames.first(), curFrames.last(), median(curMidis), curW))
             }
             curFrames = ArrayList(); curMidis = ArrayList(); curW = 0.0
@@ -182,7 +190,7 @@ class KeyEvidence(
         for (i in frames.indices) {
             if (weights[i] <= 0.0) { flush(); continue }
             val contiguous = curFrames.isNotEmpty() && frames[i] - curFrames.last() <= 1
-            if (contiguous && abs(midis[i] - median(curMidis)) < 0.5) {
+            if (contiguous && abs(midis[i] - median(curMidis)) < NOTE_TOLERANCE) {
                 curFrames.add(frames[i]); curMidis.add(midis[i]); curW += weights[i]
             } else {
                 flush()
@@ -239,7 +247,7 @@ class KeyEvidence(
         val fit = scale.sumOf { hist[(bestRoot + it) % 12] }
         val p0 = probs[best]
         val status = when {
-            voiced < 1.0 || distinct < 3 || fit < 0.80 -> KeyStatus.INSUFICIENTE
+            voiced < 1.0 || distinct < 3 || fit < MIN_SCALE_FIT -> KeyStatus.INSUFICIENTE
             p0 >= P_ALTA && seconds >= ALTA_MIN_SECONDS && voiced >= ALTA_MIN_VOICED &&
                 distinct >= ALTA_MIN_NOTES && !between -> KeyStatus.ALTA
             p0 >= P_MEDIA -> KeyStatus.MEDIA
@@ -278,7 +286,9 @@ class KeyDetector(inputRate: Int = 44100) {
         const val FRAME = 2048  // ~93 ms
         const val HOP = 1024    // ~46 ms entre análises
         private const val MIN_RMS = 0.002
-        private const val MIN_CLARITY = 0.70
+        // Congregação real (eco, órgão junto, vozes desencontradas) tem nota menos
+        // "limpa" que voz solo: 0,60 aproveita mais canto sem aceitar fala.
+        private const val MIN_CLARITY = 0.60
 
         private const val BASS_FRAME = 2048  // ~370 ms (notas graves pedem janela longa)
         private const val BASS_HOP = 512     // ~93 ms
@@ -320,8 +330,18 @@ class KeyDetector(inputRate: Int = 44100) {
         private set
     private val inputRateD = inputRate.toDouble()
 
-    fun feed(samples: DoubleArray, count: Int) {
+    private val leveler = InputLeveler(inputRate)
+    private var leveled = DoubleArray(0)
+
+    /** Ganho automático aplicado agora, em dB (0 = sem ganho). */
+    val gainDb: Double get() = 20 * kotlin.math.log10(leveler.gain)
+
+    fun feed(input: DoubleArray, count: Int) {
         secondsFed += count / inputRateD
+        // 1) Ganho automático + limitador: som baixo do celular vira nível de trabalho.
+        if (leveled.size < count) leveled = DoubleArray(count)
+        leveler.process(input, count, leveled)
+        val samples = leveled
 
         if (decimated.size < count / 2 + 1) decimated = DoubleArray(count / 2 + 1)
         val n = band.process(samples, count, decimated)
@@ -351,7 +371,7 @@ class KeyDetector(inputRate: Int = 44100) {
         frame++
 
         val rms = rms(window)
-        level = (rms * 8).coerceIn(0.0, 1.0).toFloat()
+        level = levelOf(rms)
 
         val clean = focus.process(window)
         if (rms < MIN_RMS || frame < 2) { hearingVoice = false; return }
@@ -392,6 +412,13 @@ class KeyDetector(inputRate: Int = 44100) {
 
     fun snapshot(): EvidenceSnapshot = evidence.snapshot(secondsFed)
 }
+
+/**
+ * Medidor de volume em escala de dB (−60 dB = vazio, −10 dB = cheio): no culto o
+ * som chega baixo, e uma escala linear deixava o medidor parado.
+ */
+fun levelOf(rms: Double): Float =
+    ((20 * kotlin.math.log10(rms + 1e-9) + 60) / 50).coerceIn(0.0, 1.0).toFloat()
 
 /**
  * Escuta em RODADAS de [roundSeconds] (5 s): a cada rodada a evidência se soma e

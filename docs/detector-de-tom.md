@@ -3,7 +3,8 @@
 ## Visão geral
 
 ```
-microfone ─┬─ canal da voz  (120–1500 Hz) → foco na voz → altura (NSDF) → notas sustentadas ─┐
+microfone → ganho automático + limitador (InputLeveler, até +30 dB)
+          ─┬─ canal da voz  (120–1500 Hz) → foco na voz → altura (NSDF) → notas sustentadas ─┐
            └─ canal do baixo (35–160 Hz, sem zumbido 60/120/180 Hz) → notas + perfil grave ───┤
                                                                                               ▼
                                          KeyModel (rede pequena treinada) → chances dos 24 tons
@@ -53,6 +54,33 @@ com 15 s — por isso a 1ª rodada nunca crava o tom e o app ouve em rodadas.
 **Limite honesto:** a bancada é sintética (hinos reais, áudio gerado). O passo
 seguinte é medir com gravações reais de cultos e hinos da Harpa.
 
+## O que o material real ensinou (out/2026, 25 sessões, 12 hinos rotulados)
+
+Primeira prova no culto com a versão DEV (Samsung A16, microfone sem filtros):
+
+- **Som baixo:** a faixa da voz chegava a −40/−50 dB; ~1 em cada 4 quadros
+  caía abaixo do volume mínimo. → **ganho automático com limitador** na entrada.
+- **Canto "sujo":** ~27% das notas captadas caem fora da escala (afinação do
+  grupo andando até 70 cents durante o hino, eco, vozes desencontradas); na
+  simulação eram 4%. → notas sustentadas mais tolerantes (±0,8 semitom,
+  clareza ≥ 0,60), trava de escala em 75% e **treino com "sujeira" proposital**
+  (`tools/key-model/augment.py`).
+- **Harmonia quase plana e baixo ausente** no microfone do celular — mesmo um
+  croma de alta resolução sobre a gravação inteira não acerta o tom. Quem decide
+  é o canto; o modelo foi treinado com o baixo desligado em parte dos exemplos.
+
+Resultado no app completo, nesses 12 hinos:
+
+| | Antes | Depois (sem ver estes hinos) | Depois (modelo final) |
+|---|---|---|---|
+| Momentos certos (a cada 5 s) | 27% | 30% | 41% |
+| Aos 10 s | 2/12 | 4/12 | 8/12 |
+| Fim de cada hino | 7/12 | 8/12 | 8/12 |
+
+A coluna "sem ver estes hinos" é a medida justa para um hino novo; o modelo
+final inclui os 12 hinos no treino. Com 12 hinos a margem de erro é grande:
+mais sessões rotuladas são o que mais vai melhorar o detector.
+
 ## Como retreinar
 
 Requisitos: Python 3 com `numpy`, `scipy`, `music21`; Gradle 9.3.1 + SDK.
@@ -65,8 +93,9 @@ python3 render.py val 600 31 val                # validação (hinos separados p
 gradle :app:compileDebugUnitTestKotlin :app:processDebugJavaRes
 ./runbench.sh train tr.csv train_notes.jsonl    # notas extraídas pelo detector real
 ./runbench.sh val   va.csv val_notes.jsonl
-python3 train.py 16 30                          # treina, calibra → model_h16.npz
-python3 export.py model_h16.npz ../../app/src/main/resources/com/example/music/key_model.bin
+python3 train_final.py train_notes.jsonl train/labels.csv val_notes.jsonl val/labels.csv \
+    --real real_notes.jsonl:treino-real/labels.csv --out modelo.npz   # sintético + sujeira + reais
+python3 export.py modelo.npz ../../app/src/main/resources/com/example/music/key_model.bin
 ./runbench.sh val final.csv && python3 score.py final.csv   # acerto do fluxo do app
 ```
 

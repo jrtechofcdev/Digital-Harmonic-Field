@@ -104,3 +104,96 @@ class Metronome {
         return buf
     }
 }
+
+/**
+ * Toca acordes com um timbre de piano suave, sintetizado no próprio app (sem
+ * arquivos de áudio) — usado no treino de ouvido dos graus. Cada acorde é uma
+ * lista de notas MIDI; vários acordes tocam em sequência.
+ */
+class ChordPlayer {
+
+    var isPlaying by mutableStateOf(false)
+        private set
+
+    private var track: AudioTrack? = null
+    @Volatile private var generation = 0
+
+    /** Toca [chords] em sequência, cada um por [secondsEach] segundos. */
+    fun play(chords: List<List<Int>>, secondsEach: Double = 1.1) {
+        stop()
+        val myGen = ++generation
+        isPlaying = true
+        thread(name = "chord-player") {
+            val pcm = render(chords, secondsEach)
+            if (myGen != generation) return@thread
+            val t = runCatching {
+                AudioTrack.Builder()
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build()
+                    )
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setSampleRate(SAMPLE_RATE)
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                            .build()
+                    )
+                    .setBufferSizeInBytes(pcm.size * 2)
+                    .setTransferMode(AudioTrack.MODE_STATIC)
+                    .build()
+            }.getOrNull() ?: run { isPlaying = false; return@thread }
+            t.write(pcm, 0, pcm.size)
+            synchronized(this) {
+                if (myGen != generation) { t.release(); return@thread }
+                track = t
+                t.play()
+            }
+            Thread.sleep((pcm.size * 1000L / SAMPLE_RATE) + 100)
+            synchronized(this) {
+                if (myGen == generation) {
+                    runCatching { t.stop(); t.release() }
+                    track = null
+                    isPlaying = false
+                }
+            }
+        }
+    }
+
+    fun stop() {
+        synchronized(this) {
+            generation++
+            track?.run { runCatching { pause(); flush(); stop(); release() } }
+            track = null
+        }
+        isPlaying = false
+    }
+
+    private fun render(chords: List<List<Int>>, secondsEach: Double): ShortArray {
+        val each = (SAMPLE_RATE * secondsEach).toInt()
+        val out = DoubleArray(each * chords.size + SAMPLE_RATE / 2)
+        chords.forEachIndexed { c, notes ->
+            val start = c * each
+            val len = minOf(out.size - start, (each * 1.4).toInt())
+            for (m in notes) {
+                val f = 440.0 * Math.pow(2.0, (m - 69) / 12.0)
+                for (k in 1..6) {
+                    val fk = f * k
+                    if (fk > 8000) break
+                    val amp = 1.0 / Math.pow(k.toDouble(), 1.3)
+                    val decay = 2.2 + 0.9 * k                 // harmônicos agudos somem antes
+                    for (i in 0 until len) {
+                        val t = i.toDouble() / SAMPLE_RATE
+                        val attack = minOf(1.0, t / 0.006)
+                        val release = if (i > each) maxOf(0.0, 1.0 - (i - each) / (0.4 * each)) else 1.0
+                        out[start + i] += amp * attack * release * exp(-decay * t) * sin(2.0 * PI * fk * t)
+                    }
+                }
+            }
+        }
+        val peak = out.maxOf { kotlin.math.abs(it) }.coerceAtLeast(1e-9)
+        return ShortArray(out.size) { (out[it] / peak * 0.7 * Short.MAX_VALUE).toInt().toShort() }
+    }
+}

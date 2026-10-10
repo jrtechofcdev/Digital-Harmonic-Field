@@ -69,6 +69,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         // Versão DEV de treino: prepara a pasta de trechos (no app normal não faz nada).
         if (BuildConfig.DEV_TOOLS) com.example.dev.DevStore.init(applicationContext)
+        // Cifra ou grau: preferência global salva no aparelho.
+        com.example.ui.components.NotationSettings.init(applicationContext)
         setContent {
             HarmonicTheme {
                 HarmonicApp()
@@ -112,9 +114,16 @@ private fun HarmonicApp() {
     var showKeyFinder by remember { mutableStateOf(false) }
     var stage by remember { mutableStateOf<Pair<Progression, String>?>(null) }
     var showDevPanel by remember { mutableStateOf(false) }
+    var showTrainer by remember { mutableStateOf(false) }
+    var guitarKey by remember { mutableStateOf<String?>(null) }
 
-    BackHandler(enabled = detailKey != null || showDonation || showKeyFinder || stage != null || showDevPanel) {
+    BackHandler(
+        enabled = detailKey != null || showDonation || showKeyFinder || stage != null || showDevPanel ||
+            showTrainer || guitarKey != null,
+    ) {
         when {
+            showTrainer -> showTrainer = false
+            guitarKey != null -> guitarKey = null
             showDevPanel -> showDevPanel = false
             stage != null -> stage = null
             showKeyFinder -> showKeyFinder = false
@@ -126,7 +135,15 @@ private fun HarmonicApp() {
     val openKey: (String) -> Unit = { detailKey = it }
     val insets = WindowInsets.safeDrawing.asPaddingValues()
 
-    if (showDevPanel) {
+    if (showTrainer) {
+        Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            com.example.ui.screens.DegreeTrainerScreen(onBack = { showTrainer = false }, contentPadding = insets)
+        }
+    } else if (guitarKey != null) {
+        Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            com.example.ui.screens.GuitarScreen(initialKey = guitarKey!!, onBack = { guitarKey = null }, contentPadding = insets)
+        }
+    } else if (showDevPanel) {
         Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
             com.example.ui.dev.DevPanelScreen(onBack = { showDevPanel = false }, contentPadding = insets)
         }
@@ -163,6 +180,7 @@ private fun HarmonicApp() {
                 onToggleFavorite = { detailKey?.let { toggleFavorite(it) } },
                 onBack = { detailKey = null },
                 contentPadding = WindowInsets.safeDrawing.asPaddingValues(),
+                onOpenGuitar = { guitarKey = it },
             )
         }
     } else {
@@ -210,10 +228,17 @@ private fun HarmonicApp() {
                     onPlayFullScreen = { prog, key -> stage = prog to key },
                     contentPadding = innerPadding,
                 )
-                Tab.APRENDER -> LearnScreen(openKey, innerPadding)
+                Tab.APRENDER -> LearnScreen(
+                    onOpenKey = openKey,
+                    contentPadding = innerPadding,
+                    onOpenTrainer = { showTrainer = true },
+                    onOpenGuitar = { guitarKey = "G" },
+                )
                 Tab.FERRAMENTAS -> ToolsScreen(
                     onOpenKeyFinder = { showKeyFinder = true },
                     onOpenDevPanel = { showDevPanel = true },
+                    onOpenGuitar = { guitarKey = "G" },
+                    onOpenTrainer = { showTrainer = true },
                     contentPadding = innerPadding,
                 )
             }

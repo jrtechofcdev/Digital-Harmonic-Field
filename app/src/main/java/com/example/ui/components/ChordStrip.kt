@@ -39,7 +39,8 @@ fun ChordStrip(
     perRow: Int = if (degrees.size <= 5) degrees.size.coerceAtLeast(1) else 4,
     showFunction: Boolean = !compact,
 ) {
-    val steps = degrees.mapNotNull { chords.getOrNull(it) }
+    // (grau, acorde) — o grau dá o rótulo por número no modo Grau.
+    val steps = degrees.mapNotNull { d -> chords.getOrNull(d)?.let { d to it } }
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 8.dp)) {
         steps.chunked(perRow).forEachIndexed { rowIndex, row ->
             Row(
@@ -47,8 +48,9 @@ fun ChordStrip(
                 horizontalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                row.forEachIndexed { i, chord ->
+                row.forEachIndexed { i, (degree, chord) ->
                     val color = chord.function.color()
+                    val (main, secondary) = chordLabels(degree, chord.cipher)
                     Column(
                         modifier = Modifier
                             .weight(1f)
@@ -60,13 +62,14 @@ fun ChordStrip(
                     ) {
                         if (!compact) {
                             Text(
-                                "${rowIndex * perRow + i + 1}º",
+                                "${rowIndex * perRow + i + 1}º · $secondary",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = TextMuted,
+                                maxLines = 1,
                             )
                         }
                         Text(
-                            chord.cipher,
+                            main,
                             style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = color,

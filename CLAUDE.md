@@ -48,17 +48,20 @@ com/example/
 │   │                      #   KeyStopRule (rodadas de 5 s)
 │   ├── KeyModel.kt        # Modelo treinado (pesos em resources/com/example/music/key_model.bin)
 │   ├── KeyTrainer.kt      # Treinador leve (ajuste seguro da última camada + validação cruzada)
+│   ├── Degrees.kt         # Graus por número (degreeLabel), Chord/parseCipher, DegreeTheory (estendidos)
+│   ├── DegreeQuiz.kt      # Perguntas do treino de graus (ouvido/cifra)
+│   ├── Guitar.kt          # Formas de acorde no violão (abertas + pestana E/A), testadas nota a nota
 │   └── PitchDetection.kt  # Detecção de altura (autocorrelação/MPM) + ptPitchClass
 ├── audio/
-│   ├── AudioEngine.kt     # Metronome via AudioTrack (sem libs externas)
+│   ├── AudioEngine.kt     # Metronome e ChordPlayer via AudioTrack (sem libs externas)
 │   └── KeyListener.kt     # Pré-buffer de 5 s (só memória) + rodadas (RECORD_AUDIO) + SessionTap
 ├── dev/                   # SÓ versão DEV: DevStore (pasta treino-real), DevRecorder, DevJson
 │                          #   (ui/dev: DevLabelForm, DevPanelScreen)
 └── ui/
     ├── theme/             # Color.kt (tokens), Type.kt (Space Grotesk), Theme.kt
-    ├── components/         # CommonUi.kt (SectionLabel, AppCard, FunctionTag), ChordStrip.kt
+    ├── components/         # CommonUi.kt, ChordStrip.kt, Notation.kt (Cifra|Grau), GuitarViews.kt
     └── screens/            # Fields, FieldDetail, Progressions, ProgressionStage (tela cheia),
-                            # Learn, Tools, KeyFinder, Donation
+                            # Learn (+ DegreeLessons), DegreeTrainer, Guitar, Tools, KeyFinder, Donation
 ```
 
 ## Convenções e princípios
@@ -75,6 +78,11 @@ com/example/
 - **Sem rolagem lateral:** sequências de acordes usam `ChordStrip` (divide a
   largura e quebra linha). Não use `horizontalScroll`/`LazyRow` para acordes.
 - O afinador foi removido a pedido do autor; não reintroduza.
+- **Modo Grau:** todo rótulo de acorde do campo passa por `chordLabels(índice,
+  cifra)` (Notation.kt) — Cifra: ("C","4"); Grau: ("4","C"). Sequências usam
+  `degreeSequence`. Notação brasileira: 1 2m 3m 4 5 6m 7° (menor: 1m 2° 3 4m 5m 6 7).
+- **Violão:** formas vêm de `Guitar.shape` (nunca desenhe forma à mão); o teste
+  confere as 84 formas nota a nota. Diagramas/braço em `GuitarViews.kt`.
 - **Cores** ficam em `ui/theme/Color.kt`; **tons/nomes** vêm de
   `HarmonicDatabase` (use `ptNameByCipher`, não recalcule o mapa).
 

@@ -54,6 +54,8 @@ fun ToolsScreen(
     onOpenKeyFinder: () -> Unit,
     contentPadding: PaddingValues,
     onOpenDevPanel: () -> Unit = {},
+    onOpenGuitar: () -> Unit = {},
+    onOpenTrainer: () -> Unit = {},
 ) {
     val metronome = remember { Metronome() }
 
@@ -78,6 +80,20 @@ fun ToolsScreen(
                 title = "Detectar tom",
                 subtitle = "Ouve o canto e mostra os 3 tons mais prováveis em segundos",
                 onClick = onOpenKeyFinder,
+            )
+        }
+        item {
+            NavCard(
+                title = "Braço do violão",
+                subtitle = "Como montar cada grau e onde ficam as notas da escala no braço",
+                onClick = onOpenGuitar,
+            )
+        }
+        item {
+            NavCard(
+                title = "Treino de graus",
+                subtitle = "Pelo ouvido e pela cifra: 1 · 4 · 5 · 6m · 2m · 3m",
+                onClick = onOpenTrainer,
             )
         }
         if (com.example.BuildConfig.DEV_TOOLS) {

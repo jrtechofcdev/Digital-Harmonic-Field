@@ -599,8 +599,9 @@ private fun CandidateCard(
             Text("Acordes para começar", style = MaterialTheme.typography.labelSmall, color = TextMuted)
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(0, 3, 4, 5).mapNotNull { field.chords.getOrNull(it) }.forEach { chord ->
+                listOf(0, 3, 4, 5).mapNotNull { d -> field.chords.getOrNull(d)?.let { d to it } }.forEach { (d, chord) ->
                     val c = chord.function.color()
+                    val (main, secondary) = com.example.ui.components.chordLabels(d, chord.cipher)
                     Column(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -609,8 +610,8 @@ private fun CandidateCard(
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Text(chord.cipher, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = c)
-                        Text(chord.degree, style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                        Text(main, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = c)
+                        Text(secondary, style = MaterialTheme.typography.labelSmall, color = TextMuted)
                     }
                 }
                 Spacer(Modifier.weight(1f))

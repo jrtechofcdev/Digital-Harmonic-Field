@@ -58,6 +58,8 @@ import com.example.music.transposePtChord
 import com.example.music.transposePtNote
 import com.example.ui.components.ChordStrip
 import com.example.ui.components.FunctionTag
+import com.example.ui.components.NotationToggle
+import com.example.ui.components.chordLabels
 import com.example.ui.theme.Brass
 import com.example.ui.theme.Favorite
 import com.example.ui.theme.Hairline
@@ -75,6 +77,7 @@ fun FieldDetailScreen(
     onToggleFavorite: () -> Unit,
     onBack: () -> Unit,
     contentPadding: PaddingValues,
+    onOpenGuitar: (String) -> Unit = {},
 ) {
     // Mantém a tela ligada — ninguém quer o celular apagando no meio do louvor.
     val view = LocalView.current
@@ -125,6 +128,7 @@ fun FieldDetailScreen(
             onToggleFavorite = onToggleFavorite,
             onBack = onBack,
             contentPadding = contentPadding,
+            onOpenGuitar = { onOpenGuitar(transposeCipher(keyCipher, transpose)) },
         )
     } else {
         PortraitLayout(
@@ -141,6 +145,7 @@ fun FieldDetailScreen(
             onToggleFavorite = onToggleFavorite,
             onBack = onBack,
             contentPadding = contentPadding,
+            onOpenGuitar = { onOpenGuitar(transposeCipher(keyCipher, transpose)) },
         )
     }
 }
@@ -164,6 +169,7 @@ private fun PortraitLayout(
     onToggleFavorite: () -> Unit,
     onBack: () -> Unit,
     contentPadding: PaddingValues,
+    onOpenGuitar: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -180,12 +186,27 @@ private fun PortraitLayout(
         Spacer(Modifier.height(16.dp))
         TransposeBar(transpose, onTranspose)
 
+        Spacer(Modifier.height(12.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            NotationToggle()
+            Spacer(Modifier.weight(1f))
+            Text(
+                "Ver no braço do violão ›",
+                style = MaterialTheme.typography.labelLarge,
+                color = Brass,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onOpenGuitar() }
+                    .padding(8.dp),
+            )
+        }
+
         Spacer(Modifier.height(16.dp))
         Text("Graus do campo", style = MaterialTheme.typography.labelSmall, color = TextMuted)
         Spacer(Modifier.height(10.dp))
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             chords.forEachIndexed { index, chord ->
-                ChordRow(chord, index == selected) { onSelect(index) }
+                ChordRow(chord, index, index == selected) { onSelect(index) }
             }
         }
 
@@ -219,6 +240,7 @@ private fun LandscapeLayout(
     onToggleFavorite: () -> Unit,
     onBack: () -> Unit,
     contentPadding: PaddingValues,
+    onOpenGuitar: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -248,6 +270,8 @@ private fun LandscapeLayout(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            NotationToggle()
+            Spacer(Modifier.width(8.dp))
             TransposeCompact(transpose, onTranspose)
             Spacer(Modifier.width(8.dp))
             IconButton(onClick = onToggleFavorite) {
@@ -270,7 +294,7 @@ private fun LandscapeLayout(
         ) {
             chords.forEachIndexed { index, chord ->
                 Box(Modifier.weight(1f).fillMaxHeight()) {
-                    ChordMini(chord, index == selected) { onSelect(index) }
+                    ChordMini(chord, index, index == selected) { onSelect(index) }
                 }
             }
         }
@@ -306,6 +330,13 @@ private fun LandscapeLayout(
                 color = TextBody,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "Braço do violão ›",
+                style = MaterialTheme.typography.labelLarge,
+                color = Brass,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { onOpenGuitar() }.padding(6.dp),
             )
         }
     }
@@ -440,8 +471,9 @@ private fun StepButton(symbol: String, desc: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ChordRow(chord: ChordInfo, selected: Boolean, onClick: () -> Unit) {
+private fun ChordRow(chord: ChordInfo, index: Int, selected: Boolean, onClick: () -> Unit) {
     val color = chord.function.color()
+    val (main, secondary) = chordLabels(index, chord.cipher)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -467,7 +499,7 @@ private fun ChordRow(chord: ChordInfo, selected: Boolean, onClick: () -> Unit) {
         )
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(chord.degree, style = MaterialTheme.typography.labelLarge, color = TextMuted)
+                Text(secondary, style = MaterialTheme.typography.labelLarge, color = TextMuted)
                 FunctionTag(chord.function)
             }
             Spacer(Modifier.height(2.dp))
@@ -480,7 +512,7 @@ private fun ChordRow(chord: ChordInfo, selected: Boolean, onClick: () -> Unit) {
             )
         }
         Text(
-            chord.cipher,
+            main,
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
             color = color,
@@ -489,8 +521,9 @@ private fun ChordRow(chord: ChordInfo, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ChordMini(chord: ChordInfo, selected: Boolean, onClick: () -> Unit) {
+private fun ChordMini(chord: ChordInfo, index: Int, selected: Boolean, onClick: () -> Unit) {
     val color = chord.function.color()
+    val (main, secondary) = chordLabels(index, chord.cipher)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -506,9 +539,9 @@ private fun ChordMini(chord: ChordInfo, selected: Boolean, onClick: () -> Unit) 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(chord.degree, style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1)
+        Text(secondary, style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1)
         Text(
-            chord.cipher,
+            main,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = color,

@@ -30,6 +30,18 @@ um tom você vê:
 - **Modo paisagem** compacto: todos os graus na tela, sem rolagem, para uso
   ao vivo.
 
+### Modo Grau (para quem toca "por número")
+Uma chave **Cifra | Grau** muda o app inteiro: em vez de "C, Am, F, G", os
+acordes aparecem como **1, 6m, 4, 5** (com a cifra pequena embaixo) — no campo,
+nas progressões, na tela cheia e no detector de tom. A escolha fica salva.
+
+### Braço do violão
+Para cada grau do campo: o **desenho do acorde** (forma aberta quando existe,
+senão a pestana mais baixa) e o **mapa do braço** (casas 0 a 12) com o número do
+grau em cada nota da escala — as notas do acorde escolhido em destaque, na cor
+da função. Também com sétimas. Abre pelo detalhe do campo, pela aba Aprender ou
+por Ferramentas.
+
 ### Progressões
 Sequências harmônicas já montadas no tom escolhido, organizadas por uso:
 **Essenciais para hinos** (com destaque para a **Progressão da Harpa**,
@@ -45,6 +57,16 @@ funções, a progressão da Harpa, **como tirar música de ouvido**, o sistema d
 números (1‑4‑5) e o **círculo das quintas explicado com uso prático** — um mapa
 interativo que mostra, para cada tom, sua subdominante, dominante e relativa
 menor.
+
+Módulos de **graus**:
+- **Como pegar os graus** — passo a passo (achar o 1, a "escada" do tom, a
+  sensação de cada grau, seguir o baixo, caminhos de hino) e **treino**: pelo
+  ouvido (o app toca o 1 e depois um acorde — qual é o grau?), cifra → grau e
+  grau → cifra, em três níveis (1·4·5 → +6m → +2m·3m).
+- **Graus a fundo** — campo maior × menor (o 5 maior no tom menor), graus com
+  sétima, dominantes secundárias (1⁷ → 4…), diminutos de passagem, baixo
+  caminhando (5/7, 1/3), empréstimo (4m) e transposição — tudo calculado no tom
+  escolhido.
 
 ### Ferramentas
 Utilitários para o dia a dia, todos sem depender de internet:
@@ -114,16 +136,19 @@ app/src/main/java/com/example/
 │   ├── PitchDetection.kt        # Detecção de altura (autocorrelação) + nomes das notas
 │   ├── KeyDetection.kt          # Detector de tom: notas sustentadas, travas, rodadas
 │   ├── KeyModel.kt              # Modelo treinado (pesos em resources/…/key_model.bin)
-│   └── KeyTrainer.kt            # Treinador leve (versão DEV)
+│   ├── KeyTrainer.kt            # Treinador leve (versão DEV)
+│   ├── Degrees.kt               # Graus por número, sétimas, dominantes secundárias…
+│   ├── DegreeQuiz.kt            # Perguntas do treino de graus
+│   └── Guitar.kt                # Formas de acorde no violão (abertas e pestana)
 ├── audio/
-│   ├── AudioEngine.kt           # Metrônomo (AudioTrack)
+│   ├── AudioEngine.kt           # Metrônomo e ChordPlayer (acordes do treino de ouvido)
 │   └── KeyListener.kt           # Microfone → detector de tom (pré-buffer de 5 s em memória)
 ├── dev/                         # Só na versão DEV: pasta de treino real, gravador de sessões
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
     ├── components/              # Componentes reutilizáveis (marca, ChordStrip…)
-    └── screens/                 # Campos, Detalhe, Progressões (+ tela cheia), Aprender,
-                                 #  Ferramentas, Detectar tom, Doação (+ ui/dev na versão DEV)
+    └── screens/                 # Campos, Detalhe, Progressões (+ tela cheia), Aprender (+ lições de
+                                 #  graus), Treino de graus, Braço do violão, Ferramentas, Detectar tom, Doação (+ ui/dev na versão DEV)
 tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar
 docs/treino-real.md              # Versão DEV: como captar, rotular e enviar

@@ -35,6 +35,8 @@ import com.example.music.Progression
 import com.example.music.ProgressionLibrary
 import com.example.music.pitchClassCiphers
 import com.example.ui.components.ChordStrip
+import com.example.ui.components.NotationSettings
+import com.example.ui.components.NotationToggle
 import com.example.ui.components.SectionLabel
 import com.example.ui.theme.Brass
 import com.example.ui.theme.Hairline
@@ -84,6 +86,8 @@ fun ProgressionsScreen(
                         color = Brass,
                     )
                 }
+                NotationToggle()
+                Spacer(Modifier.width(4.dp))
                 Text(
                     "Ver campo ›",
                     style = MaterialTheme.typography.labelLarge,
@@ -129,6 +133,8 @@ fun ProgressionsScreen(
                 ProgressionCard(
                     prog = prog,
                     chords = field?.chords.orEmpty(),
+                    sequence = field?.takeIf { NotationSettings.byDegree }
+                        ?.let { com.example.music.degreeSequence(prog.degrees, it) } ?: prog.roman,
                     onPlay = { onPlayFullScreen(prog, selectedKey) },
                 )
             }
@@ -158,7 +164,7 @@ private fun Pill(label: String, selected: Boolean, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun ProgressionCard(prog: Progression, chords: List<com.example.ChordInfo>, onPlay: () -> Unit) {
+private fun ProgressionCard(prog: Progression, chords: List<com.example.ChordInfo>, sequence: String, onPlay: () -> Unit) {
     var expanded by rememberSaveable(prog.name) { mutableStateOf(false) }
     Column(
         modifier = Modifier
@@ -176,7 +182,7 @@ private fun ProgressionCard(prog: Progression, chords: List<com.example.ChordInf
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(prog.name, style = MaterialTheme.typography.titleMedium, color = TextStrong)
-                Text(prog.roman, style = MaterialTheme.typography.labelLarge, color = Brass)
+                Text(sequence, style = MaterialTheme.typography.labelLarge, color = Brass)
             }
             // Tela cheia: acordes grandes para tocar.
             Box(

@@ -72,7 +72,7 @@ fun ProgressionStageScreen(
     var step by rememberSaveable { mutableIntStateOf(0) }
     val cipher = pitchClassCiphers[root] + if (minor) "m" else ""
     val chords = remember(cipher) { HarmonicDatabase.getField(cipher)?.chords.orEmpty() }
-    val steps = progression.degrees.mapNotNull { chords.getOrNull(it) }
+    val steps = progression.degrees.mapNotNull { d -> chords.getOrNull(d)?.let { d to it } }
     val n = steps.size.coerceAtLeast(1)
 
     // Tela sempre acesa enquanto toca.
@@ -105,8 +105,19 @@ fun ProgressionStageScreen(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(progression.roman, style = MaterialTheme.typography.labelSmall, color = Brass, maxLines = 1)
+                Text(
+                    // Modo Grau: a sequência em números ("1 – 6m – 2m – 5 – 1").
+                    HarmonicDatabase.getField(cipher)
+                        ?.takeIf { com.example.ui.components.NotationSettings.byDegree }
+                        ?.let { com.example.music.degreeSequence(progression.degrees, it) }
+                        ?: progression.roman,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Brass,
+                    maxLines = 1,
+                )
             }
+            com.example.ui.components.NotationToggle()
+            Spacer(Modifier.width(8.dp))
             RoundButton(onClick = { root = (root + 11) % 12 }) {
                 Text("−", style = MaterialTheme.typography.titleLarge, color = TextStrong)
             }
@@ -143,8 +154,10 @@ fun ProgressionStageScreen(
             Column(verticalArrangement = Arrangement.spacedBy(gap)) {
                 steps.withIndex().chunked(cols).forEach { row ->
                     Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
-                        row.forEach { (i, chord) ->
+                        row.forEach { (i, item) ->
+                            val (degree, chord) = item
                             val color = chord.function.color()
+                            val (main, secondary) = com.example.ui.components.chordLabels(degree, chord.cipher)
                             val current = i == step
                             Column(
                                 Modifier
@@ -161,9 +174,9 @@ fun ProgressionStageScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,
                             ) {
-                                Text("${i + 1}º · ${chord.degree}", style = MaterialTheme.typography.labelLarge, color = TextMuted)
+                                Text("${i + 1}º · $secondary", style = MaterialTheme.typography.labelLarge, color = TextMuted)
                                 Text(
-                                    chord.cipher,
+                                    main,
                                     fontSize = cipherSize,
                                     fontWeight = FontWeight.Bold,
                                     color = if (current) color else color.copy(alpha = 0.8f),

@@ -55,6 +55,8 @@ import kotlin.math.sin
 fun LearnScreen(
     onOpenKey: (String) -> Unit,
     contentPadding: PaddingValues,
+    onOpenTrainer: () -> Unit = {},
+    onOpenGuitar: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
@@ -140,18 +142,23 @@ fun LearnScreen(
         item {
             LessonCard("Sistema de números (1 – 4 – 5)") {
                 Paragraph(
-                    "Na igreja é comum alguém dizer \"vai no 4\" ou \"faz o 5\". Os números são os graus " +
-                        "do campo, contando a partir da tônica."
+                    "Na igreja é comum alguém dizer \"vai no 4\" ou \"faz o 6m\". Os números são os graus " +
+                        "do campo, contando a partir da tônica — e o \"m\" indica acorde menor."
                 )
                 Paragraph(
-                    "No tom de Sol: 1 = Sol, 2 = Lá m, 3 = Si m, 4 = Dó, 5 = Ré, 6 = Mi m, 7 = Fá# dim."
+                    "No tom de Sol: 1 = Sol, 2m = Lá m, 3m = Si m, 4 = Dó, 5 = Ré, 6m = Mi m, 7° = Fá# dim."
                 )
                 Paragraph(
                     "A vantagem: o número não muda de tom para tom. \"1 – 4 – 5\" é sempre a mesma ideia; " +
-                        "só trocam as notas. Aprendendo por números, você toca em qualquer tom."
+                        "só trocam as notas. Aprendendo por números, você toca em qualquer tom. Quem toca " +
+                        "assim pode ligar o modo Grau: o app inteiro passa a mostrar os números."
                 )
             }
         }
+
+        item { HowToFindDegreesLesson(onOpenTrainer) }
+        item { DegreesDeepDiveLesson() }
+        item { GuitarLesson(onOpenGuitar) }
 
         item {
             LessonCard("Círculo das quintas: o que é e como usar", startExpanded = true) {
@@ -177,7 +184,7 @@ fun LearnScreen(
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun LessonCard(
+internal fun LessonCard(
     title: String,
     startExpanded: Boolean = false,
     content: @Composable () -> Unit,
@@ -218,7 +225,7 @@ private fun LessonCard(
 }
 
 @Composable
-private fun Paragraph(text: String) {
+internal fun Paragraph(text: String) {
     Text(
         text,
         style = MaterialTheme.typography.bodyLarge,
@@ -245,7 +252,7 @@ private fun FunctionLine(color: Color, title: String, text: String) {
 }
 
 @Composable
-private fun StepLine(number: String, title: String, text: String) {
+internal fun StepLine(number: String, title: String, text: String) {
     Row(modifier = Modifier.padding(bottom = 12.dp)) {
         Box(
             Modifier

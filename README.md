@@ -8,6 +8,8 @@ offline e em modo escuro, para uso confortável em palco.
 Desenvolvido em **Kotlin** com **Jetpack Compose** e **Material 3**.
 Mantido por **JR TECH** — José Renato, guitarrista e developer.
 
+> 📄 **[O que é o app](docs/SOBRE.md)** · 🎨 **[Guia de design](docs/DESIGN.md)**
+
 ---
 
 ## O que o app faz

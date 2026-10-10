@@ -35,12 +35,28 @@ Uma chave **Cifra | Grau** muda o app inteiro: em vez de "C, Am, F, G", os
 acordes aparecem como **1, 6m, 4, 5** (com a cifra pequena embaixo) — no campo,
 nas progressões, na tela cheia e no detector de tom. A escolha fica salva.
 
-### Braço do violão
-Para cada grau do campo: o **desenho do acorde** (forma aberta quando existe,
-senão a pestana mais baixa) e o **mapa do braço** (casas 0 a 12) com o número do
-grau em cada nota da escala — as notas do acorde escolhido em destaque, na cor
-da função. Também com sétimas. Abre pelo detalhe do campo, pela aba Aprender ou
-por Ferramentas.
+### Braço do violão (laboratório)
+Um braço de violão "de verdade" na tela (casas na proporção real, 6ª corda à
+esquerda, marcações 3‑5‑7‑9‑12), com quatro abas:
+
+- **Notas:** todas as notas do braço; toque numa casa (ou escolha a nota) e
+  aparecem **todas as posições** dela, corda por corda, com o atalho da oitava.
+  Nomes em Dó‑Ré‑Mi ou C‑D‑E.
+- **Acordes:** escolha o grau (ou qualquer nota) e o **tipo** — maior, m, (9),
+  m(9), sus2, sus4, 6, m6, 6(9), 7M, 7M(9), 7, 7(9), 7sus4, m7, m7(9), m7(b5),
+  °, °7. O acorde **se monta sozinho** no braço, com **variações** espalhadas
+  (aberto, casa 3, casa 5…), cada nota marcada pelo papel (1, 3, 5, 7, 9…), e dá
+  para **ouvir** cada forma. No modo "Onde estão 1 · 3 · 5" você liga/desliga
+  cada papel e monta o acorde sozinho.
+- **Harmonizar:** para cada grau, trocas que tiram o hino do acorde "seco" sem
+  mudar a função (1(9), 1⁶⁽⁹⁾, 4⁷M, 5sus4 → 5, 2m⁷, 4m emprestado, 1/3, 4/5,
+  5/7…), com desenho, explicação e áudio — e um **antes × depois** para ouvir a
+  diferença.
+- **Decorar:** o método passo a passo (ver `docs/braco-do-violao.md`) e dois
+  jogos: **Que nota é?** e **Ache a nota**, por fases (6ª corda, 5ª, as duas,
+  braço todo).
+
+Abre pelo detalhe do campo, pela aba Aprender ou por Ferramentas.
 
 ### Progressões
 Sequências harmônicas já montadas no tom escolhido, organizadas por uso:
@@ -139,7 +155,8 @@ app/src/main/java/com/example/
 │   ├── KeyTrainer.kt            # Treinador leve (versão DEV)
 │   ├── Degrees.kt               # Graus por número, sétimas, dominantes secundárias…
 │   ├── DegreeQuiz.kt            # Perguntas do treino de graus
-│   └── Guitar.kt                # Formas de acorde no violão (abertas e pestana)
+│   ├── Guitar.kt                # Formas de acorde no violão (abertas e pestana)
+│   └── Voicings.kt              # Tipos de acorde, gerador de variações, harmonização, jogos do braço
 ├── audio/
 │   ├── AudioEngine.kt           # Metrônomo e ChordPlayer (acordes do treino de ouvido)
 │   └── KeyListener.kt           # Microfone → detector de tom (pré-buffer de 5 s em memória)

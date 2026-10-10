@@ -169,8 +169,9 @@ internal fun DegreesDeepDiveLesson() {
 internal fun GuitarLesson(onOpenGuitar: () -> Unit) {
     LessonCard("Os graus no braço do violão") {
         Paragraph(
-            "Veja como montar o acorde de cada grau e onde ficam, no braço inteiro, as notas da escala " +
-                "com o número do grau. As notas do acorde escolhido aparecem na cor da função dele."
+            "Um braço de violão na tela: toque numa nota e veja todas as posições dela; escolha um grau e " +
+                "o acorde se monta sozinho, com variações pelo braço e versões mais harmoniosas (9, 7M, sus4…) " +
+                "para os hinos. Tem também o método e jogos para decorar as notas."
         )
         Paragraph(
             "Sacada (formas com pestana): se o 1 tem a fundamental na 6ª corda, o 4 está na MESMA casa " +

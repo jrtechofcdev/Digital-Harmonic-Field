@@ -118,13 +118,16 @@ class ChordPlayer {
     private var track: AudioTrack? = null
     @Volatile private var generation = 0
 
-    /** Toca [chords] em sequência, cada um por [secondsEach] segundos. */
-    fun play(chords: List<List<Int>>, secondsEach: Double = 1.1) {
+    /**
+     * Toca [chords] em sequência, cada um por [secondsEach] segundos. [strum] =
+     * atraso entre as notas (em segundos), para soar como violão dedilhado/batido.
+     */
+    fun play(chords: List<List<Int>>, secondsEach: Double = 1.1, strum: Double = 0.0) {
         stop()
         val myGen = ++generation
         isPlaying = true
         thread(name = "chord-player") {
-            val pcm = render(chords, secondsEach)
+            val pcm = render(chords, secondsEach, strum)
             if (myGen != generation) return@thread
             val t = runCatching {
                 AudioTrack.Builder()
@@ -171,13 +174,13 @@ class ChordPlayer {
         isPlaying = false
     }
 
-    private fun render(chords: List<List<Int>>, secondsEach: Double): ShortArray {
+    private fun render(chords: List<List<Int>>, secondsEach: Double, strum: Double): ShortArray {
         val each = (SAMPLE_RATE * secondsEach).toInt()
         val out = DoubleArray(each * chords.size + SAMPLE_RATE / 2)
         chords.forEachIndexed { c, notes ->
-            val start = c * each
-            val len = minOf(out.size - start, (each * 1.4).toInt())
-            for (m in notes) {
+            notes.forEachIndexed { n, m ->
+                val start = c * each + (n * strum * SAMPLE_RATE).toInt()   // "batida": uma nota após a outra
+                val len = minOf(out.size - start, (each * 1.4).toInt())
                 val f = 440.0 * Math.pow(2.0, (m - 69) / 12.0)
                 for (k in 1..6) {
                     val fk = f * k

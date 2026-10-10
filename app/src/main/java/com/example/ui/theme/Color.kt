@@ -37,3 +37,16 @@ val FuncTonic = Color(0xFF57B892)        // verde — repouso / resolução
 val FuncSubdominant = Color(0xFF5B8AD6)  // azul — preparação / movimento
 val FuncDominant = Color(0xFFD9695E)     // vermelho argila — tensão / condução
 val FuncNeutral = Color(0xFF8B93A1)      // ardósia — passagem / ambíguo
+
+// ---------------------------------------------------------------------------
+// Braço do violão (simulação): cores chapadas de madeira, trastes e cordas.
+// Só servem ao desenho do instrumento — as notas continuam com as cores acima.
+// ---------------------------------------------------------------------------
+
+val NeckWood = Color(0xFF2B211C)      // escala (jacarandá escuro)
+val NeckWoodEdge = Color(0xFF3A2D25)  // borda da escala
+val NeckNut = Color(0xFFD8CFBE)       // rastilho (osso)
+val FretWire = Color(0xFF8E9197)      // trastes
+val StringPlain = Color(0xFFC9CCD1)   // cordas lisas (1ª e 2ª)
+val StringWound = Color(0xFFB39466)   // cordas encapadas (3ª a 6ª)
+val NeckInlay = Color(0xFF5E4E42)     // marcações de casa

@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -37,16 +39,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.HarmonicDatabase
-import com.example.music.DegreeTheory
+import com.example.audio.ChordPlayer
+import com.example.music.ChordType
 import com.example.music.Guitar
-import com.example.music.ptPitchClass
+import com.example.music.LabChord
+import com.example.music.NeckQuiz
+import com.example.music.parseCipher
 import com.example.music.pitchClassCiphers
+import com.example.music.ptPitchClass
 import com.example.music.rootPc
-import com.example.ui.components.ChordDiagram
-import com.example.ui.components.Fretboard
-import com.example.ui.components.NotationSettings
-import com.example.ui.components.NotationToggle
-import com.example.ui.components.SectionLabel
+import com.example.ui.components.GuitarNeck
+import com.example.ui.components.NeckDot
+import com.example.ui.components.DotStyle
 import com.example.ui.theme.Brass
 import com.example.ui.theme.Hairline
 import com.example.ui.theme.Ink
@@ -56,28 +60,32 @@ import com.example.ui.theme.TextBody
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextStrong
 
+/** As quatro partes do laboratório do braço. */
+private enum class NeckTab(val title: String) { NOTAS("Notas"), ACORDES("Acordes"), HARMONIZAR("Harmonizar"), DECORAR("Decorar") }
+
+/** Nome de uma nota no estilo escolhido: "Dó" ou "C". */
+internal fun noteName(pc: Int, latin: Boolean): String = if (latin) ptPitchClass(pc) else pitchClassCiphers[Math.floorMod(pc, 12)]
+
 /**
- * Braço do violão: escolha o tom e o grau; veja como montar o acorde (desenho)
- * e onde ficam, no braço inteiro, as notas da escala com o número do grau — as
- * do acorde escolhido em destaque, na cor da função dele.
+ * Braço do violão — um laboratório para quem está começando:
+ *  • Notas: o braço inteiro com as notas; toque numa e veja TODAS as posições dela.
+ *  • Acordes: escolha o acorde e ele se monta sozinho no braço, com variações;
+ *    ou veja onde estão o 1, a 3 e a 5 para montar você mesmo.
+ *  • Harmonizar: trocas para sair do acorde "seco" nos hinos (9, 7M, sus4…).
+ *  • Decorar: o método passo a passo e jogos rápidos.
  */
 @Composable
 fun GuitarScreen(initialKey: String, onBack: () -> Unit, contentPadding: PaddingValues) {
-    var root by rememberSaveable { mutableIntStateOf(rootPc(initialKey) ?: 7) }
+    var tab by rememberSaveable { mutableStateOf(NeckTab.NOTAS) }
+    var latin by rememberSaveable { mutableStateOf(true) }
+    // Tom (para Acordes e Harmonizar) e acorde montado no braço.
+    var keyRoot by rememberSaveable { mutableIntStateOf(rootPc(initialKey) ?: 7) }
     var minor by rememberSaveable { mutableStateOf(initialKey.endsWith("m")) }
-    var degree by rememberSaveable { mutableIntStateOf(0) }
-    var sevenths by rememberSaveable { mutableStateOf(false) }
-    var showNotes by rememberSaveable { mutableStateOf(false) }
-
-    val key = pitchClassCiphers[root] + if (minor) "m" else ""
-    val field = remember(key) { HarmonicDatabase.getField(key) } ?: return
-    val theory = remember(key) { DegreeTheory(field) }
-    val examples = if (sevenths) theory.sevenths else theory.triads
-    val chosen = examples[degree]
-    val color = field.chords[degree].function.color()
-    val shape = remember(chosen.chord.cipher) { Guitar.shape(chosen.chord) }
-    val scalePcs = theory.triads.map { it.chord.root }
-    val scaleLabels = scalePcs.mapIndexed { i, pc -> pc to if (showNotes) ptPitchClass(pc) else "${i + 1}" }.toMap()
+    var chord by remember {
+        mutableStateOf(LabChord(rootPc(initialKey) ?: 7, if (initialKey.endsWith("m")) ChordType.MINOR else ChordType.MAJOR))
+    }
+    val player = remember { ChordPlayer() }
+    DisposableEffect(Unit) { onDispose { player.stop() } }
 
     Column(
         Modifier
@@ -105,143 +113,171 @@ fun GuitarScreen(initialKey: String, onBack: () -> Unit, contentPadding: Padding
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text("Braço do violão", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-                Text("Tom de ${HarmonicDatabase.ptNameByCipher[key] ?: key}", style = MaterialTheme.typography.labelLarge, color = Brass)
-            }
-            NotationToggle()
-        }
-
-        // Tom.
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Chip("Maior", !minor, Modifier.weight(1f)) { minor = false }
-            Chip("Menor", minor, Modifier.weight(1f)) { minor = true }
-        }
-        (0 until 12).chunked(6).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                row.forEach { r ->
-                    Chip(pitchClassCiphers[r] + if (minor) "m" else "", r == root, Modifier.weight(1f)) { root = r }
-                }
+                Text("Notas, acordes e harmonia no braço", style = MaterialTheme.typography.labelLarge, color = Brass)
             }
         }
 
-        // Graus do campo.
-        SectionLabel("Graus do campo — toque para ver no braço")
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            examples.forEachIndexed { i, ex ->
-                val c = field.chords[i].function.color()
-                val on = i == degree
-                val main = if (NotationSettings.byDegree) ex.label else ex.chord.cipher
-                val sub = if (NotationSettings.byDegree) ex.chord.cipher else ex.label
-                Column(
-                    Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(if (on) c.copy(alpha = 0.18f) else Surface1)
-                        .border(if (on) 2.dp else 1.dp, if (on) c else Hairline, RoundedCornerShape(10.dp))
-                        .clickable { degree = i }
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(main, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = c, maxLines = 1)
-                    Text(sub, style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1)
-                }
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Chip("Tríades", !sevenths, Modifier.weight(1f)) { sevenths = false }
-            Chip("Com sétima", sevenths, Modifier.weight(1f)) { sevenths = true }
-        }
-
-        // Desenho do acorde + explicação.
+        // Abas do laboratório.
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(Surface1)
-                .border(1.dp, Hairline, RoundedCornerShape(14.dp))
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .clip(RoundedCornerShape(12.dp))
+                .background(Surface2)
+                .border(1.dp, Hairline, RoundedCornerShape(12.dp))
+                .padding(3.dp),
         ) {
-            Box(Modifier.weight(1f)) { ChordDiagram(shape, color) }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1.1f)) {
-                Text("Grau ${chosen.label}", style = MaterialTheme.typography.labelLarge, color = color)
-                Text(chosen.chord.cipher, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = TextStrong)
-                Text(
-                    "${ptPitchClass(chosen.chord.root)} ${chosen.chord.quality.ptName}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextBody,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "Notas: " + chosen.chord.pitchClasses.joinToString(" · ") { ptPitchClass(it) },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextBody,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    when {
-                        shape.barre != null -> "Pestana na ${shape.barre}ª casa (dedo 1 deitado)."
-                        shape.frets.any { it == 0 } -> "Forma aberta: usa cordas soltas."
-                        else -> "Forma sem pestana."
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextMuted,
-                )
+            NeckTab.entries.forEach { t ->
+                val on = t == tab
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(38.dp)
+                        .clip(RoundedCornerShape(9.dp))
+                        .background(if (on) Brass else Surface2)
+                        .clickable { tab = t; player.stop() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(t.title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = if (on) Ink else TextBody, maxLines = 1)
+                }
             }
         }
 
-        // Mapa do braço.
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(Surface1)
-                .border(1.dp, Hairline, RoundedCornerShape(14.dp))
-                .padding(12.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("A escala no braço", style = MaterialTheme.typography.titleMedium, color = TextStrong, modifier = Modifier.weight(1f))
-                Chip("Graus", !showNotes, Modifier.width(76.dp)) { showNotes = false }
-                Spacer(Modifier.width(6.dp))
-                Chip("Notas", showNotes, Modifier.width(76.dp)) { showNotes = true }
-            }
-            Spacer(Modifier.height(8.dp))
-            Fretboard(
-                scaleLabels = scaleLabels,
-                chordTones = chosen.chord.pitchClasses.toSet(),
-                chordRoot = chosen.chord.root,
-                chordColor = color,
+        when (tab) {
+            NeckTab.NOTAS -> NotesTab(latin, onLatin = { latin = it })
+            NeckTab.ACORDES -> ChordsTab(
+                keyRoot, minor, chord, latin, player,
+                onKey = { r, m -> keyRoot = r; minor = m },
+                onChord = { chord = it },
             )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "Cheias: notas do acorde ${chosen.chord.cipher} (contorno = fundamental). Apagadas: o resto da " +
-                    "escala. 1ª corda (Mi agudo) em cima; casas de 0 a 12.",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextMuted,
+            NeckTab.HARMONIZAR -> HarmonizeTab(
+                keyRoot, minor, player,
+                onKey = { r, m -> keyRoot = r; minor = m },
+                onOpenChord = { chord = it; tab = NeckTab.ACORDES },
             )
+            NeckTab.DECORAR -> StudyTab(latin)
         }
+    }
+}
 
-        // Dica didática.
+// ---------------------------------------------------------------------------
+// Aba Notas
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun ColumnScope.NotesTab(latin: Boolean, onLatin: (Boolean) -> Unit) {
+    var selected by rememberSaveable { mutableIntStateOf(0) }       // Dó
+    var showAll by rememberSaveable { mutableStateOf(true) }
+
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LabChip("Dó Ré Mi", latin, Modifier.weight(1f)) { onLatin(true) }
+        LabChip("C D E", !latin, Modifier.weight(1f)) { onLatin(false) }
+        LabChip(if (showAll) "Todas as notas" else "Só a escolhida", showAll, Modifier.weight(1.3f)) { showAll = !showAll }
+    }
+    (0 until 12).chunked(6).forEach { row ->
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            row.forEach { pc -> LabChip(noteName(pc, latin), pc == selected, Modifier.weight(1f)) { selected = pc } }
+        }
+    }
+
+    val dots = buildList {
+        for (s in 0 until Guitar.STRINGS) for (f in 0..NeckQuiz.LAST_FRET) {
+            val pc = Guitar.pitchClassAt(s, f)
+            when {
+                pc == selected -> add(NeckDot(s, f, noteName(pc, latin), Brass, emphasis = f == 0 || f == 12))
+                showAll -> add(NeckDot(s, f, noteName(pc, latin), if (pc in NATURALS) TextBody else TextMuted, DotStyle.GHOST))
+            }
+        }
+    }
+    LabCard {
+        GuitarNeck(
+            dots = dots,
+            onTap = { s, f -> selected = Guitar.pitchClassAt(s, f) },
+        )
+        Spacer(Modifier.height(6.dp))
         Text(
-            "Dica: o número do grau não muda de tom para tom. Aprenda onde ficam o 1, o 4 e o 5 " +
-                "no braço e você acha esses acordes em qualquer tonalidade — só muda a casa.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextBody,
+            "Toque em qualquer casa do braço para ver todas as posições daquela nota.",
+            style = MaterialTheme.typography.labelSmall, color = TextMuted,
+        )
+    }
+
+    // Onde ela está, corda por corda.
+    val positions = NeckQuiz.positions(selected)
+    LabCard {
+        Text(
+            "${noteName(selected, latin)}: ${positions.size} lugares da casa 0 à 12",
+            style = MaterialTheme.typography.titleMedium, color = TextStrong,
+        )
+        Spacer(Modifier.height(6.dp))
+        (0 until Guitar.STRINGS).forEach { s ->
+            val frets = positions.filter { it.first == s }.map { it.second }
+            Text(
+                "${6 - s}ª corda (${noteName(Guitar.pitchClassAt(s, 0), latin)}): casa " + frets.joinToString(" e "),
+                style = MaterialTheme.typography.bodyMedium, color = TextBody,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Atalho da oitava: achou a nota na 6ª corda? A mesma nota está 2 cordas para o lado e 2 casas " +
+                "para baixo (4ª corda). Da 5ª corda, mesma coisa até a 3ª. Da 4ª ou 3ª, são 3 casas " +
+                "(por causa da afinação da 2ª corda). E a 1ª corda é igual à 6ª, na mesma casa.",
+            style = MaterialTheme.typography.bodyMedium, color = TextMuted,
         )
     }
 }
 
+internal val NATURALS = setOf(0, 2, 4, 5, 7, 9, 11)
+
+// ---------------------------------------------------------------------------
+// Peças visuais em comum
+// ---------------------------------------------------------------------------
+
 @Composable
-private fun Chip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+internal fun LabChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
         modifier
             .height(38.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(if (selected) Brass else Surface2)
             .border(1.dp, if (selected) Brass else Hairline, RoundedCornerShape(10.dp))
-            .clickable { onClick() },
+            .clickable { onClick() }
+            .padding(horizontal = 4.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = if (selected) Ink else TextBody, maxLines = 1)
     }
 }
+
+@Composable
+internal fun LabCard(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Surface1)
+            .border(1.dp, Hairline, RoundedCornerShape(14.dp))
+            .padding(12.dp),
+        content = content,
+    )
+}
+
+/** Seletor de tom compacto: − / nome / + e Maior | Menor. */
+@Composable
+internal fun KeyPicker(root: Int, minor: Boolean, onKey: (Int, Boolean) -> Unit) {
+    val key = pitchClassCiphers[root] + if (minor) "m" else ""
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        LabChip("−", false, Modifier.width(44.dp)) { onKey((root + 11) % 12, minor) }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            Text(
+                "Tom: " + (HarmonicDatabase.ptNameByCipher[key] ?: key),
+                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextStrong, maxLines = 1,
+            )
+        }
+        LabChip("+", false, Modifier.width(44.dp)) { onKey((root + 1) % 12, minor) }
+        LabChip("Maior", !minor, Modifier.width(66.dp)) { onKey(root, false) }
+        LabChip("Menor", minor, Modifier.width(66.dp)) { onKey(root, true) }
+    }
+}
+
+/** Acorde do campo (grau 0..6) como acorde do laboratório. */
+internal fun fieldChord(cipher: String): LabChord? =
+    parseCipher(cipher)?.let { LabChord(it.root, ChordType.of(it.quality)) }

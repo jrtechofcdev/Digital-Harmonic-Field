@@ -51,6 +51,7 @@ com/example/
 │   ├── Degrees.kt         # Graus por número (degreeLabel), Chord/parseCipher, DegreeTheory (estendidos)
 │   ├── DegreeQuiz.kt      # Perguntas do treino de graus (ouvido/cifra)
 │   ├── Guitar.kt          # Formas de acorde no violão (abertas + pestana E/A), testadas nota a nota
+│   ├── Voicings.kt        # ChordType (9, 7M, sus…), gerador de variações, Harmonize, NeckQuiz
 │   └── PitchDetection.kt  # Detecção de altura (autocorrelação/MPM) + ptPitchClass
 ├── audio/
 │   ├── AudioEngine.kt     # Metronome e ChordPlayer via AudioTrack (sem libs externas)
@@ -81,8 +82,13 @@ com/example/
 - **Modo Grau:** todo rótulo de acorde do campo passa por `chordLabels(índice,
   cifra)` (Notation.kt) — Cifra: ("C","4"); Grau: ("4","C"). Sequências usam
   `degreeSequence`. Notação brasileira: 1 2m 3m 4 5 6m 7° (menor: 1m 2° 3 4m 5m 6 7).
-- **Violão:** formas vêm de `Guitar.shape` (nunca desenhe forma à mão); o teste
-  confere as 84 formas nota a nota. Diagramas/braço em `GuitarViews.kt`.
+- **Violão:** formas vêm de `Guitar.shape` e `Voicings.generate` (nunca desenhe
+  forma à mão). Os testes conferem nota a nota: só notas do acorde, notas
+  obrigatórias presentes, baixo certo, ≤4 dedos (pestana conta 1), abertura ≤4
+  casas. Diagramas e o braço realista (`GuitarNeck`, com zoom e toque) ficam em
+  `GuitarViews.kt`; as cores da madeira/cordas em `Color.kt` (só para o
+  instrumento — as notas seguem a cor da função). Bolinha cheia = 1/3/5; anel =
+  nota de cor. Método de estudo em `docs/braco-do-violao.md`.
 - **Cores** ficam em `ui/theme/Color.kt`; **tons/nomes** vêm de
   `HarmonicDatabase` (use `ptNameByCipher`, não recalcule o mapa).
 

@@ -37,6 +37,23 @@ class DegreeScreensShot {
     }
 
     @Test fun violao() = shot("violao") { GuitarScreen("G", {}, PaddingValues()) }
+
+    private fun guitarTab(tab: String, name: String, extra: () -> Unit = {}) {
+        rule.setContent { HarmonicTheme { Surface(color = Ink) { GuitarScreen("G", {}, PaddingValues()) } } }
+        rule.onNode(androidx.compose.ui.test.hasText(tab)).performClick()
+        extra()
+        rule.waitForIdle()
+        rule.onRoot().captureRoboImage("$out/$name.png")
+    }
+
+    @Test fun violaoAcordes() = guitarTab("Acordes", "violao_acordes") {
+        rule.onNode(androidx.compose.ui.test.hasText("(9)")).performClick()
+    }
+    @Test fun violaoMontar() = guitarTab("Acordes", "violao_montar") {
+        rule.onNode(androidx.compose.ui.test.hasText("Onde estão 1 · 3 · 5")).performClick()
+    }
+    @Test fun violaoHarmonizar() = guitarTab("Harmonizar", "violao_harmonizar")
+    @Test fun violaoDecorar() = guitarTab("Decorar", "violao_decorar")
     @Test fun treino() = shot("treino") { DegreeTrainerScreen({}, PaddingValues()) }
     @Test fun campoPorGrau() {
         NotationSettings.set(ApplicationProvider.getApplicationContext(), Notation.GRAU)

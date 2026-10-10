@@ -119,7 +119,7 @@ private fun BrandHeader(onSupport: () -> Unit) {
                     color = Brass,
                 )
             }
-            // Botão de apoio (palheta).
+            // Botão de apoio.
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))

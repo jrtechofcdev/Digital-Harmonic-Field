@@ -37,6 +37,7 @@ import com.example.music.Harmonization
 import com.example.music.Harmonize
 import com.example.music.HarmonicFunction
 import com.example.music.LabChord
+import com.example.music.ChordShapes
 import com.example.music.Voicing
 import com.example.music.Voicings
 import com.example.music.functionForDegree
@@ -93,9 +94,8 @@ private fun Voicing.toDots(chord: LabChord, color: Color): List<NeckDot> = strin
     NeckDot(s, frets[s], role, color, if (role in CORE_ROLES || role == "b") DotStyle.FILLED else DotStyle.RING, emphasis = role == "1")
 }
 
-private fun Voicing.barreOnNeck(color: Color): NeckBarre? = barre?.let { b ->
-    val from = frets.indexOfFirst { it == b }
-    NeckBarre(b, from, strings.last(), color)
+internal fun Voicing.barreOnNeck(color: Color): NeckBarre? = barre?.let { b ->
+    NeckBarre(b, barreFrom.coerceAtLeast(0), strings.last(), color)
 }
 
 private fun play(player: ChordPlayer, chords: List<LabChord>, seconds: Double = 1.4) {
@@ -116,12 +116,14 @@ internal fun ColumnScope.ChordsTab(
     player: ChordPlayer,
     onKey: (Int, Boolean) -> Unit,
     onChord: (LabChord) -> Unit,
+    onOpenDictionary: (LabChord) -> Unit = {},
 ) {
     val key = pitchClassCiphers[keyRoot] + if (minor) "m" else ""
     val field = remember(key) { HarmonicDatabase.getField(key) }
     var assembled by rememberSaveable { mutableStateOf(true) }
     val shownRoles = remember(chord.type) { mutableStateOf(chord.type.intervals.map { chord.type.role(it) }.toSet()) }
-    val voicings = remember(chord) { Voicings.generate(chord) }
+    // As formas mais usadas (CAGED), as mesmas do Dicionário de acordes.
+    val voicings = remember(chord) { ChordShapes.common(chord).map { it.voicing } }
     var vIdx by remember(chord) { mutableIntStateOf(0) }
     val color = chordColor(chord, keyRoot, minor)
 
@@ -237,7 +239,10 @@ internal fun ColumnScope.ChordsTab(
             )
         }
         // Todas as variações em desenho, para comparar.
-        SectionLabel("Todas as variações")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SectionLabel("Formas mais usadas", Modifier.weight(1f))
+            LabChip("Todas as formas ›", false, Modifier.width(150.dp)) { onOpenDictionary(chord) }
+        }
         voicings.withIndex().chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { (i, vv) ->

@@ -182,6 +182,27 @@ internal fun GuitarLesson(onOpenGuitar: () -> Unit) {
     }
 }
 
+@Composable
+internal fun PassagesLesson(onOpenPassages: () -> Unit, onOpenDictionary: () -> Unit) {
+    LessonCard("As \"graças\": passagens entre acordes") {
+        Paragraph(
+            "O tocador experiente não vai \"seco\" de um acorde para o outro: ele coloca um ou dois acordes " +
+                "rápidos no caminho. É a caída antes do 1, o baixo que desce degrau por degrau, o diminuto que " +
+                "sobe meio tom, o 4m no Amém."
+        )
+        Paragraph(
+            "Regra para começar: a passagem vai onde a melodia segura uma nota longa (fim de frase). Os acordes " +
+                "de passagem duram pouco; o de chegada dura mais. Comece pelo 2m – 5 – 1 e pelo 1 – 5/7 – 6m."
+        )
+        Paragraph(
+            "Alguns acordes saem do campo harmônico (o app marca como \"fora\"). Eles soam especiais justamente " +
+                "por isso — use um por estrofe, não em todo lugar."
+        )
+        ActionButton("Abrir Passagens e enfeites", onOpenPassages)
+        ActionButton("Dicionário de acordes (todas as formas)", onOpenDictionary)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Peças
 // ---------------------------------------------------------------------------

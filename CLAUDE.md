@@ -52,17 +52,21 @@ com/example/
 │   ├── DegreeQuiz.kt      # Perguntas do treino de graus (ouvido/cifra)
 │   ├── Guitar.kt          # Formas de acorde no violão (abertas + pestana E/A), testadas nota a nota
 │   ├── Voicings.kt        # ChordType (9, 7M, sus…), gerador de variações, Harmonize, NeckQuiz
+│   ├── ChordShapes.kt     # Dicionário: moldes CAGED (common), todas as formas (all), howTo (dedos)
+│   ├── Passages.kt        # Passagens/enfeites por momento (PassageMove), escritas em graus
 │   └── PitchDetection.kt  # Detecção de altura (autocorrelação/MPM) + ptPitchClass
 ├── audio/
 │   ├── AudioEngine.kt     # Metronome e ChordPlayer via AudioTrack (sem libs externas)
 │   └── KeyListener.kt     # Pré-buffer de 5 s (só memória) + rodadas (RECORD_AUDIO) + SessionTap
+├── data/Repertoire.kt     # Repertório do culto (SharedPreferences + JSON, só no aparelho)
 ├── dev/                   # SÓ versão DEV: DevStore (pasta treino-real), DevRecorder, DevJson
 │                          #   (ui/dev: DevLabelForm, DevPanelScreen)
 └── ui/
     ├── theme/             # Color.kt (tokens), Type.kt (Space Grotesk), Theme.kt
     ├── components/         # CommonUi.kt, ChordStrip.kt, Notation.kt (Cifra|Grau), GuitarViews.kt
     └── screens/            # Fields, FieldDetail, Progressions, ProgressionStage (tela cheia),
-                            # Learn (+ DegreeLessons), DegreeTrainer, Guitar, Tools, KeyFinder, Donation
+                            # Learn (+ DegreeLessons), DegreeTrainer, Guitar, ChordDictionary,
+                            # Passages, Repertoire, Tools, KeyFinder, Donation
 ```
 
 ## Convenções e princípios
@@ -89,6 +93,17 @@ com/example/
   `GuitarViews.kt`; as cores da madeira/cordas em `Color.kt` (só para o
   instrumento — as notas seguem a cor da função). Bolinha cheia = 1/3/5; anel =
   nota de cor. Método de estudo em `docs/braco-do-violao.md`.
+- **Dicionário:** "mais usadas" = moldes CAGED em `ChordShapes.templates`
+  (offsets relativos à casa da fundamental), sempre validados por
+  `Voicings.evaluate`; molde que não cabe na mão num tom simplesmente não
+  aparece. Pestana só com 5+ casas presas (o Ré/Lá abertos não têm pestana). Os
+  dedos vêm de `Voicing.fingering` (um dedo por casa) e o texto de `howTo`.
+- **Passagens:** escreva sempre em graus (`St(rótulo, semitons da tônica, tipo,
+  função, baixo)`), nunca em cifra. "Fora do campo" é calculado (no menor, a
+  sensível do 5 maior conta como dentro). Toda passagem precisa ter forma no
+  violão em todos os tons (`PassagesTest`).
+- **Navegação:** o Dicionário abre por cima da tela atual (overlay em
+  `MainActivity`), para a tela de baixo não perder o estado.
 - **Ícone/marca:** arte do autor em `tools/icon/source/icone-original.png`;
   `tools/icon/make_icon.py` gera foreground/monochrome (mipmap PNG), webp
   legados, `ic_launcher-playstore.png`, `drawable-nodpi/brand_mark.png` e a cor

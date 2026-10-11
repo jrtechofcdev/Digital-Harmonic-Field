@@ -47,6 +47,9 @@ de igreja precisa:
 | "Qual o próximo acorde?" | No **campo harmônico**, a cor de cada acorde mostra se ele é casa (verde), preparação (azul) ou tensão que pede volta (vermelho). |
 | "O cantor pediu um tom mais baixo." | **Transposição** na hora (− / +) e **capotraste**, que diz em que casa colocar o capo. |
 | "Eu toco por número." | A chave **Cifra \| Grau** muda o app inteiro para 1, 4, 5, 6m… |
+| "Quero fazer umas graças entre os acordes." | **Passagens e enfeites** mostram, para cada momento do hino (voltar ao 1, descer o baixo, final do Amém…), as caídas e subidas que os tocadores experientes usam, com o som de antes e depois. |
+| "Como faço esse acorde em outro lugar do braço?" | O **Dicionário de acordes** mostra as formas mais usadas e todas as formas, com o número do dedo em cada casa. |
+| "Qual era o tom daquele hino?" | O **Repertório do culto** guarda os hinos do dia com o tom, o capotraste e uma observação. |
 | "Meu acorde soa seco, de tiozão." | O **Harmonizar** do braço do violão sugere trocas como (9), 7M, sus4 → 5 e 6(9), com o som de antes e depois. |
 | "Não sei onde ficam as notas no braço." | A aba **Notas** mostra todas as posições de uma nota, e a aba **Decorar** traz o método e jogos. |
 | "Preciso ler os acordes de longe." | **Tela cheia** com acordes gigantes, o acorde da vez destacado e a tela sempre acesa. |
@@ -84,6 +87,12 @@ prático e os módulos de graus:
 - **Braço do violão**: um braço realista para ver as notas, montar acordes
   automaticamente (com variações pelo braço), harmonizar hinos e decorar o
   braço com jogos.
+- **Repertório do culto**: a lista de hinos do dia com o tom de cada um; abre o
+  campo ou as passagens no tom certo.
+- **Passagens e enfeites**: as "graças" entre os acordes, do básico ao
+  profissional, com áudio e desenho no braço.
+- **Dicionário de acordes**: as 5 formas mais usadas (CAGED) e todas as formas
+  de cada acorde, com os dedos e o passo a passo.
 - **Treino de graus**: pelo ouvido ou pela cifra, em níveis.
 - **Metrônomo**, com marcar tempo (tap tempo) e compassos.
 - **Capotraste**, que mostra em que casa colocar o capo para usar acordes
@@ -97,9 +106,11 @@ prático e os módulos de graus:
    abra a **Progressão** em tela cheia.
 2. **Na hora:** se não souber o tom, abra **Detectar tom** enquanto a
    congregação canta. Em 5 a 15 segundos aparece o tom mais provável.
-3. **Para soar melhor:** no **Braço do violão → Harmonizar**, escolha uma ou
+3. **Para enfeitar:** abra **Passagens e enfeites** no tom do hino e escolha
+   uma caída para o fim da frase (ex.: 2m – 5 – 1).
+4. **Para soar melhor:** no **Braço do violão → Harmonizar**, escolha uma ou
    duas trocas por estrofe (ex.: 1(9) e 5sus4 → 5).
-4. **Em casa:** 10 minutos por dia em **Aprender**, **Treino de graus** e
+5. **Em casa:** 10 minutos por dia em **Aprender**, **Treino de graus** e
    **Decorar**.
 
 ---

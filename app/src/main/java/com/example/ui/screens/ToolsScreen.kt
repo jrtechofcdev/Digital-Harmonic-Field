@@ -56,6 +56,9 @@ fun ToolsScreen(
     onOpenDevPanel: () -> Unit = {},
     onOpenGuitar: () -> Unit = {},
     onOpenTrainer: () -> Unit = {},
+    onOpenDictionary: () -> Unit = {},
+    onOpenPassages: () -> Unit = {},
+    onOpenRepertoire: () -> Unit = {},
 ) {
     val metronome = remember { Metronome() }
 
@@ -84,8 +87,29 @@ fun ToolsScreen(
         }
         item {
             NavCard(
+                title = "Repertório do culto",
+                subtitle = "Os hinos do culto na ordem, com o tom de cada um",
+                onClick = onOpenRepertoire,
+            )
+        }
+        item {
+            NavCard(
+                title = "Passagens e enfeites",
+                subtitle = "As \"graças\": caídas para o 1, baixo descendo, diminutos, finais de Amém",
+                onClick = onOpenPassages,
+            )
+        }
+        item {
+            NavCard(
+                title = "Dicionário de acordes",
+                subtitle = "As formas mais usadas e todas as formas de cada acorde, com os dedos",
+                onClick = onOpenDictionary,
+            )
+        }
+        item {
+            NavCard(
                 title = "Braço do violão",
-                subtitle = "Como montar cada grau e onde ficam as notas da escala no braço",
+                subtitle = "Notas no braço, acordes que se montam sozinhos, harmonizar e decorar",
                 onClick = onOpenGuitar,
             )
         }

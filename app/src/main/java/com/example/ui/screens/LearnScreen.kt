@@ -57,6 +57,8 @@ fun LearnScreen(
     contentPadding: PaddingValues,
     onOpenTrainer: () -> Unit = {},
     onOpenGuitar: () -> Unit = {},
+    onOpenPassages: () -> Unit = {},
+    onOpenDictionary: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
@@ -159,6 +161,7 @@ fun LearnScreen(
         item { HowToFindDegreesLesson(onOpenTrainer) }
         item { DegreesDeepDiveLesson() }
         item { GuitarLesson(onOpenGuitar) }
+        item { PassagesLesson(onOpenPassages, onOpenDictionary) }
 
         item {
             LessonCard("Círculo das quintas: o que é e como usar", startExpanded = true) {

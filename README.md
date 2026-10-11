@@ -86,6 +86,38 @@ Módulos de **graus**:
   caminhando (5/7, 1/3), empréstimo (4m) e transposição — tudo calculado no tom
   escolhido.
 
+### Dicionário de acordes
+Escolha a nota e o tipo (19 tipos: maior, m, 7, 7M, m7, (9), sus4, 6(9),
+m7(b5), °7…) e veja:
+
+- **Mais usadas:** as 5 formas do sistema **CAGED** (as das revistinhas). Ex.:
+  Sol aberto, forma de Mi (pestana na 3ª), forma de Ré (5ª casa), forma de Dó
+  (7ª) e forma de Lá (pestana na 10ª).
+- **Todas:** todas as formas tocáveis até a casa 15 (o Sol maior tem 61), com
+  filtros *sem pestana*, *corda solta* e *baixo na 6ª / 5ª / 4ª corda*.
+- A forma escolhida aparece **grande no braço**, com o **número do dedo** em
+  cada casa (1 indicador … 4 mindinho) ou com as notas (1 · 3 · 5), e um
+  **passo a passo** em texto: "Dedo 1 deitado na casa 3 (pestana)…".
+- **Ouvir** cada forma. Abre por Ferramentas, pela aba Acordes do braço do
+  violão ("Todas as formas ›") e pelas passagens.
+
+### Passagens e enfeites (as "graças")
+O que o tocador experiente faz entre um acorde e outro do hino. Escolha o tom e
+o **momento da música** — *voltar ao 1*, *descer o baixo*, *1 → 4*, *1 → 5*,
+*1 → 6m*, *1 → 2m*, *4 → 5*, *subir*, *final (Amém)* — e veja as ideias, do
+nível Básico ao Profissional: 2m – 5 – 1, cadência de hinário (1/5), 1 – 5/7 –
+6m, diminutos de passagem (#1°, #4°), dominantes secundárias (2⁷, 3⁷, 6⁷), 4 –
+4m – 1, b6 – b7 – 1, terça de Picardia no tom menor e outras. Cada ideia mostra
+os acordes no tom (cifra ou grau, na cor da função), marca os que saem do campo
+("fora"), explica o porquê, toca **o direto e a passagem** para comparar e
+mostra o desenho de cada acorde no braço. Abre por Ferramentas, pela aba
+Aprender, pelo detalhe do campo e pelo repertório.
+
+### Repertório do culto
+A lista de hinos do culto, na ordem: número da Harpa, nome, tom, capotraste e
+observação ("subir meio tom no fim"). Cada hino abre o **campo** ou as
+**passagens** já no tom dele. Salvo só no aparelho.
+
 ### Ferramentas
 Utilitários para o dia a dia, todos sem depender de internet:
 
@@ -172,7 +204,10 @@ app/src/main/java/com/example/
 │   ├── Degrees.kt               # Graus por número, sétimas, dominantes secundárias…
 │   ├── DegreeQuiz.kt            # Perguntas do treino de graus
 │   ├── Guitar.kt                # Formas de acorde no violão (abertas e pestana)
-│   └── Voicings.kt              # Tipos de acorde, gerador de variações, harmonização, jogos do braço
+│   ├── Voicings.kt              # Tipos de acorde, gerador de variações, harmonização, jogos do braço
+│   ├── ChordShapes.kt           # Dicionário: formas CAGED, todas as formas, passo a passo dos dedos
+│   └── Passages.kt              # Passagens e enfeites por momento do hino (maior e menor)
+├── data/Repertoire.kt           # Repertório do culto (salvo no aparelho)
 ├── audio/
 │   ├── AudioEngine.kt           # Metrônomo e ChordPlayer (acordes do treino de ouvido)
 │   └── KeyListener.kt           # Microfone → detector de tom (pré-buffer de 5 s em memória)
@@ -181,7 +216,8 @@ app/src/main/java/com/example/
     ├── theme/                   # Cores, tipografia e tema
     ├── components/              # Componentes reutilizáveis (marca, ChordStrip…)
     └── screens/                 # Campos, Detalhe, Progressões (+ tela cheia), Aprender (+ lições de
-                                 #  graus), Treino de graus, Braço do violão, Ferramentas, Detectar tom, Doação (+ ui/dev na versão DEV)
+                                 #  graus), Treino de graus, Braço do violão, Dicionário de acordes, Passagens,
+                                 #  Repertório, Ferramentas, Detectar tom, Doação (+ ui/dev na versão DEV)
 tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
 tools/icon/make_icon.py          # Gera o ícone em todos os formatos a partir da arte em tools/icon/source/
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar

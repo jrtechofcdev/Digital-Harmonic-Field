@@ -75,7 +75,12 @@ internal fun noteName(pc: Int, latin: Boolean): String = if (latin) ptPitchClass
  *  • Decorar: o método passo a passo e jogos rápidos.
  */
 @Composable
-fun GuitarScreen(initialKey: String, onBack: () -> Unit, contentPadding: PaddingValues) {
+fun GuitarScreen(
+    initialKey: String,
+    onBack: () -> Unit,
+    contentPadding: PaddingValues,
+    onOpenDictionary: (LabChord) -> Unit = {},
+) {
     var tab by rememberSaveable { mutableStateOf(NeckTab.NOTAS) }
     var latin by rememberSaveable { mutableStateOf(true) }
     // Tom (para Acordes e Harmonizar) e acorde montado no braço.
@@ -148,6 +153,7 @@ fun GuitarScreen(initialKey: String, onBack: () -> Unit, contentPadding: Padding
                 keyRoot, minor, chord, latin, player,
                 onKey = { r, m -> keyRoot = r; minor = m },
                 onChord = { chord = it },
+                onOpenDictionary = onOpenDictionary,
             )
             NeckTab.HARMONIZAR -> HarmonizeTab(
                 keyRoot, minor, player,

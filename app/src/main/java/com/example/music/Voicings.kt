@@ -97,9 +97,10 @@ data class LabChord(val root: Int, val type: ChordType, val bass: Int? = null) {
 
 /**
  * Uma forma de tocar o acorde: casa de cada corda (6ª → 1ª), −1 = não tocar.
- * [barre] = casa da pestana, quando o dedo 1 deita.
+ * [barre] = casa da pestana, quando o dedo 1 deita; ela cobre da corda
+ * [barreFrom] (0 = 6ª) até a corda mais aguda que soa.
  */
-class Voicing(val frets: IntArray, val barre: Int?, val score: Double) {
+class Voicing(val frets: IntArray, val barre: Int?, val score: Double, val barreFrom: Int = -1) {
     val strings: List<Int> get() = frets.indices.filter { frets[it] >= 0 }
     val midiNotes: List<Int> get() = strings.map { Guitar.TUNING[it] + frets[it] }
     val pressed: List<Int> get() = frets.filter { it > 0 }
@@ -114,11 +115,46 @@ class Voicing(val frets: IntArray, val barre: Int?, val score: Double) {
             else -> "Casa $minFret"
         }
 
+    /** A corda [s] está debaixo da pestana? */
+    fun underBarre(s: Int): Boolean = barre != null && s >= barreFrom && frets[s] == barre
+
     /** Quantos dedos a mão esquerda usa (pestana conta como 1). */
     val fingers: Int
-        get() = if (barre != null) 1 + frets.count { it > barre } else pressed.size
+        get() = if (barre != null) 1 + frets.indices.count { frets[it] > 0 && !underBarre(it) } else pressed.size
 
-    val shape: Guitar.Shape get() = Guitar.Shape(frets, barre)
+    /**
+     * Qual dedo aperta cada corda (1 = indicador … 4 = mindinho; 0 = solta ou
+     * abafada). Regra das revistinhas: um dedo por casa a partir da casa mais
+     * baixa; na mesma casa, a corda mais grave usa o dedo menor.
+     */
+    val fingering: IntArray
+        get() {
+            val out = IntArray(frets.size)
+            var next = 1
+            if (barre != null) {
+                frets.indices.filter { underBarre(it) }.forEach { out[it] = 1 }
+                next = 2
+            }
+            val notes = frets.indices.filter { frets[it] > 0 && out[it] == 0 }
+                .sortedWith(compareBy({ frets[it] }, { it }))
+            val base = minFret
+            // 1ª tentativa: um dedo por casa; se passar do 4, vai em sequência.
+            val byFret = IntArray(frets.size)
+            var prev = next - 1
+            var ok = true
+            for (s in notes) {
+                val f = maxOf(prev + 1, frets[s] - base + 1)
+                if (f > 4) { ok = false; break }
+                byFret[s] = f; prev = f
+            }
+            if (ok) notes.forEach { out[it] = byFret[it] } else notes.forEach { out[it] = next++ }
+            return out
+        }
+
+    val shape: Guitar.Shape get() = Guitar.Shape(frets, barre, barreFrom.takeIf { barre != null })
+
+    /** Mesma forma? (para não repetir na lista) */
+    val key: String get() = frets.joinToString(",")
 }
 
 object Voicings {
@@ -146,17 +182,25 @@ object Voicings {
         return picked.sortedBy { it.center() }
     }
 
+    /** TODAS as formas tocáveis de [chord] com casas até [maxFret] (sem filtrar por região). */
+    fun allShapes(chord: LabChord, maxFret: Int = MAX_FRET): List<Voicing> {
+        val all = HashMap<String, Voicing>()
+        for (w in 1..maxFret - SPAN) search(chord, w, all, maxFret)
+        familiar(chord)?.let { all[it.key] = it }
+        return all.values.toList()
+    }
+
     private fun Voicing.center(): Double =
         if (pressed.isEmpty()) 0.0 else if (usesOpen && maxFret <= 4) 1.0 else pressed.average()
 
     /** Procura formas com as casas presas entre [w] e w+3 (cordas soltas sempre valem). */
-    private fun search(chord: LabChord, w: Int, out: HashMap<String, Voicing>) {
+    private fun search(chord: LabChord, w: Int, out: HashMap<String, Voicing>, maxFret: Int = MAX_FRET) {
         val pcs = chord.pitchClasses + chord.bassPc
         val options = Array(Guitar.STRINGS) { s ->
             buildList {
                 add(-1)
                 if (Guitar.pitchClassAt(s, 0) in pcs) add(0)
-                for (f in w..w + SPAN) if (f <= MAX_FRET && Guitar.pitchClassAt(s, f) in pcs) add(f)
+                for (f in w..w + SPAN) if (f <= maxFret && Guitar.pitchClassAt(s, f) in pcs) add(f)
             }
         }
         val frets = IntArray(Guitar.STRINGS)
@@ -198,17 +242,17 @@ object Voicings {
         // Corda solta junto de acorde lá no alto fica difícil de soar bem.
         if (frets.any { it == 0 } && minF > 9) return null
 
-        // Dedos: com pestana (o dedo 1 deita da primeira à última corda na casa mínima).
-        val atMin = frets.indices.filter { frets[it] == minF && minF > 0 }
+        // Dedos: com 5 ou mais casas presas, o dedo 1 deita (pestana) na casa mais
+        // baixa, de uma corda até a mais aguda que soa. Com até 4, um dedo por nota
+        // (é como as revistinhas ensinam o Ré, o Lá, o Dó…).
         var barre: Int? = null
+        var barreFrom = -1
         var fingers = pressed.size
-        if (atMin.size >= 2) {
-            val from = atMin.first()
-            val to = high
-            val ok = (from..to).all { frets[it] >= minF }
-            if (ok) {
-                val withBarre = 1 + frets.count { it > minF }
-                if (pressed.size > 4 || withBarre < pressed.size) { barre = minF; fingers = withBarre }
+        if (pressed.size > 4) {
+            for (from in frets.indices.filter { frets[it] == minF }) {
+                if (!(from..high).all { frets[it] >= minF }) continue
+                val n = 1 + frets.indices.count { frets[it] > 0 && !(it >= from && frets[it] == minF) }
+                if (barre == null || n < fingers) { barre = minF; barreFrom = from; fingers = n }
             }
         }
         if (fingers > 4) return null
@@ -227,14 +271,14 @@ object Voicings {
         // A nota de "cor" (9, 6, 7M, 4) em cima canta melhor.
         val top = Math.floorMod(notes.last() - chord.root, 12)
         if (chord.type.pcs.size > 3 && top !in setOf(0, 7)) score += 0.6
-        return Voicing(frets, barre, score)
+        return Voicing(frets, barre, score, barreFrom)
     }
 
     private fun familiar(chord: LabChord): Voicing? {
         if (chord.bass != null) return null
         val q = ChordQuality.entries.firstOrNull { ChordType.of(it) == chord.type } ?: return null
         val shape = Guitar.shape(Chord(chord.root, q))
-        return evaluate(chord, shape.frets)?.let { Voicing(it.frets, it.barre, it.score + 4.0) }
+        return evaluate(chord, shape.frets)?.let { Voicing(it.frets, it.barre, it.score + 4.0, it.barreFrom) }
     }
 
     /** A melhor forma (a primeira, mais confortável). */

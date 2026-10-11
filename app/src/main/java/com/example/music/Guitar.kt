@@ -15,9 +15,10 @@ object Guitar {
 
     /**
      * Forma do acorde: casa de cada corda (6ª → 1ª), −1 = não tocar, 0 = solta.
-     * [barre] = casa da pestana (se houver).
+     * [barre] = casa da pestana (se houver), cobrindo da corda [barreFrom] (ou da
+     * primeira que soa) até a última.
      */
-    class Shape(val frets: IntArray, val barre: Int? = null) {
+    class Shape(val frets: IntArray, val barre: Int? = null, val barreFrom: Int? = null) {
         /** Primeira casa mostrada no desenho (1 = desde a pestana do braço). */
         val baseFret: Int
             get() {

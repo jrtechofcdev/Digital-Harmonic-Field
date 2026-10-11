@@ -72,7 +72,7 @@ fun ChordDiagram(shape: Guitar.Shape, color: Color, modifier: Modifier = Modifie
         shape.barre?.let { b ->
             val played = shape.frets.indices.filter { shape.frets[it] >= 0 }
             val y = top + (b - base + 0.5f) * dy
-            val x0 = left + played.first() * dx
+            val x0 = left + (shape.barreFrom ?: played.first()) * dx
             val x1 = left + played.last() * dx
             drawRoundRect(color, Offset(x0 - dx * 0.28f, y - dy * 0.22f), Size(x1 - x0 + dx * 0.56f, dy * 0.44f), CornerRadius(dy * 0.22f))
         }
@@ -83,7 +83,7 @@ fun ChordDiagram(shape: Guitar.Shape, color: Color, modifier: Modifier = Modifie
             when (val fr = shape.frets[s]) {
                 -1 -> text(measurer, "×", Offset(x, top * 0.5f), TextMuted, (top * 0.55f).toSp())
                 0 -> drawCircle(TextBody, r * 0.7f, Offset(x, top * 0.5f), style = Stroke(line * 2))
-                else -> if (fr != shape.barre) {
+                else -> if (fr != shape.barre || s < (shape.barreFrom ?: 0)) {
                     drawCircle(color, r, Offset(x, top + (fr - base + 0.5f) * dy))
                 }
             }

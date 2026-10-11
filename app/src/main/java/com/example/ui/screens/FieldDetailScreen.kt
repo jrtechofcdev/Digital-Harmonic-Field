@@ -78,6 +78,7 @@ fun FieldDetailScreen(
     onBack: () -> Unit,
     contentPadding: PaddingValues,
     onOpenGuitar: (String) -> Unit = {},
+    onOpenPassages: (String) -> Unit = {},
 ) {
     // Mantém a tela ligada — ninguém quer o celular apagando no meio do louvor.
     val view = LocalView.current
@@ -129,6 +130,7 @@ fun FieldDetailScreen(
             onBack = onBack,
             contentPadding = contentPadding,
             onOpenGuitar = { onOpenGuitar(transposeCipher(keyCipher, transpose)) },
+            onOpenPassages = { onOpenPassages(transposeCipher(keyCipher, transpose)) },
         )
     } else {
         PortraitLayout(
@@ -146,6 +148,7 @@ fun FieldDetailScreen(
             onBack = onBack,
             contentPadding = contentPadding,
             onOpenGuitar = { onOpenGuitar(transposeCipher(keyCipher, transpose)) },
+            onOpenPassages = { onOpenPassages(transposeCipher(keyCipher, transpose)) },
         )
     }
 }
@@ -170,6 +173,7 @@ private fun PortraitLayout(
     onBack: () -> Unit,
     contentPadding: PaddingValues,
     onOpenGuitar: () -> Unit,
+    onOpenPassages: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -197,6 +201,18 @@ private fun PortraitLayout(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .clickable { onOpenGuitar() }
+                    .padding(8.dp),
+            )
+        }
+        Row {
+            Spacer(Modifier.weight(1f))
+            Text(
+                "Passagens e enfeites neste tom ›",
+                style = MaterialTheme.typography.labelLarge,
+                color = Brass,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onOpenPassages() }
                     .padding(8.dp),
             )
         }
@@ -241,6 +257,7 @@ private fun LandscapeLayout(
     onBack: () -> Unit,
     contentPadding: PaddingValues,
     onOpenGuitar: () -> Unit,
+    onOpenPassages: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -333,10 +350,16 @@ private fun LandscapeLayout(
                 modifier = Modifier.weight(1f),
             )
             Text(
-                "Braço do violão ›",
+                "Braço ›",
                 style = MaterialTheme.typography.labelLarge,
                 color = Brass,
                 modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { onOpenGuitar() }.padding(6.dp),
+            )
+            Text(
+                "Passagens ›",
+                style = MaterialTheme.typography.labelLarge,
+                color = Brass,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { onOpenPassages() }.padding(6.dp),
             )
         }
     }

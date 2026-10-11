@@ -142,14 +142,17 @@ A interface foi reconstruída em torno de três princípios:
 
 ## Ícone
 
-Um **violão em latão** na diagonal, com as três notas de acorde no braço nas
-cores das funções (verde = Tônica, azul = Subdominante, vermelho = Dominante):
-quem olha entende que é um app de violão/acordes, e as cores ligam o ícone ao
-campo harmônico. Tudo sai de `tools/icon/make_icon.py` (ícone adaptativo,
-temático monocromático do Android 13+, ícones antigos `.webp`, imagem de 512 px
-para loja e a marca usada dentro do app). Para mudar cor ou desenho, edite o
-script e rode `python3 tools/icon/make_icon.py` (precisa de `cairosvg` e
-`pillow`).
+Arte do autor: o **braço do violão** com as notas de dois acordes nas cores das
+funções (verde = Tônica, azul = Subdominante, vermelho = Dominante), dentro de
+um **anel em latão**. Quem olha vê que é um app de violão e acordes, e as cores
+ligam o ícone ao campo harmônico.
+
+A arte original fica em `tools/icon/source/icone-original.png`. O script
+`tools/icon/make_icon.py` recorta o desenho (sem mexer nos pixels), centraliza
+na zona segura e gera tudo: ícone adaptativo, temático monocromático do
+Android 13+, ícones antigos `.webp`, imagem de 512 px para loja e a marca usada
+dentro do app. Para trocar o ícone, substitua a imagem e rode
+`python3 tools/icon/make_icon.py` (precisa de `pillow`).
 
 ## Estrutura do projeto
 
@@ -180,7 +183,7 @@ app/src/main/java/com/example/
     └── screens/                 # Campos, Detalhe, Progressões (+ tela cheia), Aprender (+ lições de
                                  #  graus), Treino de graus, Braço do violão, Ferramentas, Detectar tom, Doação (+ ui/dev na versão DEV)
 tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
-tools/icon/make_icon.py          # Gera o ícone (violão) em todos os formatos a partir de um só desenho
+tools/icon/make_icon.py          # Gera o ícone em todos os formatos a partir da arte em tools/icon/source/
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar
 docs/treino-real.md              # Versão DEV: como captar, rotular e enviar
 ```

@@ -96,9 +96,9 @@ fun AccentBar(color: Color, height: Dp) {
 }
 
 /**
- * Marca do app: o mesmo violão do ícone (latão, com as notas da Tônica,
- * Subdominante e Dominante no braço). Vem de res/drawable/brand_mark.xml,
- * gerado por tools/icon/make_icon.py junto com o ícone.
+ * Marca do app: a mesma arte do ícone (braço do violão com as notas da
+ * Tônica, Subdominante e Dominante, dentro do anel em latão). Vem de
+ * res/drawable-nodpi/brand_mark.png, gerado por tools/icon/make_icon.py.
  */
 @Composable
 fun BrandMark(modifier: Modifier = Modifier, size: Dp = 44.dp) {

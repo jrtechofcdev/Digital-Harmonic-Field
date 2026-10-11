@@ -89,10 +89,11 @@ com/example/
   `GuitarViews.kt`; as cores da madeira/cordas em `Color.kt` (só para o
   instrumento — as notas seguem a cor da função). Bolinha cheia = 1/3/5; anel =
   nota de cor. Método de estudo em `docs/braco-do-violao.md`.
-- **Ícone/marca:** violão gerado por `tools/icon/make_icon.py` (foreground,
-  monochrome, `brand_mark.xml`, webp legados e `ic_launcher-playstore.png`).
-  Não edite esses arquivos à mão — mude o script e rode de novo. `BrandMark`
-  usa `R.drawable.brand_mark`.
+- **Ícone/marca:** arte do autor em `tools/icon/source/icone-original.png`;
+  `tools/icon/make_icon.py` gera foreground/monochrome (mipmap PNG), webp
+  legados, `ic_launcher-playstore.png`, `drawable-nodpi/brand_mark.png` e a cor
+  de fundo. Não edite esses arquivos à mão nem redesenhe o ícone — troque a arte
+  e rode o script. `BrandMark` usa `R.drawable.brand_mark`.
 - **Cores** ficam em `ui/theme/Color.kt`; **tons/nomes** vêm de
   `HarmonicDatabase` (use `ptNameByCipher`, não recalcule o mapa).
 

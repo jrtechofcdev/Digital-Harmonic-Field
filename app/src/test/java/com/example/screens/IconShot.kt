@@ -46,10 +46,10 @@ class IconShot {
         Box(Modifier.size(size).clip(shape).background(if (mono) Color(0xFF2B3036) else Color.Black)) {
             Box(Modifier.size(size).graphicsLayer(scaleX = 1.5f, scaleY = 1.5f)) {
                 if (mono) {
-                    Image(painterResource(R.drawable.ic_launcher_monochrome), null, Modifier.size(size), colorFilter = ColorFilter.tint(Color(0xFFCFE3FF)))
+                    Image(painterResource(R.mipmap.ic_launcher_monochrome), null, Modifier.size(size), colorFilter = ColorFilter.tint(Color(0xFFCFE3FF)))
                 } else {
                     Image(painterResource(R.drawable.ic_launcher_background), null, Modifier.size(size))
-                    Image(painterResource(R.drawable.ic_launcher_foreground), null, Modifier.size(size))
+                    Image(painterResource(R.mipmap.ic_launcher_foreground), null, Modifier.size(size))
                 }
             }
         }

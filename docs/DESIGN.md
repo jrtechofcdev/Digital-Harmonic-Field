@@ -185,16 +185,20 @@ Ficam em `ui/components/` (e alguns internos em `ui/screens/`).
 
 ## 7. Ícone e marca
 
-- **Desenho:** um violão em latão na diagonal, sobre o fundo `Ink`, com três
-  notas de acorde no braço nas cores **Tônica (verde), Subdominante (azul) e
-  Dominante (vermelho)**. Quem olha entende que é um app de violão e acordes, e
-  as cores ligam o ícone ao campo harmônico.
+- **Desenho (arte do autor):** o braço do violão visto de frente, com rastilho,
+  6 cordas em latão e trastes, e as notas de dois acordes nas cores **Tônica
+  (verde), Subdominante (azul) e Dominante (vermelho)**. Em volta, um **anel em
+  latão** aberto, com traços nas mesmas cores. Fundo escuro `#0C0D10`.
+- **Leitura:** quem olha vê "violão + acordes"; as cores ligam o ícone ao
+  campo harmônico e ao resto do app.
 - **Formatos:** ícone adaptativo (Android 8+), temático monocromático
-  (Android 13+), `.webp` para Android 7, imagem de 512 px para loja e a marca
-  usada dentro do app (`brand_mark.xml`).
-- **Versão DEV:** o mesmo violão com uma faixa vermelho-argila embaixo.
-- **Fonte única:** tudo sai de `tools/icon/make_icon.py`. Não edite os arquivos
-  gerados à mão; mude o script e rode de novo.
+  (Android 13+, só as partes claras: cordas, notas e anel), `.webp` para
+  Android 7, imagem de 512 px para loja e a marca usada dentro do app
+  (`brand_mark.png`).
+- **Versão DEV:** a mesma arte com uma faixa vermelho-argila embaixo.
+- **Fonte única:** a arte original fica em `tools/icon/source/icone-original.png`
+  e tudo sai de `tools/icon/make_icon.py`. Não edite os arquivos gerados à mão;
+  para trocar o ícone, substitua a imagem e rode o script.
 
 ---
 

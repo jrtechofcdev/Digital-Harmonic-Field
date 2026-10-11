@@ -1,7 +1,7 @@
 # Digital Harmonic Field — o que é o app
 
 <p align="center">
-  <img src="../app/src/main/ic_launcher-playstore.png" width="160" alt="Ícone do Digital Harmonic Field: um violão com três notas de acorde no braço">
+  <img src="../app/src/main/ic_launcher-playstore.png" width="160" alt="Ícone do Digital Harmonic Field: braço de violão com notas de acorde nas cores das funções, dentro de um anel em latão">
 </p>
 
 **O auxiliar do músico de igreja:** ensina harmonia de um jeito simples e serve

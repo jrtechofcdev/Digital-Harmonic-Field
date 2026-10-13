@@ -340,7 +340,7 @@ private fun DetailHeader(
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
 ) {
-    ScreenHeader(keyNamePt, subtitle = "Campo harmônico: os 7 acordes do tom", onBack = onBack) {
+    ScreenHeader(keyNamePt, subtitle = "Os 7 acordes do tom", onBack = onBack) {
         FavoriteButton(isFavorite, onToggleFavorite)
     }
 }

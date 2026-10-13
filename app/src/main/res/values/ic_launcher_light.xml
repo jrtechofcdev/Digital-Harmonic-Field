@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Gerado por tools/icon/make_icon.py: fundo do ícone claro. -->
+<resources>
+    <color name="ic_launcher_light_background">#7C86A4</color>
+</resources>

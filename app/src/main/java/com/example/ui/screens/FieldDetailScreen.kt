@@ -91,7 +91,7 @@ fun FieldDetailScreen(
     // Mantém a tela ligada — ninguém quer o celular apagando no meio do louvor.
     val view = LocalView.current
     DisposableEffect(Unit) {
-        view.keepScreenOn = true
+        view.keepScreenOn = com.example.settings.AppSettings.keepScreenOn
         onDispose { view.keepScreenOn = false }
     }
 

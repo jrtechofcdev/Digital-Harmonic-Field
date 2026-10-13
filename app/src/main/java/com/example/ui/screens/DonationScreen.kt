@@ -36,7 +36,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.ui.components.BrandMark
 import com.example.ui.theme.Hairline
 import com.example.ui.theme.Ink
 import com.example.ui.theme.Surface1
@@ -78,11 +77,16 @@ fun DonationScreen(
 
         // Marca + assinatura
         Row(verticalAlignment = Alignment.CenterVertically) {
-            BrandMark(size = 56.dp)
+            // O símbolo da JR TECH OFC (arte do autor).
+            androidx.compose.foundation.Image(
+                androidx.compose.ui.res.painterResource(com.example.R.drawable.jrtech_simbolo),
+                contentDescription = "Símbolo da JR TECH OFC",
+                modifier = Modifier.size(52.dp),
+            )
             Spacer(Modifier.width(14.dp))
             Column {
-                Text("JR TECH", style = MaterialTheme.typography.titleLarge, color = TextStrong)
-                Text("Guitarrista e developer", style = MaterialTheme.typography.bodyMedium, color = TextBody)
+                Text("${com.example.AppInfo.AUTHOR} · ${com.example.AppInfo.BRAND}", style = MaterialTheme.typography.titleLarge, color = TextStrong)
+                Text(com.example.AppInfo.AUTHOR_ROLE, style = MaterialTheme.typography.bodyMedium, color = TextBody)
             }
         }
 

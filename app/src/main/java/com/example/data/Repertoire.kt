@@ -60,6 +60,27 @@ object Repertoire {
 
     fun nextId(): Long = (items.maxOfOrNull { it.id } ?: 0L) + 1
 
+    /** Apaga a lista inteira (Ajustes > Dados). */
+    fun clear() { items.clear(); save() }
+
+    /**
+     * A lista do culto pronta para colar no WhatsApp do grupo de louvor:
+     * negrito com *asteriscos*, itálico com _sublinhado_, um hino por linha.
+     */
+    fun shareText(list: List<SetItem> = items): String = buildString {
+        appendLine("*Repertório do culto* 🎶")
+        appendLine()
+        list.forEachIndexed { i, item ->
+            val keyName = com.example.HarmonicDatabase.ptNameByCipher[item.key] ?: item.key
+            append("${i + 1}. *${item.heading}*: ${item.key} ($keyName)")
+            if (item.capo > 0) append(", capotraste na ${item.capo}ª casa")
+            appendLine()
+            if (item.note.isNotBlank()) appendLine("   _${item.note.trim()}_")
+        }
+        appendLine()
+        append("Enviado pelo Digital Harmonic Field")
+    }
+
     private fun save() { prefs?.edit()?.putString(KEY, toJson(items))?.apply() }
 
     fun toJson(list: List<SetItem>): String = JSONArray().apply {

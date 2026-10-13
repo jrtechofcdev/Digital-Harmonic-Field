@@ -5,7 +5,9 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -35,6 +37,11 @@ class NavigationTest {
     private val isTab = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)
     private fun tab(label: String) = rule.onNode(hasText(label).and(isTab)).performClick().also { rule.waitForIdle() }
     private fun tapText(text: String) = rule.onNode(hasText(text)).performClick().also { rule.waitForIdle() }
+    /** Rola a lista da tela de cima até o texto aparecer e toca nele. */
+    private fun scrollTap(text: String) {
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText(text))
+        tapText(text)
+    }
     private fun shows(text: String) = rule.onNode(hasText(text)).assertIsDisplayed()
     private fun back() = rule.onNode(hasContentDescription("Voltar")).performClick().also { rule.waitForIdle() }
     private fun shot(name: String) = rule.onRoot().captureRoboImage("$out/$name.png")
@@ -66,6 +73,13 @@ class NavigationTest {
         tapText("Treino de graus"); shows("Pelo ouvido"); shot("aprender_treino"); back()
         tapText("Decorar o braço"); shows("Notas, acordes e harmonia no braço"); back()
         shot("aprender")
+
+        // Ajustes: tema, Sobre e documentos legais.
+        tab("Ajustes"); shows("Tema"); shot("ajustes")
+        scrollTap("Sobre o app"); shows("Quem fez"); shot("sobre")
+        scrollTap("Política de privacidade"); shows("Microfone"); back()
+        back()
+        shows("Sobre o app")              // voltou para os Ajustes, na mesma posição da lista
 
         // Voltar para o Culto mantém a tela inicial.
         tab("Culto"); shows("Detectar o tom")

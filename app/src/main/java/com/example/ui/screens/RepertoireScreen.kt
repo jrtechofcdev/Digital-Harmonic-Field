@@ -101,6 +101,16 @@ fun RepertoireScreen(
             PrimaryButton("Adicionar hino", Modifier.fillMaxWidth(), icon = R.drawable.ic_plus) {
                 editing = SetItem(Repertoire.nextId(), null, "", "G")
             }
+            if (Repertoire.items.isNotEmpty()) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                SecondaryButton("Compartilhar a lista (WhatsApp)", Modifier.fillMaxWidth(), icon = R.drawable.ic_share) {
+                    val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, Repertoire.shareText())
+                    }
+                    runCatching { context.startActivity(android.content.Intent.createChooser(send, "Enviar a lista do culto")) }
+                }
+            }
         }
 
         if (Repertoire.items.isEmpty() && form == null) {

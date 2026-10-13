@@ -5,8 +5,8 @@ Orientações para o Claude Code trabalhar neste repositório.
 ## O que é
 
 App Android nativo (**Kotlin + Jetpack Compose + Material 3**) de consulta a
-campos harmônicos, voltado a músicos iniciantes de igreja. Tudo offline e em
-modo escuro. Mantido por JR TECH.
+campos harmônicos, voltado a músicos iniciantes de igreja. Tudo offline, com
+tema escuro (padrão) e claro. Mantido por José Renato (JR TECH OFC).
 
 ## Build
 
@@ -31,16 +31,22 @@ partir de `debug.keystore.base64`.
 
 ## Arquitetura
 
-Navegação por abas via estado (sem `navigation-compose`): `MainActivity`
-(`HarmonicApp`) mantém a `Tab` e os estados das telas internas, que abrem como
-sobreposição de tela cheia. As 4 abas são pelo que o músico quer fazer:
+Navegação por estado (sem `navigation-compose`). `AppRoot` faz a abertura
+(vídeo `res/raw/abertura.mp4` → `BrandScreen` da JR TECH OFC → app; cada etapa
+desligável nos Ajustes). `HarmonicApp` tem 5 abas pelo que o músico quer fazer:
 **Culto** (detectar tom, repertório, metrônomo, capotraste), **Campos**
-(Tons | Progressões), **Violão** (braço, dicionário, harmonizar, passagens) e
-**Aprender** (Treinar + Lições 1 a 10). Ver `docs/DESIGN.md`.
+(Tons | Progressões), **Violão** (braço, dicionário, harmonizar, passagens),
+**Aprender** (Treinar + Lições 1 a 10) e **Ajustes** (tudo o que é
+configurável, Sobre e legal). Telas internas são uma **pilha** (`Dest` +
+`push/pop/replace`): entram deslizando, a de baixo continua composta (mantém
+o estado) mas sem toques (`blockTouchesBelow`) nem semântica. Ver `docs/DESIGN.md`.
 
 ```
 com/example/
-├── MainActivity.kt        # HarmonicApp: NavigationBar (Culto/Campos/Violão/Aprender) + sobreposições
+├── MainActivity.kt        # AppRoot (abertura) + HarmonicApp (5 abas + pilha de telas) + troca de ícone no onStop
+├── AppInfo.kt             # Autor, marca, ano, contato (usado na abertura, Sobre e textos legais)
+├── settings/AppSettings.kt # Todas as preferências (tema, ícone, abertura, texto, animação...) + IconSwitcher
+├── legal/LegalTexts.kt    # Privacidade, termos, permissões, licenças (espelho em docs/legal/)
 ├── HarmonicData.kt        # Os 24 campos (dados brutos) + HarmonicDatabase
 ├── music/
 │   ├── MusicTheory.kt     # HarmonicFunction (T/SD/D), transposição, formação de acordes
@@ -67,14 +73,16 @@ com/example/
 ├── dev/                   # SÓ versão DEV: DevStore (pasta treino-real), DevRecorder, DevJson
 │                          #   (ui/dev: DevLabelForm, DevPanelScreen)
 └── ui/
-    ├── theme/             # Color.kt (tokens), Type.kt (Space Grotesk), Theme.kt
+    ├── theme/             # Color.kt (AppPalette escura/clara; Ink, Surface1... leem Palette.current),
+    │                      #   Type.kt (Space Grotesk), Theme.kt (HarmonicTheme + AppBackground)
     ├── components/         # Controls.kt (ScreenHeader, PrimaryButton, SecondaryButton, OptionChip,
     │                       #   Segmented, NavRow/RowGroup, Panel, RoundIconButton), CommonUi.kt,
-    │                       #   ChordStrip.kt, Notation.kt (Cifra|Grau), GuitarViews.kt
+    │                       #   ChordStrip.kt, Notation.kt (Cifra|Grau), GuitarViews.kt, Motion.kt (pressClick)
     └── screens/            # Home (aba Culto), Fields (CamposScreen), GuitarHub (aba Violão), Learn,
                             # FieldDetail, Progressions, ProgressionStage (tela cheia), DegreeLessons,
                             # DegreeTrainer, Guitar (+ GuitarChordsTab, GuitarStudyTab), ChordDictionary,
-                            # Passages, Repertoire, PlayTools (Metrônomo, Capotraste), KeyFinder, Donation
+                            # Passages, Repertoire, PlayTools (Metrônomo, Capotraste), KeyFinder, Donation,
+                            # OpeningScreens (IntroVideo, BrandScreen), Settings, AboutScreens (Sobre, Legal)
 ```
 
 ## Convenções e princípios
@@ -123,8 +131,8 @@ com/example/
   função, baixo)`), nunca em cifra. "Fora do campo" é calculado (no menor, a
   sensível do 5 maior conta como dentro). Toda passagem precisa ter forma no
   violão em todos os tons (`PassagesTest`).
-- **Navegação:** o Dicionário abre por cima da tela atual (overlay em
-  `MainActivity`), para a tela de baixo não perder o estado.
+- **Navegação:** toda tela interna entra na pilha de `HarmonicApp`
+  (`push(Dest.X)`); voltar = `pop()`, e a tela de baixo não perde o estado.
 - **Ícone/marca:** logo do autor (palheta iridescente com "DHF") em
   `tools/icon/source/logo-dhf.png`. `tools/icon/make_icon.py` só recorta,
   centraliza na zona segura (33 dp) e converte o preto em transparência; gera
@@ -132,6 +140,22 @@ com/example/
   `drawable-nodpi/brand_mark.png` e os fundos (normal e DEV com faixa). Não
   edite esses arquivos à mão nem redesenhe o logo: troque a arte e rode o
   script. `BrandMark` usa `R.drawable.brand_mark`.
+- **Tema claro/escuro:** as cores são a paleta atual (`Palette.current`,
+  trocada por `AppSettings.applyTheme`). Nunca use cor fixa numa tela: use os
+  nomes de `Color.kt`, que valem nos dois temas. Telas de tela cheia ficam sobre
+  `AppBackground` (claro = gradiente azul/bege + círculos da abertura). No claro,
+  o acento é latão escurecido (azul já é Subdominante). Confira contraste AA.
+- **Ícone trocável:** `activity-alias` `.IconDark` (padrão) e `.IconLight` no
+  manifesto; `IconSwitcher.apply` no `onStop` (liga o novo antes de desligar o
+  antigo; nunca os dois desligados). Ícone claro = quadro final da abertura
+  (`tools/icon/source/logo-dhf-claro.png`), gerado pelo mesmo `make_icon.py`.
+- **JR TECH OFC:** logos do autor em `tools/brand/source/`; `make_brand.py` só
+  recorta para `drawable-nodpi/jrtech_*.png`. Não redesenhe.
+- **Animação:** use `pressClick` (escala ao tocar) e `Motion.ms(...)` nas
+  durações: o ajuste "Menos animação" encurta tudo.
+- **Legal:** textos em `legal/LegalTexts.kt` e `docs/legal/*.md` (mantenha os
+  dois iguais e a data `LEGAL_UPDATED`). Componente novo de terceiros entra em
+  `thirdParties` com o texto da licença em `res/raw/`.
 - **Cores** ficam em `ui/theme/Color.kt`; **tons/nomes** vêm de
   `HarmonicDatabase` (use `ptNameByCipher`, não recalcule o mapa).
 

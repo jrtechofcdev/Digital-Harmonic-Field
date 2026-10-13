@@ -88,7 +88,8 @@ fun GuitarScreen(
     startTab: Int = 0,
 ) {
     var tab by rememberSaveable { mutableStateOf(NeckTab.entries[startTab]) }
-    var latin by rememberSaveable { mutableStateOf(true) }
+    // Dó Ré Mi ou C D E: ajuste global (Ajustes > Música), salvo no aparelho.
+    val latin = com.example.settings.AppSettings.latinNames
     // Tom (para Acordes e Harmonizar) e acorde montado no braço.
     var keyRoot by rememberSaveable { mutableIntStateOf(rootPc(initialKey) ?: 7) }
     var minor by rememberSaveable { mutableStateOf(initialKey.endsWith("m")) }
@@ -113,7 +114,7 @@ fun GuitarScreen(
         Segmented(NeckTab.entries.map { it.title }, tab.ordinal, { tab = NeckTab.entries[it]; player.stop() }, Modifier.fillMaxWidth())
 
         when (tab) {
-            NeckTab.NOTAS -> NotesTab(latin, onLatin = { latin = it })
+            NeckTab.NOTAS -> NotesTab(latin, onLatin = { com.example.settings.AppSettings.setLatinNames(it) })
             NeckTab.ACORDES -> ChordsTab(
                 keyRoot, minor, chord, latin, player,
                 onKey = { r, m -> keyRoot = r; minor = m },

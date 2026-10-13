@@ -3,10 +3,10 @@
 Aplicativo Android para consulta rápida de **campos harmônicos**, pensado para
 músicos que tocam ao vivo — em cultos, ensaios e eventos. Escolha um tom e veja,
 na hora, os sete graus, a função de cada acorde e as notas que o formam. Tudo
-offline e em modo escuro, para uso confortável em palco.
+offline, com tema escuro (para palco) e claro (com as cores da abertura).
 
 Desenvolvido em **Kotlin** com **Jetpack Compose** e **Material 3**.
-Mantido por **JR TECH** — José Renato, guitarrista e developer.
+Criado por **José Renato** (**JR TECH OFC**): músico, fotógrafo e programador.
 
 > 📄 **[O que é o app](docs/SOBRE.md)** · 🎨 **[Guia de design](docs/DESIGN.md)**
 
@@ -14,7 +14,11 @@ Mantido por **JR TECH** — José Renato, guitarrista e developer.
 
 ## O que o app faz
 
-O app é organizado em quatro abas, pelo que o músico quer fazer:
+Ao abrir: o **vídeo de abertura** (a palheta DHF, com som) e, em seguida, a
+tela da **JR TECH OFC** por ~3 s, com os direitos do autor e um botão "Sobre o
+app". Os dois podem ser desligados (ou o som) em Ajustes > Abertura.
+
+O app é organizado em cinco abas, pelo que o músico quer fazer:
 
 | Aba | Para quê | O que tem |
 |---|---|---|
@@ -22,8 +26,11 @@ O app é organizado em quatro abas, pelo que o músico quer fazer:
 | **Campos** | Consultar tons | **Tons \| Progressões** no mesmo lugar: os 24 campos e as sequências prontas |
 | **Violão** | Tudo no braço | O **braço do violão**, o **dicionário de acordes**, acordes do tom, harmonizar e **passagens e enfeites** |
 | **Aprender** | Estudar | **Treinar** (treino de graus, decorar o braço) e as **lições** de 1 a 10 |
+| **Ajustes** | Configurar | Tema (escuro, claro, do sistema), ícone do app, tamanho do texto, menos animação, abertura, notação, tela acesa, vibração, dados, Sobre e documentos legais |
 
-As telas internas abrem por cima da aba, com "Voltar". O visual segue o
+As telas internas entram deslizando por cima da aba, com "Voltar", e a tela de
+baixo continua do jeito que estava. Botões e seletores têm animações curtas de
+toque e de troca (desligáveis em "Menos animação"). O visual segue o
 [guia de design](docs/DESIGN.md): escuro, latão só na ação principal e cor só
 para a função do acorde.
 
@@ -192,7 +199,13 @@ A interface foi reconstruída em torno de três princípios:
 
 ---
 
-## Ícone
+## Ícone (escuro e claro, trocável)
+
+O app tem **dois ícones**, e você escolhe em **Ajustes > Ícone do app**, sem
+reinstalar: **Escuro**, **Claro** (o quadro final da abertura: palheta de vidro
+sobre azul e bege) ou **Pelo tema** (segue o tema do app). A troca usa duas
+"portas de entrada" no AndroidManifest (`activity-alias`) e acontece quando
+você sai do app.
 
 Logo do autor: uma **palheta de guitarra** em vidro iridescente com as letras
 **DHF** (Digital Harmonic Field). A arte original fica em
@@ -210,7 +223,10 @@ Prévia de todos os formatos: [`docs/icone-preview.png`](docs/icone-preview.png)
 
 ```text
 app/src/main/java/com/example/
-├── MainActivity.kt              # Casca de navegação (4 abas + telas sobrepostas)
+├── MainActivity.kt              # Abertura + 5 abas + pilha de telas (entram deslizando)
+├── AppInfo.kt                   # Autor, marca, ano e contato (edite aqui)
+├── settings/AppSettings.kt      # Preferências (tema, ícone, abertura, texto...) + troca de ícone
+├── legal/LegalTexts.kt          # Privacidade, termos, permissões e licenças
 ├── HarmonicData.kt              # Base dos 24 campos harmônicos
 ├── music/
 │   ├── MusicTheory.kt           # Funções tonais, transposição, formação de acordes
@@ -270,14 +286,19 @@ mantida em `.build-outputs/app-debug.apk` para instalação direta.
 
 ## Apoiar
 
-O app é gratuito. Quem quiser apoiar o projeto encontra, no cabeçalho da tela
-inicial, o botão **Apoiar** — uma tela com contribuição via Mercado Pago
+O app é gratuito. Quem quiser apoiar o projeto encontra o botão **Apoiar** no
+fim da aba Culto, em Ajustes e no Sobre — uma tela com contribuição via Mercado Pago
 (Pix ou cartão), com valores sugeridos ou valor livre. Nada é cobrado dentro
 do app.
 
-## Licença
+## Direitos autorais e licenças
 
-Projeto open-source sob licença MIT. Contribuições são bem-vindas via
-Pull Request.
+© 2026 José Renato · JR TECH OFC. **Todos os direitos reservados.** O código,
+o design, o nome, a marca DHF, os logos e o vídeo de abertura são do autor (Lei
+9.610/1998 e Lei 9.609/1998). Não é permitido copiar, modificar ou
+redistribuir sem autorização.
 
-© JR TECH — 2026.
+- Política de privacidade e termos de uso: [`docs/legal/`](docs/legal/)
+  (os mesmos textos ficam no app, em Ajustes > Sobre e legal).
+- Componentes de terceiros e as licenças deles (Apache 2.0, SIL OFL 1.1, MIT):
+  [`docs/licencas/`](docs/licencas/), também mostrados no app.

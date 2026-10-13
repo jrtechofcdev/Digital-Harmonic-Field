@@ -135,7 +135,7 @@ fun KeyFinderScreen(
 
     // Vibra ao terminar: dá para saber o resultado sem olhar a tela.
     LaunchedEffect(listener.result) {
-        listener.result?.let { vibrateFor(context, it.status) }
+        listener.result?.let { if (com.example.settings.AppSettings.vibrate) vibrateFor(context, it.status) }
     }
 
     Column(

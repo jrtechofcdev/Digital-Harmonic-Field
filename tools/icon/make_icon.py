@@ -20,17 +20,24 @@ Arquivos gerados:
   app/src/main/ic_launcher-playstore.png    512 px para a loja
   app/src/dev/res/drawable/ic_launcher_background.xml   fundo da versão DEV (com faixa)
 
+Ícone CLARO (o quadro final da abertura: palheta de vidro sobre azul e bege),
+de tools/icon/source/logo-dhf-claro.png. O usuário escolhe nos Ajustes:
+  res/mipmap-*/ic_launcher_light_foreground.png, ic_launcher_light(_round).webp
+  res/mipmap-anydpi-v26/ic_launcher_light(_round).xml
+  res/drawable-nodpi/brand_mark_light.png   marca dentro do app no tema claro
+
 Uso (na raiz do repositório):  pip install pillow && python3 tools/icon/make_icon.py
-Para trocar o logo: substitua tools/icon/source/logo-dhf.png e rode de novo.
+Para trocar o logo: substitua as imagens em tools/icon/source/ e rode de novo.
 """
 import os
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 RES = os.path.join(ROOT, "app", "src", "main", "res")
 DEV_RES = os.path.join(ROOT, "app", "src", "dev", "res")
 SOURCE = os.path.join(os.path.dirname(__file__), "source", "logo-dhf.png")
+SOURCE_LIGHT = os.path.join(os.path.dirname(__file__), "source", "logo-dhf-claro.png")
 
 FIT_RADIUS_DP = 32.0     # o logo fica 1 dp para dentro da zona segura (33 dp)
 LAYER_PX = 1296          # camada de 108 dp desenhada a 12 px por dp, depois reduzida
@@ -104,6 +111,92 @@ def glow_to_alpha(img, bg):
     return out
 
 
+def legacy_icons(visible, prefix):
+    """Ícones antigos (Android 7): quadrado arredondado e redondo, de 48 dp."""
+    for dens, k in DENSITIES:
+        size = int(48 * k)
+        img = visible.resize((size, size), Image.LANCZOS)
+        for suffix, round_ in (("", False), ("_round", True)):
+            mask = Image.new("L", (size * 4, size * 4), 0)
+            dr = ImageDraw.Draw(mask)
+            if round_:
+                dr.ellipse((0, 0, size * 4 - 1, size * 4 - 1), fill=255)
+            else:
+                dr.rounded_rectangle((0, 0, size * 4 - 1, size * 4 - 1), radius=size * 4 * 22 // 100, fill=255)
+            out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+            out.paste(img, (0, 0), mask.resize((size, size), Image.LANCZOS))
+            out.save(os.path.join(RES, f"mipmap-{dens}", f"{prefix}{suffix}.webp"), lossless=True)
+
+
+def rounded_tile(visible, size):
+    """O ícone como aparece no celular (quadrado arredondado), para mostrar dentro do app."""
+    tile = visible.resize((size, size), Image.LANCZOS)
+    m = Image.new("L", (size * 4, size * 4), 0)
+    ImageDraw.Draw(m).rounded_rectangle((0, 0, size * 4 - 1, size * 4 - 1), radius=size * 4 * 23 // 100, fill=255)
+    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    out.paste(tile, (0, 0), m.resize((size, size), Image.LANCZOS))
+    return out
+
+
+def make_light():
+    """
+    Ícone claro: o quadro final da abertura. A palheta fica inteira na zona
+    segura; o quadro é estreito para isso, então as laterais são completadas
+    com o próprio fundo, ampliado e desfocado (emenda suave, sem corte).
+    """
+    src = Image.open(SOURCE_LIGHT).convert("RGB")
+    bright = src.convert("L").point(lambda v: 255 if v > 205 else 0)
+    cx, cy, radius = enclosing_circle(logo_points(src.convert("L").point(lambda v: v if v > 205 else 0).convert("RGB")))
+    half = int((radius + 10) * 108 / (2 * FIT_RADIUS_DP))
+    side = 2 * half
+    # Fundo estendido: o quadro ampliado para cobrir o quadrado e bem desfocado.
+    k = side / min(src.width, src.height) * 1.15
+    big = src.resize((int(src.width * k), int(src.height * k)), Image.LANCZOS).filter(ImageFilter.GaussianBlur(40))
+    bx, by = int(cx * k), int(cy * k)
+    layer = big.crop((bx - half, by - half, bx + half, by + half))
+    # O quadro original por cima, com as bordas esfumadas POR DENTRO (sem puxar preto de fora).
+    feather = 48
+    mask = Image.new("L", src.size, 0)
+    ImageDraw.Draw(mask).rectangle((feather, feather, src.width - feather, src.height - feather), fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(feather / 2))
+    layer.paste(src, (half - int(cx), half - int(cy)), mask)
+    layer = layer.resize((LAYER_PX, LAYER_PX), Image.LANCZOS).convert("RGBA")
+
+    for dens, kk in DENSITIES:
+        layer.resize((round(108 * kk), round(108 * kk)), Image.LANCZOS).save(
+            os.path.join(RES, f"mipmap-{dens}", "ic_launcher_light_foreground.png"), optimize=True)
+    c = LAYER_PX * 18 // 108
+    visible = layer.crop((c, c, LAYER_PX - c, LAYER_PX - c))
+    legacy_icons(visible, "ic_launcher_light")
+
+    # Marca no tema claro e miniatura para os Ajustes: o ícone em quadrado arredondado.
+    rounded_tile(visible, 512).save(os.path.join(RES, "drawable-nodpi", "brand_mark_light.png"), optimize=True)
+    rounded_tile(visible, 192).save(os.path.join(RES, "drawable-nodpi", "icon_preview_light.png"), optimize=True)
+
+    # Cor de fundo do ícone adaptativo claro (a média do quadro, só aparece no "parallax").
+    avg = src.resize((1, 1), Image.LANCZOS).getpixel((0, 0))
+    hexbg = "#%02X%02X%02X" % avg
+    with open(os.path.join(RES, "values", "ic_launcher_light.xml"), "w", encoding="utf-8") as f:
+        f.write(f"""<?xml version="1.0" encoding="utf-8"?>
+<!-- Gerado por tools/icon/make_icon.py: fundo do ícone claro. -->
+<resources>
+    <color name="ic_launcher_light_background">{hexbg}</color>
+</resources>
+""")
+    os.makedirs(os.path.join(RES, "mipmap-anydpi-v26"), exist_ok=True)
+    for name in ("ic_launcher_light", "ic_launcher_light_round"):
+        with open(os.path.join(RES, "mipmap-anydpi-v26", f"{name}.xml"), "w", encoding="utf-8") as f:
+            f.write("""<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícone claro (quadro final da abertura). Gerado por tools/icon/make_icon.py. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_light_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_light_foreground" />
+    <monochrome android:drawable="@mipmap/ic_launcher_monochrome" />
+</adaptive-icon>
+""")
+    print(f"ícone claro gerado: fundo {hexbg}")
+
+
 def main():
     src = Image.open(SOURCE).convert("RGB")
     bg = background_color(src)
@@ -140,20 +233,8 @@ def main():
     c = LAYER_PX * 18 // 108
     visible = full.crop((c, c, LAYER_PX - c, LAYER_PX - c))
 
-    # Ícones antigos (Android 7): quadrado arredondado e redondo.
-    for dens, k in DENSITIES:
-        size = int(48 * k)
-        img = visible.resize((size, size), Image.LANCZOS)
-        for name, round_ in (("ic_launcher", False), ("ic_launcher_round", True)):
-            mask = Image.new("L", (size * 4, size * 4), 0)
-            dr = ImageDraw.Draw(mask)
-            if round_:
-                dr.ellipse((0, 0, size * 4 - 1, size * 4 - 1), fill=255)
-            else:
-                dr.rounded_rectangle((0, 0, size * 4 - 1, size * 4 - 1), radius=size * 4 * 22 // 100, fill=255)
-            out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-            out.paste(img, (0, 0), mask.resize((size, size), Image.LANCZOS))
-            out.save(os.path.join(RES, f"mipmap-{dens}", f"{name}.webp"), lossless=True)
+    legacy_icons(visible, "ic_launcher")
+    rounded_tile(visible, 192).save(os.path.join(RES, "drawable-nodpi", "icon_preview_dark.png"), optimize=True)
 
     # Loja: quadrado cheio de 512 px (a loja aplica os cantos).
     visible.convert("RGB").resize((512, 512), Image.LANCZOS).save(
@@ -192,6 +273,7 @@ def main():
         android:fillColor="{DEV_STRIPE}"
         android:pathData="M0,88h108v20h-108z" />""", "Ícone da versão DEV: o mesmo logo, com faixa embaixo."))
     print(f"ícone gerado: fundo {hexbg}, logo com raio de {radius:.0f} px na arte")
+    make_light()
 
 
 if __name__ == "__main__":

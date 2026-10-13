@@ -156,7 +156,7 @@ fun HomeScreen(
         // Rodapé: autoria e apoio.
         item {
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Feito por JR TECH, guitarrista e developer", style = MaterialTheme.typography.bodySmall, color = TextMuted, modifier = Modifier.weight(1f))
+                Text("Feito por ${com.example.AppInfo.AUTHOR} · ${com.example.AppInfo.BRAND}", style = MaterialTheme.typography.bodySmall, color = TextMuted, modifier = Modifier.weight(1f))
                 SecondaryButton("Apoiar", onClick = onSupport)
             }
         }

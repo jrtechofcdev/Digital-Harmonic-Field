@@ -32,7 +32,7 @@ referências de design: *taste-skill* (Leonxlnx) e *anti-slop* (miqdadbadjuber).
 
 ---
 
-## 2. Organização (as 4 abas)
+## 2. Organização (as 5 abas)
 
 A barra de baixo separa o app **pelo que o músico quer fazer**, não pelo tipo
 de ferramenta:
@@ -43,6 +43,7 @@ de ferramenta:
 | **Campos** | Consultar tons | Seletor **Tons \| Progressões**: os 24 campos e, no mesmo lugar, as progressões prontas |
 | **Violão** | Tudo no braço | Braço do violão (destaque), Dicionário de acordes, Acordes do tom no braço, Harmonizar, Passagens e enfeites |
 | **Aprender** | Estudar | **Treinar** no topo (Treino de graus, Decorar o braço) e **Lições** numeradas de 1 a 10, todas fechadas |
+| **Ajustes** | Configurar | Aparência (tema, ícone, texto, menos animação), Abertura, Música (Cifra/Grau, nomes das notas, dominantes), No culto (tela acesa, vibração), Dados, Sobre e legal |
 
 Regras da organização:
 - Cada aba tem **um foco** visível de cara (Culto: "Detectar o tom"; Violão:
@@ -123,6 +124,35 @@ branco, o latão aparece uma vez por tela e vira um sinal claro.
 Todas as cores são **chapadas**: nenhum gradiente, brilho ou sombra decorativa.
 
 ---
+
+### 3.5 Tema claro ("abertura")
+
+O tema claro usa as cores do **final do vídeo de abertura** (azul profundo e
+bege quente), bem suavizadas para a leitura. Mesmos papéis, valores diferentes:
+
+| Token | Claro | Por quê |
+|---|---|---|
+| Fundo (`AppBackground`) | gradiente `#E3EAF6` → `#F2F1EF` → `#F4EBDD` + brilho azul e bege + 3 círculos de vidro (branco a 18%) | a textura da abertura, discreta |
+| `Ink` | `#F6F4F0` | base clara; texto sobre o acento e a seleção |
+| `Surface1` | branco a 90% | vidro fosco sobre o fundo |
+| `Surface2` / `Surface3` | `#E8EDF5` / `#DCE3EE` | chips e estados |
+| `TextStrong` / `TextBody` / `TextMuted` | `#121826` / `#384254` / `#566073` | 15,7 / 8,9 / 5,6:1 no fundo |
+| `Brass` (acento) | `#87591B` | latão escurecido (5,3:1); o azul NÃO é acento porque já é Subdominante |
+| `Selection` | `#1B2433` | escolhido = escuro com texto claro |
+| Funções | `#186B4C` / `#2B5DB5` / `#A83A31` | as mesmas três cores, escurecidas para AA |
+
+A barra de status muda de cor de ícone sozinha (escura no claro).
+
+### 3.6 Abertura e marca do autor
+
+- **Vídeo** (`res/raw/abertura.mp4`, 8 s, com som): preenche a tela em retrato,
+  cabe inteiro em paisagem, "Pular" no canto. Antes dele o Android mostra o
+  ícone no mesmo preto (`#020303`), então não há emenda.
+- **Tela JR TECH OFC** (~3 s): o último quadro desfocado como fundo, ondas que
+  saem do centro e o logo do autor numa placa escura com a **borda iridescente**
+  da palheta. Rodapé: © do autor, "Músico, fotógrafo e programador.
+  Desenvolvedor do...", "Todos os direitos reservados..." e um botão pequeno
+  "Sobre o app". Exceção consciente ao "sem brilho": é a vinheta da marca.
 
 ## 4. Tipografia
 
@@ -209,6 +239,17 @@ setas de texto ("›", "▶") como enfeite em botões: quando a seta indica
 navegação, ela é o ícone `ic_chevron` da `NavRow`.
 
 ---
+
+### Movimento
+
+- Toque: botões, chips e linhas "afundam" (escala 0,96) enquanto o dedo está
+  em cima (`pressClick`).
+- Seletor (`Segmented`): o destaque **desliza** até a opção; chips mudam de cor
+  com transição curta.
+- Telas internas entram deslizando da direita com fade e saem do mesmo jeito;
+  abas trocam com fade e um leve deslize para cima.
+- Tudo passa por `Motion.ms(...)`: o ajuste **Menos animação** divide as
+  durações por 3 e para os efeitos contínuos.
 
 ## 7. Texto e tom de voz
 

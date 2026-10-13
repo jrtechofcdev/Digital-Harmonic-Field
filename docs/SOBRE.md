@@ -8,7 +8,7 @@
 de ferramenta na hora do culto. Funciona no Android, **sem internet** e em
 **modo escuro**.
 
-Criado por **JR TECH** — José Renato, guitarrista e developer.
+Criado por **José Renato** (**JR TECH OFC**): músico, fotógrafo e programador.
 
 ---
 
@@ -59,8 +59,9 @@ de igreja precisa:
 
 ## O que tem dentro
 
-O app tem quatro abas na barra de baixo, separadas pelo que o músico quer
-fazer:
+Ao abrir, um vídeo curto com a palheta DHF (com som) e a tela da JR TECH OFC,
+com os direitos do autor. O app tem cinco abas na barra de baixo, separadas
+pelo que o músico quer fazer:
 
 ### ⛪ Culto (na hora de tocar)
 - **Detectar o tom** (o botão principal): ouve em rodadas de 5 s, com um
@@ -101,6 +102,18 @@ Um seletor **Tons | Progressões**:
   graus a fundo (sétimas, dominantes secundárias, diminutos, baixo
   caminhando, empréstimos), os graus no braço, as "graças" e o círculo das
   quintas com uso prático.
+
+### ⚙️ Ajustes (configurar)
+- **Aparência:** tema escuro, claro (com as cores da abertura) ou do sistema;
+  ícone do app escuro, claro ou "pelo tema" (troca sem reinstalar); tamanho do
+  texto; menos animação.
+- **Abertura:** vídeo, som do vídeo e tela JR TECH OFC (liga/desliga) e "Ver a
+  abertura agora".
+- **Música:** Cifra ou Grau, Dó Ré Mi ou C D E, dominantes secundárias no campo.
+- **No culto:** manter a tela acesa e vibrar ao terminar a detecção.
+- **Dados:** apagar favoritos, apagar o repertório, voltar os ajustes ao padrão.
+- **Sobre e legal:** versão, autor, direitos, política de privacidade, termos
+  de uso, permissões e licenças de código aberto.
 
 ---
 

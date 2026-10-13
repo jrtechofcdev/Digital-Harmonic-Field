@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+: a tela de entrada do sistema usa o mesmo preto da abertura,
+         então o ícone (a palheta) passa direto para o vídeo, sem emenda. -->
+    <style name="Theme.MyApplication" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/abertura_fundo</item>
+        <item name="android:windowSplashScreenBackground">@color/abertura_fundo</item>
+    </style>
+</resources>

@@ -1,6 +1,14 @@
 package com.example.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -61,11 +70,11 @@ import com.example.ui.theme.TextStrong
 fun RoundIconButton(@DrawableRes icon: Int, description: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
         modifier
+            .pressClick(label = description, onClick = onClick)
             .size(44.dp)
             .clip(CircleShape)
             .background(Surface1)
-            .border(1.dp, Hairline, CircleShape)
-            .clickable(role = Role.Button, onClickLabel = description) { onClick() },
+            .border(1.dp, Hairline, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Icon(painterResource(icon), contentDescription = description, tint = TextStrong, modifier = Modifier.size(20.dp))
@@ -107,14 +116,16 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun OptionChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val shape = RoundedCornerShape(10.dp)
+    val bg by animateColorAsState(if (selected) Selection else Surface2, tween(Motion.ms(180)), label = "chip")
+    val fg by animateColorAsState(if (selected) Ink else TextBody, tween(Motion.ms(180)), label = "chipTexto")
     Box(
         modifier
+            .pressClick(role = Role.RadioButton, onClick = onClick)
             .heightIn(min = 44.dp)
             .clip(shape)
-            .background(if (selected) Selection else Surface2)
+            .background(bg)
             .border(1.dp, if (selected) Selection else Hairline, shape)
             .semantics { this.selected = selected }
-            .clickable(role = Role.RadioButton) { onClick() }
             .padding(horizontal = 6.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -122,45 +133,60 @@ fun OptionChip(label: String, selected: Boolean, modifier: Modifier = Modifier, 
             label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-            color = if (selected) Ink else TextBody,
+            color = fg,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
-/** Controle segmentado: alterna entre 2 a 4 visões da mesma tela. */
+/** Controle segmentado: alterna entre 2 a 4 visões da mesma tela. O destaque desliza até a escolha. */
 @Composable
 fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
-    Row(
+    BoxWithConstraints(
         modifier
             .clip(RoundedCornerShape(12.dp))
             .background(Surface2)
             .border(1.dp, Hairline, RoundedCornerShape(12.dp))
             .padding(3.dp),
     ) {
-        options.forEachIndexed { i, label ->
-            val on = i == selected
+        val segW = maxWidth / options.size.coerceAtLeast(1)
+        val x by animateDpAsState(segW * selected, tween(Motion.ms(240), easing = FastOutSlowInEasing), label = "segmento")
+        // O destaque (desenhado atrás dos textos).
+        Box(Modifier.matchParentSize()) {
             Box(
                 Modifier
-                    .weight(1f)
-                    .heightIn(min = 40.dp)
+                    .offset(x = x)
+                    .width(segW)
+                    .fillMaxHeight()
                     .clip(RoundedCornerShape(9.dp))
-                    .background(if (on) Selection else Surface2)
-                    .semantics { this.selected = on }
-                    .clickable(role = Role.Tab) { onSelect(i) }
-                    .padding(horizontal = if (options.size >= 4) 2.dp else 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    label,
-                    // Com 4 opções o espaço é curto: um ponto menor evita cortar ("Harmonizar").
-                    style = if (options.size >= 4) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
-                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
-                    color = if (on) Ink else TextBody,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                    .background(Selection),
+            )
+        }
+        Row(Modifier.fillMaxWidth()) {
+            options.forEachIndexed { i, label ->
+                val on = i == selected
+                val fg by animateColorAsState(if (on) Ink else TextBody, tween(Motion.ms(200)), label = "segTexto")
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .heightIn(min = 40.dp)
+                        .clip(RoundedCornerShape(9.dp))
+                        .semantics { this.selected = on }
+                        .clickable(role = Role.Tab) { onSelect(i) }
+                        .padding(horizontal = if (options.size >= 4) 2.dp else 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        label,
+                        // Com 4 opções o espaço é curto: um ponto menor evita cortar ("Harmonizar").
+                        style = if (options.size >= 4) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
+                        fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
+                        color = fg,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
@@ -171,10 +197,10 @@ fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit, mod
 fun PrimaryButton(label: String, modifier: Modifier = Modifier, @DrawableRes icon: Int? = null, onClick: () -> Unit) {
     Row(
         modifier
+            .pressClick(onClick = onClick)
             .heightIn(min = 52.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Brass)
-            .clickable(role = Role.Button) { onClick() }
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
@@ -192,11 +218,11 @@ fun PrimaryButton(label: String, modifier: Modifier = Modifier, @DrawableRes ico
 fun SecondaryButton(label: String, modifier: Modifier = Modifier, @DrawableRes icon: Int? = null, onClick: () -> Unit) {
     Row(
         modifier
+            .pressClick(onClick = onClick)
             .heightIn(min = 44.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Surface2)
             .border(1.dp, Hairline, RoundedCornerShape(12.dp))
-            .clickable(role = Role.Button) { onClick() }
             .padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
@@ -277,16 +303,21 @@ fun SwitchRow(
     checked: Boolean,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    framed: Boolean = true,          // false = sem moldura (dentro de um RowGroup)
+    enabled: Boolean = true,
     onChange: (Boolean) -> Unit,
 ) {
+    val frame = if (framed) Modifier
+        .clip(RoundedCornerShape(16.dp))
+        .background(Surface1)
+        .border(1.dp, Hairline, RoundedCornerShape(16.dp)) else Modifier
     Row(
         modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Surface1)
-            .border(1.dp, Hairline, RoundedCornerShape(16.dp))
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
+            .heightIn(min = if (framed) 56.dp else 64.dp)
+            .then(frame)
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
+            .graphicsLayer { alpha = if (enabled) 1f else 0.45f }
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

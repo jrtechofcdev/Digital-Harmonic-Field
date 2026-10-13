@@ -76,7 +76,7 @@ fun ProgressionStageScreen(
     // Tela sempre acesa enquanto toca.
     val view = LocalView.current
     DisposableEffect(view) {
-        view.keepScreenOn = true
+        view.keepScreenOn = com.example.settings.AppSettings.keepScreenOn
         onDispose { view.keepScreenOn = false }
     }
 

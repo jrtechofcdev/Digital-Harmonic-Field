@@ -85,7 +85,7 @@ fun FunctionTag(function: HarmonicFunction, modifier: Modifier = Modifier) {
 @Composable
 fun BrandMark(modifier: Modifier = Modifier, size: Dp = 44.dp) {
     Image(
-        painter = painterResource(R.drawable.brand_mark),
+        painter = painterResource(if (com.example.ui.theme.IsLightTheme) R.drawable.brand_mark_light else R.drawable.brand_mark),
         contentDescription = null,
         modifier = modifier.size(size),
     )

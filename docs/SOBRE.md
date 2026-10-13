@@ -1,7 +1,7 @@
 # Digital Harmonic Field — o que é o app
 
 <p align="center">
-  <img src="../app/src/main/ic_launcher-playstore.png" width="160" alt="Ícone do Digital Harmonic Field: anel fino com três pontos no topo, nas cores da Subdominante, da Tônica e da Dominante">
+  <img src="../app/src/main/ic_launcher-playstore.png" width="160" alt="Logo do Digital Harmonic Field: palheta de guitarra iridescente com as letras DHF">
 </p>
 
 **O auxiliar do músico de igreja:** ensina harmonia de um jeito simples e serve

@@ -185,16 +185,17 @@ A interface foi reconstruída em torno de três princípios:
 
 ## Ícone
 
-Logo minimalista: um **anel fino** (o círculo das quintas, os 12 tons) com
-**três pontos no topo**: a Tônica no meio, maior (verde), a Subdominante à
-esquerda (azul) e a Dominante à direita (vermelho). No círculo das quintas o 4
-e o 5 são os vizinhos do 1: esse trio é o coração do campo harmônico.
+Logo do autor: uma **palheta de guitarra** em vidro iridescente com as letras
+**DHF** (Digital Harmonic Field). A arte original fica em
+`tools/icon/source/logo-dhf.png`.
 
-O desenho é feito por código em `tools/icon/make_icon.py` (cores e medidas no
-topo do arquivo), que gera tudo: ícone adaptativo, temático monocromático do
-Android 13+, ícones antigos `.webp`, imagem de 512 px para loja, a marca usada
-dentro do app e o fundo da versão DEV. Para ajustar, mude os números e rode
-`python3 tools/icon/make_icon.py` (precisa de `pillow`).
+O script `tools/icon/make_icon.py` não redesenha nada: recorta a palheta,
+centraliza na zona segura do ícone e transforma o preto do fundo em
+transparência. Gera tudo de uma vez: ícone adaptativo, temático monocromático
+do Android 13+, ícones antigos `.webp`, imagem de 512 px para loja, a marca
+usada dentro do app e o fundo da versão DEV. Para trocar o logo, substitua a
+imagem e rode `python3 tools/icon/make_icon.py` (precisa de `pillow`).
+Prévia de todos os formatos: [`docs/icone-preview.png`](docs/icone-preview.png).
 
 ## Estrutura do projeto
 
@@ -230,7 +231,7 @@ app/src/main/java/com/example/
                                  #  Braço do violão, Dicionário, Passagens, Repertório, Metrônomo/Capotraste
                                  #  (PlayTools), Detectar tom, Doação (+ ui/dev na versão DEV)
 tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
-tools/icon/make_icon.py          # Desenha o ícone (anel + Tônica, Subdominante, Dominante) e gera todos os formatos
+tools/icon/make_icon.py          # Gera o ícone em todos os formatos a partir do logo em tools/icon/source/
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar
 docs/treino-real.md              # Versão DEV: como captar, rotular e enviar
 ```

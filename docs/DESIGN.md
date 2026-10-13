@@ -241,20 +241,19 @@ navegação, ela é o ícone `ic_chevron` da `NavRow`.
 
 ## 9. Ícone e marca
 
-- **O desenho (logo minimalista):** um anel fino, que é o círculo das quintas
-  (os 12 tons), e três pontos no topo: a **Tônica** no meio, um pouco maior
-  (é a "casa"), a **Subdominante** à esquerda e a **Dominante** à direita, nas
-  cores das funções.
-- **Por quê:** no círculo das quintas, o 4 e o 5 de qualquer tom são os
-  vizinhos do 1. Esse trio é o coração do campo harmônico, que é o assunto do
-  app. Pouca coisa, cores com significado, legível a 48 px. Fundo chapado
-  `#0C0D10`, sem brilho, sombra ou gradiente.
-- **Como é feito:** geometria pura em `tools/icon/make_icon.py` (cores e
-  medidas no topo do script). Gera o ícone adaptativo, o temático de uma cor
-  (Android 13+), os `.webp` antigos, a imagem da loja e `brand_mark.png`. O
-  desenho fica dentro da zona segura (raio de 33 dp). Não edite os arquivos
-  gerados à mão.
-- A versão DEV usa o mesmo desenho com uma faixa vermelho-argila embaixo.
+- **O logo (arte do autor):** uma palheta de guitarra em vidro iridescente com
+  as letras **DHF** (Digital Harmonic Field), sobre fundo preto. Arquivo:
+  `tools/icon/source/logo-dhf.png`.
+- **Exceção consciente:** o logo tem brilho e cores de arco-íris; o resto do
+  app continua sóbrio. A marca é o único lugar onde isso aparece.
+- **Como é aplicado:** `tools/icon/make_icon.py` não redesenha nada. Ele acha o
+  círculo que envolve a palheta, coloca tudo dentro da zona segura (raio de
+  33 dp, que nenhum formato de ícone corta) e transforma o preto do fundo em
+  transparência, para o logo ficar igual sobre qualquer fundo escuro. Gera o
+  ícone adaptativo, o temático de uma cor (Android 13+, só a borda e as
+  letras), os `.webp` antigos, a imagem da loja e `brand_mark.png`.
+- A versão DEV usa o mesmo logo com uma faixa vermelho-argila embaixo.
+- Para trocar: substitua a imagem e rode o script. Não edite os gerados à mão.
 
 ---
 

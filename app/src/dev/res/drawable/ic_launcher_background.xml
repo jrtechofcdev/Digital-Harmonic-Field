@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Ícone da versão DEV: o mesmo desenho, com faixa embaixo. Gerado por tools/icon/make_icon.py. -->
+<!-- Ícone da versão DEV: o mesmo logo, com faixa embaixo. Gerado por tools/icon/make_icon.py. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#0C0D10"
+        android:fillColor="#020303"
         android:pathData="M0,0h108v108h-108z" />
     <path
         android:fillColor="#E07468"
-        android:pathData="M0,86h108v22h-108z" />
+        android:pathData="M0,88h108v20h-108z" />
 </vector>

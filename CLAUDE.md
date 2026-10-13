@@ -121,14 +121,13 @@ com/example/
   violão em todos os tons (`PassagesTest`).
 - **Navegação:** o Dicionário abre por cima da tela atual (overlay em
   `MainActivity`), para a tela de baixo não perder o estado.
-- **Ícone/marca:** logo minimalista (anel fino = círculo das quintas; três
-  pontos no topo = Subdominante, Tônica maior no meio, Dominante, nas cores
-  das funções) **desenhado por código** em
-  `tools/icon/make_icon.py`, que gera foreground/monochrome (mipmap PNG), webp
-  legados, `ic_launcher-playstore.png`, `drawable-nodpi/brand_mark.png` e os
-  fundos (normal e DEV com faixa). Não edite esses arquivos à mão: ajuste os
-  números do script e rode de novo (o desenho precisa ficar no raio de 33 dp).
-  `BrandMark` usa `R.drawable.brand_mark`.
+- **Ícone/marca:** logo do autor (palheta iridescente com "DHF") em
+  `tools/icon/source/logo-dhf.png`. `tools/icon/make_icon.py` só recorta,
+  centraliza na zona segura (33 dp) e converte o preto em transparência; gera
+  foreground/monochrome (mipmap PNG), webp legados, `ic_launcher-playstore.png`,
+  `drawable-nodpi/brand_mark.png` e os fundos (normal e DEV com faixa). Não
+  edite esses arquivos à mão nem redesenhe o logo: troque a arte e rode o
+  script. `BrandMark` usa `R.drawable.brand_mark`.
 - **Cores** ficam em `ui/theme/Color.kt`; **tons/nomes** vêm de
   `HarmonicDatabase` (use `ptNameByCipher`, não recalcule o mapa).
 

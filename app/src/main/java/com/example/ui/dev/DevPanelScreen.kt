@@ -24,8 +24,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -47,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import com.example.dev.DevStore
 import com.example.music.KeyTrainer
 import com.example.ui.components.SectionLabel
-import com.example.ui.theme.Brass
 import com.example.ui.theme.FuncDominant
 import com.example.ui.theme.FuncTonic
 import com.example.ui.theme.Hairline

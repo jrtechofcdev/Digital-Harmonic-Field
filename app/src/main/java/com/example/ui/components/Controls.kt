@@ -145,12 +145,13 @@ fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit, mod
                     .background(if (on) Selection else Surface2)
                     .semantics { this.selected = on }
                     .clickable(role = Role.Tab) { onSelect(i) }
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = if (options.size >= 4) 2.dp else 8.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     label,
-                    style = MaterialTheme.typography.labelLarge,
+                    // Com 4 opções o espaço é curto: um ponto menor evita cortar ("Harmonizar").
+                    style = if (options.size >= 4) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
                     fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
                     color = if (on) Ink else TextBody,
                     maxLines = 1,

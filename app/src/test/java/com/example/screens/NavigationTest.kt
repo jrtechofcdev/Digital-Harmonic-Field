@@ -63,7 +63,7 @@ class NavigationTest {
 
         // Aprender: treinos no topo, lições abaixo.
         tab("Aprender"); shows("Treino de graus")
-        tapText("Treino de graus"); shows("Ouvir de novo"); back()
+        tapText("Treino de graus"); shows("Pelo ouvido"); shot("aprender_treino"); back()
         tapText("Decorar o braço"); shows("Notas, acordes e harmonia no braço"); back()
         shot("aprender")
 

@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,7 +39,6 @@ import com.example.HarmonicDatabase
 import com.example.R
 import com.example.ui.components.BrandMark
 import com.example.ui.components.SectionLabel
-import com.example.ui.theme.Brass
 import com.example.ui.theme.Favorite
 import com.example.ui.theme.Hairline
 import com.example.ui.theme.Ink

@@ -39,7 +39,6 @@ import com.example.music.functionForDegree
 import com.example.music.pitchClassCiphers
 import com.example.ui.components.NotationSettings
 import com.example.ui.components.NotationToggle
-import com.example.ui.theme.Brass
 import com.example.ui.theme.FuncDominant
 import com.example.ui.theme.FuncNeutral
 import com.example.ui.theme.FuncSubdominant
@@ -77,7 +76,7 @@ internal fun HowToFindDegreesLesson(onOpenTrainer: () -> Unit) {
         }
         Spacer(Modifier.height(14.dp))
         StepLine("1", "Ache o 1 (a casa)", "É onde a música descansa: quase sempre o último acorde do hino e a última nota da melodia. Na dúvida, use o Detectar tom.")
-        StepLine("2", "Monte a escada do tom", "A partir do 1, a escada do tom maior é sempre: 1 · 2m · 3m · 4 · 5 · 6m · 7°. Escolha um tom e veja:")
+        StepLine("2", "Monte a escada do tom", "A partir do 1, a escada do tom maior é sempre: 1, 2m, 3m, 4, 5, 6m, 7°. Escolha um tom e veja:")
         KeyStepper { field ->
             DegreeLadder(DegreeTheory(field).triads, colors = (0..6).map { degreeColor(it) })
         }
@@ -91,8 +90,8 @@ internal fun HowToFindDegreesLesson(onOpenTrainer: () -> Unit) {
         FeelingLine(FuncTonic, "3m: passagem", "Parecido com o 1, mais suave. Aparece pouco.")
         Spacer(Modifier.height(6.dp))
         StepLine("4", "Siga o baixo", "O baixo costuma tocar a nota do grau. Se ele sai do 1 e sobe 4 notas da escala (ex.: Sol → Dó), o acorde é o 4.")
-        StepLine("5", "Conheça os caminhos de hino", "1 - 4 - 1 - 5 - 1 (estrofe) · 1 - 6m - 2m - 5 - 1 (volta da Harpa) · 4 - 5 - 1 (fim de frase) · 4 - 1 (Amém).")
-        StepLine("6", "Treine um pouco todo dia", "5 minutos no treino pelo ouvido já mudam o jeito de ouvir. Comece no 1 · 4 · 5.")
+        StepLine("5", "Conheça os caminhos de hino", "1 - 4 - 1 - 5 - 1 (estrofe); 1 - 6m - 2m - 5 - 1 (volta da Harpa); 4 - 5 - 1 (fim de frase); 4 - 1 (Amém).")
+        StepLine("6", "Treine um pouco todo dia", "5 minutos no treino pelo ouvido já mudam o jeito de ouvir. Comece no 1, 4 e 5.")
         ActionButton("Abrir o treino de graus", onOpenTrainer)
     }
 }
@@ -107,7 +106,7 @@ internal fun DegreesDeepDiveLesson() {
             val minorField = remember(relMinorKey) { HarmonicDatabase.getField(relMinorKey) }
 
             Topic("1. Campo maior × campo menor")
-            Paragraph("Maior: 1 · 2m · 3m · 4 · 5 · 6m · 7°.  Menor: 1m · 2° · 3 · 4m · 5m · 6 · 7.")
+            Paragraph("Maior: 1, 2m, 3m, 4, 5, 6m, 7°. Menor: 1m, 2°, 3, 4m, 5m, 6, 7.")
             if (minorField != null) {
                 val tm = remember(relMinorKey) { DegreeTheory(minorField) }
                 Paragraph("Nos hinos em tom menor, o 5 quase sempre vira MAIOR (5 ou 5⁷): é ele que faz a volta forte para o 1m. Em ${HarmonicDatabase.ptNameByCipher[relMinorKey]}:")
@@ -179,7 +178,7 @@ internal fun GuitarLesson(onOpenGuitar: () -> Unit) {
         Paragraph(
             "Sacada (formas com pestana): se o 1 tem a fundamental na 6ª corda, o 4 está na MESMA casa " +
                 "com a fundamental na 5ª corda, e o 5 duas casas depois, também na 5ª corda. Aprenda esse " +
-                "desenho e ache 1 · 4 · 5 em qualquer tom."
+                "desenho e ache o 1, o 4 e o 5 em qualquer tom."
         )
         ActionButton("Abrir o braço do violão", onOpenGuitar)
     }

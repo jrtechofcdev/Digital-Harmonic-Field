@@ -16,9 +16,9 @@ object DegreeQuiz {
 
     /** Níveis: quais graus entram (índices 0..6 do campo maior). */
     enum class Level(val title: String, val degrees: List<Int>) {
-        BASICO("1 · 4 · 5", listOf(0, 3, 4)),
+        BASICO("1, 4, 5", listOf(0, 3, 4)),
         MEDIO("+ 6m", listOf(0, 3, 4, 5)),
-        COMPLETO("+ 2m · 3m", listOf(0, 1, 2, 3, 4, 5)),
+        COMPLETO("+ 2m, 3m", listOf(0, 1, 2, 3, 4, 5)),
     }
 
     class Question(

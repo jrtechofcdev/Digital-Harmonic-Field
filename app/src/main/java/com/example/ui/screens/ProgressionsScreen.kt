@@ -49,7 +49,6 @@ import com.example.ui.components.ChordStrip
 import com.example.ui.components.NotationSettings
 import com.example.ui.components.NotationToggle
 import com.example.ui.components.SectionLabel
-import com.example.ui.theme.Brass
 import com.example.ui.theme.Hairline
 import com.example.ui.theme.Ink
 import com.example.ui.theme.Surface1

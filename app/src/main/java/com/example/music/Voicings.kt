@@ -441,7 +441,7 @@ object NeckQuiz {
         SIXTH("6ª corda", listOf(0), true),
         FIFTH("5ª corda", listOf(1), true),
         BASS("6ª + 5ª", listOf(0, 1), true),
-        ALL("Braço todo", listOf(0, 1, 2, 3, 4, 5), false),
+        ALL("Todas", listOf(0, 1, 2, 3, 4, 5), false),
     }
 
     private val naturals = listOf(0, 2, 4, 5, 7, 9, 11)

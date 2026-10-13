@@ -23,9 +23,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,7 +63,6 @@ import com.example.ui.components.ChordStrip
 import com.example.ui.components.FunctionTag
 import com.example.ui.components.NotationToggle
 import com.example.ui.components.chordLabels
-import com.example.ui.theme.Brass
 import com.example.ui.theme.Favorite
 import com.example.ui.theme.Hairline
 import com.example.ui.theme.Ink

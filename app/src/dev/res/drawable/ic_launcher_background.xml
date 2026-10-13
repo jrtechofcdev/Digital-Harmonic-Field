@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Ícone da versão DEV: mesma arte, com faixa argila embaixo para não confundir com o app normal. -->
+<!-- Ícone da versão DEV: o mesmo desenho, com faixa embaixo. Gerado por tools/icon/make_icon.py. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -9,6 +9,6 @@
         android:fillColor="#0C0D10"
         android:pathData="M0,0h108v108h-108z" />
     <path
-        android:fillColor="#D9695E"
-        android:pathData="M0,80h108v28h-108z" />
+        android:fillColor="#E07468"
+        android:pathData="M0,84h108v24h-108z" />
 </vector>

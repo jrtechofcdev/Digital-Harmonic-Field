@@ -78,8 +78,8 @@ fun FunctionTag(function: HarmonicFunction, modifier: Modifier = Modifier) {
 }
 
 /**
- * Marca do app: a mesma arte do ícone (braço do violão com as notas da
- * Tônica, Subdominante e Dominante, dentro do anel em latão). Vem de
+ * Marca do app: o mesmo desenho do ícone (diagrama de acorde com rastilho em
+ * latão e dedos nas cores da Tônica, Subdominante e Dominante). Vem de
  * res/drawable-nodpi/brand_mark.png, gerado por tools/icon/make_icon.py.
  */
 @Composable

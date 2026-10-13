@@ -241,10 +241,20 @@ navegação, ela é o ícone `ic_chevron` da `NavRow`.
 
 ## 9. Ícone e marca
 
-- Arte do autor em `tools/icon/source/icone-original.png`; tudo (ícone
-  adaptativo, monocromático, `.webp`, imagem da loja e `brand_mark.png`) sai de
-  `tools/icon/make_icon.py`. Não edite os arquivos gerados à mão.
-- A versão DEV usa a mesma arte com uma faixa embaixo.
+- **O desenho:** o diagrama de acorde das revistinhas de cifra, o símbolo que
+  todo violonista reconhece. Rastilho em latão (o acento do app), 6 cordas cor
+  de marfim (mais grossas no grave), 4 casas, o "×" e os "o" acima do rastilho
+  e três dedos nas cores das funções: Tônica, Subdominante e Dominante. Os
+  dedos formam o Dó maior aberto, uma escada que desce na diagonal.
+- **Por quê:** diz "violão + acordes" em meio segundo, liga o ícone ao sistema
+  de cores do app e continua legível a 48 px. Fundo chapado `#0C0D10`, sem
+  brilho, sombra ou gradiente.
+- **Como é feito:** geometria pura em `tools/icon/make_icon.py` (cores e
+  medidas no topo do script). Gera o ícone adaptativo, o temático de uma cor
+  (Android 13+), os `.webp` antigos, a imagem da loja e `brand_mark.png`. O
+  desenho fica dentro da zona segura (raio de 33 dp). Não edite os arquivos
+  gerados à mão.
+- A versão DEV usa o mesmo desenho com uma faixa vermelho-argila embaixo.
 
 ---
 

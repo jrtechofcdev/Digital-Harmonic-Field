@@ -1,119 +1,151 @@
 #!/usr/bin/env python3
 """
-Gera o ícone do app a partir da arte do autor (tools/icon/source/icone-original.png):
-braço de violão com as notas da Tônica (verde), Subdominante (azul) e
-Dominante (vermelho), dentro de um anel em latão.
+Desenha o ícone do app e gera todos os formatos de uma vez.
 
-A arte original vem como "mockup" (um quadrado arredondado sobre fundo preto).
-O script recorta só o desenho, centraliza na zona segura do ícone adaptativo e
-gera tudo de uma vez, para os arquivos nunca ficarem diferentes entre si:
+O desenho: o diagrama de acorde "das revistinhas" (o símbolo que todo
+violonista reconhece), com o rastilho em latão, 6 cordas cor de marfim, 4
+casas e três dedos nas cores das funções do campo harmônico: Tônica (verde),
+Subdominante (azul) e Dominante (vermelho). Os dedos formam o desenho do Dó
+maior aberto, uma escada que desce da 2ª para a 5ª corda.
 
+Tudo é geometria (nada de imagem de fora): o desenho fica nítido em qualquer
+tamanho e qualquer ajuste é feito mudando os números abaixo.
+
+Arquivos gerados:
   res/mipmap-*/ic_launcher_foreground.png   desenho (ícone adaptativo, Android 8+)
-  res/mipmap-*/ic_launcher_monochrome.png   só as partes claras (ícone temático, Android 13+)
+  res/mipmap-*/ic_launcher_monochrome.png   versão de uma cor (ícone temático, Android 13+)
   res/mipmap-*/ic_launcher(_round).webp     ícone antigo (Android 7)
-  res/drawable/ic_launcher_background.xml   cor de fundo (a mesma da arte)
+  res/drawable/ic_launcher_background.xml   cor de fundo
   res/drawable-nodpi/brand_mark.png         marca usada dentro do app (fundo transparente)
   app/src/main/ic_launcher-playstore.png    512 px para a loja
+  app/src/dev/res/drawable/ic_launcher_background.xml   fundo da versão DEV (com faixa)
 
 Uso (na raiz do repositório):  pip install pillow && python3 tools/icon/make_icon.py
-Para trocar o ícone: substitua tools/icon/source/icone-original.png e rode de novo.
 """
 import os
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 RES = os.path.join(ROOT, "app", "src", "main", "res")
-SOURCE = os.path.join(os.path.dirname(__file__), "source", "icone-original.png")
+DEV_RES = os.path.join(ROOT, "app", "src", "dev", "res")
 
-# Quanto o desenho pode se afastar do centro, em dp, na camada de 108 dp.
-# A zona segura (que nenhuma máscara corta) é um círculo de raio 33 dp.
-SAFE_RADIUS_DP = 33.0
+# --- Cores (as mesmas de ui/theme/Color.kt) ---------------------------------
+BACKGROUND = "#0C0D10"   # fundo do ícone
+BRASS = "#E0A94A"        # rastilho (o acento do app)
+IVORY = "#ECE6D8"        # cordas
+FRET = "#555C69"         # trastes
+TONIC = "#57B892"        # FuncTonic
+SUBDOMINANT = "#6B97DF"  # FuncSubdominant
+DOMINANT = "#E07468"     # FuncDominant
 
+# --- Geometria, em dp, na camada de 108 dp (zona segura: círculo de raio 33) --
+CENTER_X, CENTER_Y = 54.0, 54.0
+WIDTH = 35.0             # da 6ª à 1ª corda
+FRET_SPACE = 10.0        # altura de cada casa
+FRETS = 4
+NUT = 3.6                # espessura do rastilho
+TAIL = 3.0               # quanto as cordas passam da última casa
+STRING_WIDTHS = (1.7, 1.5, 1.35, 1.2, 1.05, 0.95)  # 6ª (grave) → 1ª (aguda)
+FRET_WIDTH = 1.1
+DOT_RADIUS = 4.3
+DOT_RIM = 1.0            # contorno escuro que separa o dedo da corda
+MARK_GAP = 2.4           # distância das marcas (× e o) até o rastilho
+MARK_SIZE = 2.0          # raio das marcas
+# Marcas acima do rastilho, como em toda cifra: × = não tocar, o = corda solta.
+MUTED = (0,)
+OPEN = (3, 5)
+# (corda: 0 = 6ª ... 5 = 1ª, casa 1..4, cor): o Dó maior aberto.
+DOTS = ((4, 1, TONIC), (2, 2, SUBDOMINANT), (1, 3, DOMINANT))
+
+SS = 40                  # pixels por dp no desenho mestre (bem grande, depois reduz)
 DENSITIES = (("mdpi", 1), ("hdpi", 1.5), ("xhdpi", 2), ("xxhdpi", 3), ("xxxhdpi", 4))
 
 
-def tile_background(img):
-    """Cor do fundo do quadrado da arte (mediana de pontos sem desenho)."""
-    w, h = img.size
-    pts = [(int(w * x), int(h * y)) for x in (0.17, 0.2, 0.8, 0.83) for y in (0.2, 0.5, 0.8)]
-    px = sorted(img.getpixel(p) for p in pts)
-    return px[len(px) // 2]
+def rgba(hex_color, alpha=255):
+    h = hex_color.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)) + (alpha,)
 
 
-def bright_mask(img):
-    """Partes claras do desenho (cordas, trastes, notas, anel, rastilho)."""
-    return img.convert("L").point(lambda v: 255 if v > 60 else 0).filter(ImageFilter.MedianFilter(3))
+def draw_glyph(mono=False):
+    """Camada de 108 dp com o diagrama, em alta resolução e fundo transparente."""
+    size = 108 * SS
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    px = lambda v: v * SS                                   # dp → px
+    color = (lambda c, a=255: (255, 255, 255, a)) if mono else rgba
+
+    height = NUT + FRET_SPACE * FRETS
+    marks = MARK_GAP + 2 * MARK_SIZE
+    left = CENTER_X - WIDTH / 2
+    top = CENTER_Y - (height + TAIL - marks) / 2
+    gap = WIDTH / 5
+    xs = [left + i * gap for i in range(6)]
+    nut_bottom = top + NUT
+    fret_ys = [nut_bottom + FRET_SPACE * k for k in range(1, FRETS + 1)]
+
+    # Trastes (atrás das cordas).
+    for y in fret_ys:
+        d.line((px(left), px(y), px(left + WIDTH), px(y)), fill=color(FRET, 190), width=round(px(FRET_WIDTH)))
+
+    # Cordas, com ponta arredondada embaixo.
+    bottom = fret_ys[-1] + TAIL
+    for x, w in zip(xs, STRING_WIDTHS):
+        d.rounded_rectangle((px(x - w / 2), px(nut_bottom - 0.5), px(x + w / 2), px(bottom)),
+                            radius=px(w / 2), fill=color(IVORY))
+
+    # Rastilho (um pouco mais largo que as cordas).
+    over = 1.6
+    d.rounded_rectangle((px(left - over), px(top), px(left + WIDTH + over), px(nut_bottom)),
+                        radius=px(1.2), fill=color(BRASS))
+
+    # Marcas acima do rastilho.
+    my = top - MARK_GAP - MARK_SIZE
+    line = round(px(0.9))
+    for i in OPEN:
+        x, r = xs[i], MARK_SIZE
+        d.ellipse((px(x - r), px(my - r), px(x + r), px(my + r)), outline=color(IVORY, 220), width=line)
+    for i in MUTED:
+        x, r = xs[i], MARK_SIZE * 0.85
+        d.line((px(x - r), px(my - r), px(x + r), px(my + r)), fill=color(IVORY, 220), width=line)
+        d.line((px(x - r), px(my + r), px(x + r), px(my - r)), fill=color(IVORY, 220), width=line)
+
+    # Dedos: contorno da cor do fundo + bolinha na cor da função.
+    for string, fret, c in DOTS:
+        cx = xs[string]
+        cy = nut_bottom + FRET_SPACE * (fret - 0.5)
+        r = DOT_RADIUS + DOT_RIM
+        if mono:
+            d.ellipse((px(cx - r), px(cy - r), px(cx + r), px(cy + r)), fill=(0, 0, 0, 0))
+        else:
+            d.ellipse((px(cx - r), px(cy - r), px(cx + r), px(cy + r)), fill=rgba(BACKGROUND))
+        r = DOT_RADIUS
+        d.ellipse((px(cx - r), px(cy - r), px(cx + r), px(cy + r)), fill=color(c))
+    return img
 
 
-def inside_tile(img):
-    """Recorte do interior do quadrado (sem a borda e o fundo preto do mockup)."""
-    w, h = img.size
-    m = int(w * 0.135)          # a borda do quadrado fica em ~11% da arte
-    return img.crop((m, m, w - m, h - m))
+def scaled(img, px_size):
+    return img.resize((px_size, px_size), Image.LANCZOS)
 
 
 def main():
-    src = Image.open(SOURCE).convert("RGB")
-    tile = inside_tile(src)
-    bg = tile_background(tile)
+    glyph = draw_glyph()
+    mono = draw_glyph(mono=True)
 
-    # Onde está o desenho: caixa das partes claras + a borda escura do braço.
-    bright = bright_mask(tile)
-    box = bright.getbbox()
-    cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
-    a = bright.load()
-    far = 0.0
-    for y in range(box[1], box[3], 2):
-        for x in range(box[0], box[2], 2):
-            if a[x, y]:
-                far = max(far, ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5)
-    far += 10                                   # a madeira passa um pouco das cordas de fora
-    dp_per_px = SAFE_RADIUS_DP / far
-
-    # A arte fica INTACTA dentro de um círculo com borda suave; fora dele vale a
-    # cor de fundo (a mesma da arte), então não aparece emenda.
-    r = far + 24
-    side = int(2 * r)
-    box = (int(cx - r), int(cy - r), int(cx - r) + side, int(cy - r) + side)
-    disc = Image.new("L", (side * 2, side * 2), 0)
-    ImageDraw.Draw(disc).ellipse((24, 24, side * 2 - 24, side * 2 - 24), fill=255)
-    disc = disc.resize((side, side), Image.LANCZOS).filter(ImageFilter.GaussianBlur(6))
-    canvas = Image.new("RGB", (tile.width + 2 * side, tile.height + 2 * side), bg)
-    canvas.paste(tile, (side, side))
-    glyph = canvas.crop((box[0] + side, box[1] + side, box[2] + side, box[3] + side)).convert("RGBA")
-    glyph.putalpha(disc)
-    cx, cy = box[0] + side / 2, box[1] + side / 2
-
-    def layer(px_per_dp, img):
-        """Camada de 108 dp com o desenho centralizado."""
-        size = int(round(108 * px_per_dp))
-        s = dp_per_px * px_per_dp
-        g = img.resize((max(1, round(img.width * s)), max(1, round(img.height * s))), Image.LANCZOS)
-        out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-        ox = round(size / 2 - (cx - box[0]) * s)
-        oy = round(size / 2 - (cy - box[1]) * s)
-        out.alpha_composite(g, (ox, oy))
-        return out
-
-    # Partes claras (cordas, trastes, notas, anel) para o ícone temático.
-    luma = glyph.convert("L")
-    mono_alpha = ImageChops.multiply(luma.point(lambda v: 0 if v < 45 else 255 if v > 110 else int((v - 45) * 255 / 65)),
-                                     glyph.getchannel("A"))
-    mono = Image.new("RGBA", glyph.size, (255, 255, 255, 0))
-    mono.putalpha(mono_alpha)
-
-    hexbg = "#%02X%02X%02X" % bg
     for dens, k in DENSITIES:
-        d = os.path.join(RES, f"mipmap-{dens}")
-        layer(k, glyph).save(os.path.join(d, "ic_launcher_foreground.png"), optimize=True)
-        layer(k, mono).save(os.path.join(d, "ic_launcher_monochrome.png"), optimize=True)
+        out = os.path.join(RES, f"mipmap-{dens}")
+        os.makedirs(out, exist_ok=True)
+        side = round(108 * k)
+        scaled(glyph, side).save(os.path.join(out, "ic_launcher_foreground.png"), optimize=True)
+        scaled(mono, side).save(os.path.join(out, "ic_launcher_monochrome.png"), optimize=True)
 
-    # Ícones antigos (Android 7): os 72 dp visíveis, com máscara.
-    big = Image.new("RGBA", (1296, 1296), bg + (255,))
-    big.alpha_composite(layer(12, glyph))
-    c = 1296 * 18 // 108
-    visible = big.crop((c, c, 1296 - c, 1296 - c))
+    # Ícone com fundo, mostrando só os 72 dp visíveis (o que o launcher exibe).
+    full = Image.new("RGBA", glyph.size, rgba(BACKGROUND))
+    full.alpha_composite(glyph)
+    c = 18 * SS
+    visible = full.crop((c, c, 108 * SS - c, 108 * SS - c))
+
+    # Ícones antigos (Android 7): quadrado arredondado e redondo.
     for dens, k in DENSITIES:
         size = int(48 * k)
         img = visible.resize((size, size), Image.LANCZOS)
@@ -132,25 +164,38 @@ def main():
     visible.convert("RGB").resize((512, 512), Image.LANCZOS).save(
         os.path.join(ROOT, "app", "src", "main", "ic_launcher-playstore.png"))
 
-    # Marca dentro do app: a arte no círculo (o fundo dela é o mesmo do app).
+    # Marca dentro do app: só o desenho, recortado (fundo transparente).
+    box = glyph.getbbox()
+    pad = 2 * SS
+    side = max(box[2] - box[0], box[3] - box[1]) + 2 * pad
+    cx, cy = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
+    mark = glyph.crop((cx - side // 2, cy - side // 2, cx + side // 2, cy + side // 2))
     os.makedirs(os.path.join(RES, "drawable-nodpi"), exist_ok=True)
-    glyph.resize((512, 512), Image.LANCZOS).save(os.path.join(RES, "drawable-nodpi", "brand_mark.png"), optimize=True)
+    scaled(mark, 512).save(os.path.join(RES, "drawable-nodpi", "brand_mark.png"), optimize=True)
 
-    # Cor de fundo do ícone adaptativo = fundo da arte (sem emenda).
-    with open(os.path.join(RES, "drawable", "ic_launcher_background.xml"), "w", encoding="utf-8") as f:
-        f.write(f"""<?xml version="1.0" encoding="utf-8"?>
-<!-- Fundo do ícone: a mesma cor do fundo da arte. Gerado por tools/icon/make_icon.py. -->
+    def background_xml(extra="", note="Fundo do ícone."):
+        return f"""<?xml version="1.0" encoding="utf-8"?>
+<!-- {note} Gerado por tools/icon/make_icon.py. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="{hexbg}"
-        android:pathData="M0,0h108v108h-108z" />
+        android:fillColor="{BACKGROUND}"
+        android:pathData="M0,0h108v108h-108z" />{extra}
 </vector>
-""")
-    print(f"ícone gerado · fundo {hexbg} · desenho {glyph.width}x{glyph.height}px · {dp_per_px * 1000:.1f} dp por 1000 px")
+"""
+
+    with open(os.path.join(RES, "drawable", "ic_launcher_background.xml"), "w", encoding="utf-8") as f:
+        f.write(background_xml())
+    # Versão DEV: o mesmo ícone com uma faixa embaixo, para não confundir com o app normal.
+    with open(os.path.join(DEV_RES, "drawable", "ic_launcher_background.xml"), "w", encoding="utf-8") as f:
+        f.write(background_xml(f"""
+    <path
+        android:fillColor="{DOMINANT}"
+        android:pathData="M0,84h108v24h-108z" />""", "Ícone da versão DEV: o mesmo desenho, com faixa embaixo."))
+    print("ícone gerado")
 
 
 if __name__ == "__main__":

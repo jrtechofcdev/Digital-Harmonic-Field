@@ -185,16 +185,16 @@ A interface foi reconstruída em torno de três princípios:
 
 ## Ícone
 
-Arte do autor: o **braço do violão** com as notas de dois acordes nas cores das
-funções (verde = Tônica, azul = Subdominante, vermelho = Dominante), dentro de
-um **anel em latão**. Quem olha vê que é um app de violão e acordes, e as cores
-ligam o ícone ao campo harmônico.
+O **diagrama de acorde** das revistinhas de cifra: rastilho em latão, cordas
+cor de marfim, o "×" e os "o" das cordas e três dedos nas cores das funções
+(verde = Tônica, azul = Subdominante, vermelho = Dominante), formando o Dó
+maior aberto. Quem olha vê violão e acordes na hora, e as cores ligam o ícone
+ao campo harmônico.
 
-A arte original fica em `tools/icon/source/icone-original.png`. O script
-`tools/icon/make_icon.py` recorta o desenho (sem mexer nos pixels), centraliza
-na zona segura e gera tudo: ícone adaptativo, temático monocromático do
-Android 13+, ícones antigos `.webp`, imagem de 512 px para loja e a marca usada
-dentro do app. Para trocar o ícone, substitua a imagem e rode
+O desenho é feito por código em `tools/icon/make_icon.py` (cores e medidas no
+topo do arquivo), que gera tudo: ícone adaptativo, temático monocromático do
+Android 13+, ícones antigos `.webp`, imagem de 512 px para loja, a marca usada
+dentro do app e o fundo da versão DEV. Para ajustar, mude os números e rode
 `python3 tools/icon/make_icon.py` (precisa de `pillow`).
 
 ## Estrutura do projeto
@@ -231,7 +231,7 @@ app/src/main/java/com/example/
                                  #  Braço do violão, Dicionário, Passagens, Repertório, Metrônomo/Capotraste
                                  #  (PlayTools), Detectar tom, Doação (+ ui/dev na versão DEV)
 tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
-tools/icon/make_icon.py          # Gera o ícone em todos os formatos a partir da arte em tools/icon/source/
+tools/icon/make_icon.py          # Desenha o ícone (diagrama de acorde) e gera todos os formatos
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar
 docs/treino-real.md              # Versão DEV: como captar, rotular e enviar
 ```

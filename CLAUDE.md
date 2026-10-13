@@ -121,11 +121,13 @@ com/example/
   violão em todos os tons (`PassagesTest`).
 - **Navegação:** o Dicionário abre por cima da tela atual (overlay em
   `MainActivity`), para a tela de baixo não perder o estado.
-- **Ícone/marca:** arte do autor em `tools/icon/source/icone-original.png`;
-  `tools/icon/make_icon.py` gera foreground/monochrome (mipmap PNG), webp
-  legados, `ic_launcher-playstore.png`, `drawable-nodpi/brand_mark.png` e a cor
-  de fundo. Não edite esses arquivos à mão nem redesenhe o ícone — troque a arte
-  e rode o script. `BrandMark` usa `R.drawable.brand_mark`.
+- **Ícone/marca:** o diagrama de acorde (Dó aberto: rastilho em latão, cordas
+  marfim, × e o, três dedos nas cores T/SD/D) é **desenhado por código** em
+  `tools/icon/make_icon.py`, que gera foreground/monochrome (mipmap PNG), webp
+  legados, `ic_launcher-playstore.png`, `drawable-nodpi/brand_mark.png` e os
+  fundos (normal e DEV com faixa). Não edite esses arquivos à mão: ajuste os
+  números do script e rode de novo (o desenho precisa ficar no raio de 33 dp).
+  `BrandMark` usa `R.drawable.brand_mark`.
 - **Cores** ficam em `ui/theme/Color.kt`; **tons/nomes** vêm de
   `HarmonicDatabase` (use `ptNameByCipher`, não recalcule o mapa).
 

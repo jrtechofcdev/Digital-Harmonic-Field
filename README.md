@@ -185,11 +185,10 @@ A interface foi reconstruída em torno de três princípios:
 
 ## Ícone
 
-O **diagrama de acorde** das revistinhas de cifra: rastilho em latão, cordas
-cor de marfim, o "×" e os "o" das cordas e três dedos nas cores das funções
-(verde = Tônica, azul = Subdominante, vermelho = Dominante), formando o Dó
-maior aberto. Quem olha vê violão e acordes na hora, e as cores ligam o ícone
-ao campo harmônico.
+Logo minimalista: um **anel fino** (o círculo das quintas, os 12 tons) com
+**três pontos no topo**: a Tônica no meio, maior (verde), a Subdominante à
+esquerda (azul) e a Dominante à direita (vermelho). No círculo das quintas o 4
+e o 5 são os vizinhos do 1: esse trio é o coração do campo harmônico.
 
 O desenho é feito por código em `tools/icon/make_icon.py` (cores e medidas no
 topo do arquivo), que gera tudo: ícone adaptativo, temático monocromático do
@@ -231,7 +230,7 @@ app/src/main/java/com/example/
                                  #  Braço do violão, Dicionário, Passagens, Repertório, Metrônomo/Capotraste
                                  #  (PlayTools), Detectar tom, Doação (+ ui/dev na versão DEV)
 tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
-tools/icon/make_icon.py          # Desenha o ícone (diagrama de acorde) e gera todos os formatos
+tools/icon/make_icon.py          # Desenha o ícone (anel + Tônica, Subdominante, Dominante) e gera todos os formatos
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar
 docs/treino-real.md              # Versão DEV: como captar, rotular e enviar
 ```

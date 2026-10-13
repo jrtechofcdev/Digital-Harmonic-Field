@@ -2,14 +2,16 @@
 """
 Desenha o ícone do app e gera todos os formatos de uma vez.
 
-O desenho: o diagrama de acorde "das revistinhas" (o símbolo que todo
-violonista reconhece), com o rastilho em latão, 6 cordas cor de marfim, 4
-casas e três dedos nas cores das funções do campo harmônico: Tônica (verde),
-Subdominante (azul) e Dominante (vermelho). Os dedos formam o desenho do Dó
-maior aberto, uma escada que desce da 2ª para a 5ª corda.
+O desenho (logo minimalista):
+  - um anel fino = os 12 tons, o círculo das quintas;
+  - três pontos no topo do anel = os três vizinhos que formam o coração de
+    qualquer campo harmônico: Tônica no meio (maior, é a "casa"), Subdominante
+    à esquerda e Dominante à direita, nas mesmas cores que o app usa para as
+    funções dos acordes.
+Lê-se como "o tom e os seus vizinhos": é exatamente o que o app mostra.
 
-Tudo é geometria (nada de imagem de fora): o desenho fica nítido em qualquer
-tamanho e qualquer ajuste é feito mudando os números abaixo.
+Tudo é geometria (nada de imagem de fora): fica nítido em qualquer tamanho e
+qualquer ajuste é feito mudando os números abaixo.
 
 Arquivos gerados:
   res/mipmap-*/ic_launcher_foreground.png   desenho (ícone adaptativo, Android 8+)
@@ -22,6 +24,7 @@ Arquivos gerados:
 
 Uso (na raiz do repositório):  pip install pillow && python3 tools/icon/make_icon.py
 """
+import math
 import os
 
 from PIL import Image, ImageDraw
@@ -32,31 +35,21 @@ DEV_RES = os.path.join(ROOT, "app", "src", "dev", "res")
 
 # --- Cores (as mesmas de ui/theme/Color.kt) ---------------------------------
 BACKGROUND = "#0C0D10"   # fundo do ícone
-BRASS = "#E0A94A"        # rastilho (o acento do app)
-IVORY = "#ECE6D8"        # cordas
-FRET = "#555C69"         # trastes
+RING = "#474E5B"         # o anel (os 12 tons)
 TONIC = "#57B892"        # FuncTonic
 SUBDOMINANT = "#6B97DF"  # FuncSubdominant
 DOMINANT = "#E07468"     # FuncDominant
 
 # --- Geometria, em dp, na camada de 108 dp (zona segura: círculo de raio 33) --
-CENTER_X, CENTER_Y = 54.0, 54.0
-WIDTH = 35.0             # da 6ª à 1ª corda
-FRET_SPACE = 10.0        # altura de cada casa
-FRETS = 4
-NUT = 3.6                # espessura do rastilho
-TAIL = 3.0               # quanto as cordas passam da última casa
-STRING_WIDTHS = (1.7, 1.5, 1.35, 1.2, 1.05, 0.95)  # 6ª (grave) → 1ª (aguda)
-FRET_WIDTH = 1.1
-DOT_RADIUS = 4.3
-DOT_RIM = 1.0            # contorno escuro que separa o dedo da corda
-MARK_GAP = 2.4           # distância das marcas (× e o) até o rastilho
-MARK_SIZE = 2.0          # raio das marcas
-# Marcas acima do rastilho, como em toda cifra: × = não tocar, o = corda solta.
-MUTED = (0,)
-OPEN = (3, 5)
-# (corda: 0 = 6ª ... 5 = 1ª, casa 1..4, cor): o Dó maior aberto.
-DOTS = ((4, 1, TONIC), (2, 2, SUBDOMINANT), (1, 3, DOMINANT))
+RING_RADIUS = 24.0
+RING_WIDTH = 1.9
+STEP_DEG = 30.0          # um tom para o outro no círculo das quintas (360 / 12)
+TONIC_RADIUS = 5.0       # a Tônica é a maior: é a "casa"
+SIDE_RADIUS = 4.0        # Subdominante e Dominante
+GAP = 1.8                # folga entre o ponto lateral e a ponta do anel
+# O desenho tem mais peso em cima; descer o centro deixa o conjunto equilibrado.
+CENTER_X = 54.0
+CENTER_Y = 54.0 + (TONIC_RADIUS - RING_WIDTH / 2) / 2
 
 SS = 40                  # pixels por dp no desenho mestre (bem grande, depois reduz)
 DENSITIES = (("mdpi", 1), ("hdpi", 1.5), ("xhdpi", 2), ("xxhdpi", 3), ("xxxhdpi", 4))
@@ -67,60 +60,40 @@ def rgba(hex_color, alpha=255):
     return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)) + (alpha,)
 
 
+def px(v):
+    return v * SS
+
+
+def circle(d, x, y, r, fill):
+    d.ellipse((px(x - r), px(y - r), px(x + r), px(y + r)), fill=fill)
+
+
 def draw_glyph(mono=False):
-    """Camada de 108 dp com o diagrama, em alta resolução e fundo transparente."""
+    """Camada de 108 dp com o desenho, em alta resolução e fundo transparente."""
     size = 108 * SS
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    px = lambda v: v * SS                                   # dp → px
     color = (lambda c, a=255: (255, 255, 255, a)) if mono else rgba
 
-    height = NUT + FRET_SPACE * FRETS
-    marks = MARK_GAP + 2 * MARK_SIZE
-    left = CENTER_X - WIDTH / 2
-    top = CENTER_Y - (height + TAIL - marks) / 2
-    gap = WIDTH / 5
-    xs = [left + i * gap for i in range(6)]
-    nut_bottom = top + NUT
-    fret_ys = [nut_bottom + FRET_SPACE * k for k in range(1, FRETS + 1)]
+    # O anel: um arco que vai da Dominante, por baixo, até a Subdominante (o topo
+    # fica livre para os três pontos, sem sobras de linha entre eles).
+    r, w = RING_RADIUS, RING_WIDTH
+    open_deg = math.degrees((SIDE_RADIUS + GAP) / r)
+    d.arc((px(CENTER_X - r - w / 2), px(CENTER_Y - r - w / 2), px(CENTER_X + r + w / 2), px(CENTER_Y + r + w / 2)),
+          start=-90 + STEP_DEG + open_deg, end=270 - STEP_DEG - open_deg,
+          fill=color(RING, 150 if mono else 255), width=round(px(w)))
+    for ang in (-90 + STEP_DEG + open_deg, 270 - STEP_DEG - open_deg):   # pontas arredondadas
+        t = math.radians(ang)
+        circle(d, CENTER_X + r * math.cos(t), CENTER_Y + r * math.sin(t), w / 2, color(RING, 150 if mono else 255))
 
-    # Trastes (atrás das cordas).
-    for y in fret_ys:
-        d.line((px(left), px(y), px(left + WIDTH), px(y)), fill=color(FRET, 190), width=round(px(FRET_WIDTH)))
+    # Os três pontos: Subdominante (um passo para a esquerda), Tônica (topo), Dominante (direita).
+    dots = ((-1, SIDE_RADIUS, SUBDOMINANT), (0, TONIC_RADIUS, TONIC), (1, SIDE_RADIUS, DOMINANT))
+    def where(step):
+        a = math.radians(-90 + STEP_DEG * step)
+        return CENTER_X + r * math.cos(a), CENTER_Y + r * math.sin(a)
 
-    # Cordas, com ponta arredondada embaixo.
-    bottom = fret_ys[-1] + TAIL
-    for x, w in zip(xs, STRING_WIDTHS):
-        d.rounded_rectangle((px(x - w / 2), px(nut_bottom - 0.5), px(x + w / 2), px(bottom)),
-                            radius=px(w / 2), fill=color(IVORY))
-
-    # Rastilho (um pouco mais largo que as cordas).
-    over = 1.6
-    d.rounded_rectangle((px(left - over), px(top), px(left + WIDTH + over), px(nut_bottom)),
-                        radius=px(1.2), fill=color(BRASS))
-
-    # Marcas acima do rastilho.
-    my = top - MARK_GAP - MARK_SIZE
-    line = round(px(0.9))
-    for i in OPEN:
-        x, r = xs[i], MARK_SIZE
-        d.ellipse((px(x - r), px(my - r), px(x + r), px(my + r)), outline=color(IVORY, 220), width=line)
-    for i in MUTED:
-        x, r = xs[i], MARK_SIZE * 0.85
-        d.line((px(x - r), px(my - r), px(x + r), px(my + r)), fill=color(IVORY, 220), width=line)
-        d.line((px(x - r), px(my + r), px(x + r), px(my - r)), fill=color(IVORY, 220), width=line)
-
-    # Dedos: contorno da cor do fundo + bolinha na cor da função.
-    for string, fret, c in DOTS:
-        cx = xs[string]
-        cy = nut_bottom + FRET_SPACE * (fret - 0.5)
-        r = DOT_RADIUS + DOT_RIM
-        if mono:
-            d.ellipse((px(cx - r), px(cy - r), px(cx + r), px(cy + r)), fill=(0, 0, 0, 0))
-        else:
-            d.ellipse((px(cx - r), px(cy - r), px(cx + r), px(cy + r)), fill=rgba(BACKGROUND))
-        r = DOT_RADIUS
-        d.ellipse((px(cx - r), px(cy - r), px(cx + r), px(cy + r)), fill=color(c))
+    for step, radius, c in dots:
+        circle(d, *where(step), radius, color(c))
     return img
 
 
@@ -166,7 +139,7 @@ def main():
 
     # Marca dentro do app: só o desenho, recortado (fundo transparente).
     box = glyph.getbbox()
-    pad = 2 * SS
+    pad = SS
     side = max(box[2] - box[0], box[3] - box[1]) + 2 * pad
     cx, cy = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
     mark = glyph.crop((cx - side // 2, cy - side // 2, cx + side // 2, cy + side // 2))
@@ -194,7 +167,7 @@ def main():
         f.write(background_xml(f"""
     <path
         android:fillColor="{DOMINANT}"
-        android:pathData="M0,84h108v24h-108z" />""", "Ícone da versão DEV: o mesmo desenho, com faixa embaixo."))
+        android:pathData="M0,86h108v22h-108z" />""", "Ícone da versão DEV: o mesmo desenho, com faixa embaixo."))
     print("ícone gerado")
 
 

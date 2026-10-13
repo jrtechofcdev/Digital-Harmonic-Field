@@ -121,8 +121,9 @@ com/example/
   violão em todos os tons (`PassagesTest`).
 - **Navegação:** o Dicionário abre por cima da tela atual (overlay em
   `MainActivity`), para a tela de baixo não perder o estado.
-- **Ícone/marca:** o diagrama de acorde (Dó aberto: rastilho em latão, cordas
-  marfim, × e o, três dedos nas cores T/SD/D) é **desenhado por código** em
+- **Ícone/marca:** logo minimalista (anel fino = círculo das quintas; três
+  pontos no topo = Subdominante, Tônica maior no meio, Dominante, nas cores
+  das funções) **desenhado por código** em
   `tools/icon/make_icon.py`, que gera foreground/monochrome (mipmap PNG), webp
   legados, `ic_launcher-playstore.png`, `drawable-nodpi/brand_mark.png` e os
   fundos (normal e DEV com faixa). Não edite esses arquivos à mão: ajuste os

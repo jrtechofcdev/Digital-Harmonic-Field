@@ -58,6 +58,7 @@ com/example/
 │   ├── Voicings.kt        # ChordType (9, 7M, sus…), gerador de variações, Harmonize, NeckQuiz
 │   ├── ChordShapes.kt     # Dicionário: moldes CAGED (common), todas as formas (all), howTo (dedos)
 │   ├── Passages.kt        # Passagens/enfeites por momento (PassageMove), escritas em graus
+│   ├── SecondaryDominants.kt # "5 de cada grau": dominante, nota de fora, 3ª sobe, 7ª desce, exemplo
 │   └── PitchDetection.kt  # Detecção de altura (autocorrelação/MPM) + ptPitchClass
 ├── audio/
 │   ├── AudioEngine.kt     # Metronome e ChordPlayer via AudioTrack (sem libs externas)
@@ -95,6 +96,9 @@ com/example/
   cores por acorde fora desse sistema.
 - **Público iniciante:** textos claros e diretos, em português. A aba Aprender
   é o guia; explique conceitos como se fosse para quem toca há pouco tempo.
+- **Dominantes secundárias:** chave `DominantSettings` no detalhe do campo
+  (`DominantsUi.kt`); cálculo só em `SecondaryDominants` (a lição Graus a fundo
+  usa o mesmo). Cor = Dominante. Guia em `docs/dominantes-secundarias.md`.
 - **Detalhe do campo** tem dois layouts: retrato (rolável) e paisagem
   (compacto, **sem rolagem**). Ao mexer no landscape, garanta que tudo caiba.
 - **Sem rolagem lateral:** sequências de acordes usam `ChordStrip` (divide a

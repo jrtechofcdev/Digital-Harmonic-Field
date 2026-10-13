@@ -19,8 +19,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.example.R
 import com.example.ui.theme.Brass
 import com.example.ui.theme.Hairline
+import com.example.ui.theme.HairlineStrong
 import com.example.ui.theme.Ink
 import com.example.ui.theme.Selection
 import com.example.ui.theme.Surface1
@@ -264,4 +268,40 @@ fun Panel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> 
             .padding(16.dp),
         content = content,
     )
+}
+
+/** Linha com chave liga/desliga: título, explicação curta e o interruptor. */
+@Composable
+fun SwitchRow(
+    title: String,
+    checked: Boolean,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    onChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Surface1)
+            .border(1.dp, Hairline, RoundedCornerShape(16.dp))
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextStrong)
+            subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = TextBody) }
+        }
+        Spacer(Modifier.width(12.dp))
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Ink, checkedTrackColor = Selection, checkedBorderColor = Selection,
+                uncheckedThumbColor = TextMuted, uncheckedTrackColor = Surface2, uncheckedBorderColor = HairlineStrong,
+            ),
+        )
+    }
 }

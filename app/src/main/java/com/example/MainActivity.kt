@@ -78,6 +78,7 @@ class MainActivity : ComponentActivity() {
         // Cifra ou grau: preferência global salva no aparelho.
         com.example.ui.components.NotationSettings.init(applicationContext)
         com.example.data.Repertoire.init(applicationContext)
+        com.example.ui.screens.DominantSettings.init(applicationContext)
         setContent {
             HarmonicTheme {
                 HarmonicApp()

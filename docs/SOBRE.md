@@ -47,6 +47,7 @@ de igreja precisa:
 | "Qual o próximo acorde?" | No **campo harmônico**, a cor de cada acorde mostra se ele é casa (verde), preparação (azul) ou tensão que pede volta (vermelho). |
 | "O cantor pediu um tom mais baixo." | **Transposição** na hora (− / +) e **capotraste**, que diz em que casa colocar o capo. |
 | "Eu toco por número." | A chave **Cifra \| Grau** muda o app inteiro para 1, 4, 5, 6m… |
+| "Como os tocadores chegam no acorde com aquele 'puxão'?" | A chave **Dominantes secundárias** no campo mostra em cima de cada acorde o acorde que chama ele (A7 → Dm, E7 → Am...), qual nota de fora faz o puxão, onde entra no hino e como soa. |
 | "Quero fazer umas graças entre os acordes." | **Passagens e enfeites** mostram, para cada momento do hino (voltar ao 1, descer o baixo, final do Amém…), as caídas e subidas que os tocadores experientes usam, com o som de antes e depois. |
 | "Como faço esse acorde em outro lugar do braço?" | O **Dicionário de acordes** mostra as formas mais usadas e todas as formas, com o número do dedo em cada casa. |
 | "Qual era o tom daquele hino?" | O **Repertório do culto** guarda os hinos do dia com o tom, o capotraste e uma observação. |

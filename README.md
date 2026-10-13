@@ -43,6 +43,15 @@ um tom você vê:
 - **Modo paisagem** compacto: todos os graus na tela, sem rolagem, para uso
   ao vivo.
 
+### Dominantes secundárias (o "5 de cada grau")
+Uma chave no detalhe do campo mostra, **em cima de cada acorde**, o acorde
+maior com sétima que chama ele (em Dó: A7 → Dm, B7 → Em, C7 → F, D7 → G,
+E7 → Am). Tocando num acorde, o app mostra a nota de fora do campo e para onde
+ela anda (o Dó# do A7 sobe para Ré), onde a dominante entra no hino, o cuidado
+com a melodia, um exemplo no tom e o som (dominante → alvo). Funciona nos 24
+tons, no modo Grau e em paisagem. Guia completo em
+[`docs/dominantes-secundarias.md`](docs/dominantes-secundarias.md).
+
 ### Modo Grau (para quem toca "por número")
 Uma chave **Cifra | Grau** muda o app inteiro: em vez de "C, Am, F, G", os
 acordes aparecem como **1, 6m, 4, 5** (com a cifra pequena embaixo) — no campo,

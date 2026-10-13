@@ -111,19 +111,11 @@ class DegreeTheory(private val field: HarmonicField) {
      * puxa para outro grau do campo como se fosse a tônica dele.
      */
     val secondaryDominants: List<Pair<DegreeExample, DegreeExample>> = run {
-        val targets = if (!field.isMinor) listOf(3, 4, 5, 1, 2) else listOf(3, 5, 2)
-        targets.map { t ->
-            val target = triads[t]
-            val dom = Chord((roots[t] + 7) % 12, ChordQuality.DOM7)
-            val label = when {
-                !field.isMinor && t == 3 -> "1⁷"            // o 1 com sétima leva ao 4
-                !field.isMinor && t == 4 -> "2⁷"            // o 2 maior leva ao 5
-                !field.isMinor && t == 5 -> "3⁷"            // o 3 maior leva ao 6m
-                !field.isMinor && t == 1 -> "6⁷"            // o 6 maior leva ao 2m
-                !field.isMinor && t == 2 -> "7⁷"            // o 7 maior leva ao 3m
-                else -> "5/${target.label}"
-            }
-            DegreeExample(label, dom, "5 do ${target.label}") to target
+        // Na ordem do mais comum em hino para o menos comum (1⁷ → 4 primeiro).
+        val order = if (!field.isMinor) listOf(3, 4, 5, 1, 2) else listOf(3, 4, 5, 6, 2)
+        val all = SecondaryDominants.forField(field)
+        order.mapNotNull { all.getOrNull(it) }.map { d ->
+            DegreeExample(d.label, d.dominant, "5 do ${d.targetLabel}") to triads[d.targetIndex]
         }
     }
 

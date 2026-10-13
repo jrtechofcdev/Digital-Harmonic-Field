@@ -30,6 +30,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import com.example.R
+import com.example.audio.ChordPlayer
+import com.example.music.DominantFor
+import com.example.music.SecondaryDominants
+import com.example.ui.components.OptionChip
+import com.example.ui.components.SwitchRow
+import androidx.compose.ui.platform.LocalContext
 import com.example.ui.components.RoundIconButton
 import com.example.ui.components.ScreenHeader
 import com.example.ui.components.SecondaryButton
@@ -116,6 +122,14 @@ fun FieldDetailScreen(
     }
     val selectedChord = chords.getOrElse(selected) { chords.first() }
 
+    // Dominantes secundárias ("o 5 de cada grau"), já no tom transposto.
+    val context = LocalContext.current
+    val showDominants = DominantSettings.show
+    val dominants = remember(field, transpose) { SecondaryDominants.forField(field.copy(chords = chords)) }
+    val player = remember { ChordPlayer() }
+    DisposableEffect(player) { onDispose { player.stop() } }
+    val onDominants: (Boolean) -> Unit = { DominantSettings.set(context, it) }
+
     if (isLandscape) {
         LandscapeLayout(
             field = field,
@@ -133,6 +147,10 @@ fun FieldDetailScreen(
             contentPadding = contentPadding,
             onOpenGuitar = { onOpenGuitar(transposeCipher(keyCipher, transpose)) },
             onOpenPassages = { onOpenPassages(transposeCipher(keyCipher, transpose)) },
+            dominants = dominants,
+            showDominants = showDominants,
+            onDominants = onDominants,
+            player = player,
         )
     } else {
         PortraitLayout(
@@ -151,6 +169,10 @@ fun FieldDetailScreen(
             contentPadding = contentPadding,
             onOpenGuitar = { onOpenGuitar(transposeCipher(keyCipher, transpose)) },
             onOpenPassages = { onOpenPassages(transposeCipher(keyCipher, transpose)) },
+            dominants = dominants,
+            showDominants = showDominants,
+            onDominants = onDominants,
+            player = player,
         )
     }
 }
@@ -176,6 +198,10 @@ private fun PortraitLayout(
     contentPadding: PaddingValues,
     onOpenGuitar: () -> Unit,
     onOpenPassages: () -> Unit,
+    dominants: List<DominantFor?>,
+    showDominants: Boolean,
+    onDominants: (Boolean) -> Unit,
+    player: ChordPlayer,
 ) {
     Column(
         modifier = Modifier
@@ -199,13 +225,32 @@ private fun PortraitLayout(
             SecondaryButton("Passagens", Modifier.weight(1f), onClick = onOpenPassages)
         }
 
+        Spacer(Modifier.height(12.dp))
+        SwitchRow(
+            "Dominantes secundárias",
+            checked = showDominants,
+            subtitle = "Mostra, em cima de cada acorde, o acorde que chama ele",
+            onChange = onDominants,
+        )
+
         Spacer(Modifier.height(16.dp))
-        SectionLabel("Os 7 acordes do tom (toque para ver a formação)")
+        SectionLabel(
+            if (showDominants) "Toque num acorde para ver como a dominante dele entra"
+            else "Os 7 acordes do tom (toque para ver a formação)"
+        )
         Spacer(Modifier.height(10.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(if (showDominants) 10.dp else 8.dp)) {
             chords.forEachIndexed { index, chord ->
-                ChordRow(chord, index, index == selected) { onSelect(index) }
+                Column {
+                    if (showDominants) DominantLine(dominants.getOrNull(index)) { onSelect(index) }
+                    ChordRow(chord, index, index == selected) { onSelect(index) }
+                }
             }
+        }
+
+        if (showDominants) {
+            Spacer(Modifier.height(16.dp))
+            DominantCard(dominants.getOrNull(selected), chords, player)
         }
 
         Spacer(Modifier.height(16.dp))
@@ -240,6 +285,10 @@ private fun LandscapeLayout(
     contentPadding: PaddingValues,
     onOpenGuitar: () -> Unit,
     onOpenPassages: () -> Unit,
+    dominants: List<DominantFor?>,
+    showDominants: Boolean,
+    onDominants: (Boolean) -> Unit,
+    player: ChordPlayer,
 ) {
     Column(
         modifier = Modifier
@@ -274,11 +323,17 @@ private fun LandscapeLayout(
 
         Spacer(Modifier.height(8.dp))
 
+        // Dominantes em cima de cada grau (quando ligadas), como no quadro de um professor.
+        if (showDominants) {
+            DominantStrip(dominants, selected, onSelect)
+            Spacer(Modifier.height(4.dp))
+        }
+
         // Fileira dos 7 graus, ocupando a largura toda
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(88.dp),
+                .height(if (showDominants) 76.dp else 88.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             chords.forEachIndexed { index, chord ->
@@ -298,7 +353,8 @@ private fun LandscapeLayout(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Box(Modifier.weight(1f).fillMaxHeight()) {
-                FormulaCard(selectedChord, compact = true)
+                if (showDominants) DominantCard(dominants.getOrNull(selected), chords, player, compact = true)
+                else FormulaCard(selectedChord, compact = true)
             }
             Box(Modifier.weight(1f).fillMaxHeight()) {
                 CommonPathsCard(chords = chords, isMinor = field.isMinor, compact = true, maxPaths = 1)
@@ -321,6 +377,8 @@ private fun LandscapeLayout(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
+            Spacer(Modifier.width(8.dp))
+            OptionChip("Dominantes", showDominants, Modifier.width(128.dp)) { onDominants(!showDominants) }
             Spacer(Modifier.width(8.dp))
             SecondaryButton("No braço", icon = R.drawable.ic_guitar, onClick = onOpenGuitar)
             Spacer(Modifier.width(8.dp))

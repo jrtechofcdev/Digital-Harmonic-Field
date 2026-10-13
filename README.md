@@ -14,7 +14,18 @@ Mantido por **JR TECH** — José Renato, guitarrista e developer.
 
 ## O que o app faz
 
-O app é organizado em quatro áreas, acessíveis pela barra inferior:
+O app é organizado em quatro abas, pelo que o músico quer fazer:
+
+| Aba | Para quê | O que tem |
+|---|---|---|
+| **Culto** | Na hora de tocar | **Detectar o tom** (o foco da tela), o **repertório** do dia (cada hino abre o campo no tom certo), metrônomo e capotraste |
+| **Campos** | Consultar tons | **Tons \| Progressões** no mesmo lugar: os 24 campos e as sequências prontas |
+| **Violão** | Tudo no braço | O **braço do violão**, o **dicionário de acordes**, acordes do tom, harmonizar e **passagens e enfeites** |
+| **Aprender** | Estudar | **Treinar** (treino de graus, decorar o braço) e as **lições** de 1 a 10 |
+
+As telas internas abrem por cima da aba, com "Voltar". O visual segue o
+[guia de design](docs/DESIGN.md): escuro, latão só na ação principal e cor só
+para a função do acorde.
 
 ### Campos
 A função central. Uma grade com os 24 tons (12 maiores e 12 menores). Ao abrir
@@ -48,7 +59,7 @@ esquerda, marcações 3‑5‑7‑9‑12), com quatro abas:
   m(9), sus2, sus4, 6, m6, 6(9), 7M, 7M(9), 7, 7(9), 7sus4, m7, m7(9), m7(b5),
   °, °7. O acorde **se monta sozinho** no braço, com **variações** espalhadas
   (aberto, casa 3, casa 5…), cada nota marcada pelo papel (1, 3, 5, 7, 9…), e dá
-  para **ouvir** cada forma. No modo "Onde estão 1 · 3 · 5" você liga/desliga
+  para **ouvir** cada forma. No modo "Onde estão 1, 3, 5" você liga/desliga
   cada papel e monta o acorde sozinho.
 - **Harmonizar:** para cada grau, trocas que tiram o hino do acorde "seco" sem
   mudar a função (1(9), 1⁶⁽⁹⁾, 4⁷M, 5sus4 → 5, 2m⁷, 4m emprestado, 1/3, 4/5,
@@ -58,7 +69,7 @@ esquerda, marcações 3‑5‑7‑9‑12), com quatro abas:
   jogos: **Que nota é?** e **Ache a nota**, por fases (6ª corda, 5ª, as duas,
   braço todo).
 
-Abre pelo detalhe do campo, pela aba Aprender ou por Ferramentas.
+Abre pela aba Violão, pelo detalhe do campo ("No braço") ou por Aprender (Decorar o braço).
 
 ### Progressões
 Sequências harmônicas já montadas no tom escolhido, organizadas por uso:
@@ -98,8 +109,8 @@ m7(b5), °7…) e veja:
 - A forma escolhida aparece **grande no braço**, com o **número do dedo** em
   cada casa (1 indicador … 4 mindinho) ou com as notas (1 · 3 · 5), e um
   **passo a passo** em texto: "Dedo 1 deitado na casa 3 (pestana)…".
-- **Ouvir** cada forma. Abre por Ferramentas, pela aba Acordes do braço do
-  violão ("Todas as formas ›") e pelas passagens.
+- **Ouvir** cada forma. Abre pela aba Violão, pela aba Acordes do braço do
+  violão ("Todas as formas") e pelas passagens.
 
 ### Passagens e enfeites (as "graças")
 O que o tocador experiente faz entre um acorde e outro do hino. Escolha o tom e
@@ -110,18 +121,18 @@ nível Básico ao Profissional: 2m – 5 – 1, cadência de hinário (1/5), 1 �
 4m – 1, b6 – b7 – 1, terça de Picardia no tom menor e outras. Cada ideia mostra
 os acordes no tom (cifra ou grau, na cor da função), marca os que saem do campo
 ("fora"), explica o porquê, toca **o direto e a passagem** para comparar e
-mostra o desenho de cada acorde no braço. Abre por Ferramentas, pela aba
-Aprender, pelo detalhe do campo e pelo repertório.
+mostra o desenho de cada acorde no braço. Abre pela aba Violão, pelo
+detalhe do campo e pelo repertório.
 
 ### Repertório do culto
 A lista de hinos do culto, na ordem: número da Harpa, nome, tom, capotraste e
 observação ("subir meio tom no fim"). Cada hino abre o **campo** ou as
 **passagens** já no tom dele. Salvo só no aparelho.
 
-### Ferramentas
-Utilitários para o dia a dia, todos sem depender de internet:
+### Culto: detectar tom, metrônomo e capotraste
+Utilitários para a hora de tocar, todos sem depender de internet:
 
-- **Detectar tom** — também com atalho na tela inicial. Ouve em **rodadas de
+- **Detectar tom** (o botão principal da aba Culto). Ouve em **rodadas de
   5 segundos** e mostra os **3 tons mais prováveis**, com a chance de cada um e
   os acordes para começar.
   - **1ª rodada na hora:** com a tela aberta, os últimos 5 s ficam só na memória
@@ -214,10 +225,11 @@ app/src/main/java/com/example/
 ├── dev/                         # Só na versão DEV: pasta de treino real, gravador de sessões
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
-    ├── components/              # Componentes reutilizáveis (marca, ChordStrip…)
-    └── screens/                 # Campos, Detalhe, Progressões (+ tela cheia), Aprender (+ lições de
-                                 #  graus), Treino de graus, Braço do violão, Dicionário de acordes, Passagens,
-                                 #  Repertório, Ferramentas, Detectar tom, Doação (+ ui/dev na versão DEV)
+    ├── components/              # Peças do sistema (Controls.kt), ChordStrip, Cifra|Grau, violão
+    └── screens/                 # Abas: Culto (Home), Campos, Violão (GuitarHub), Aprender; telas internas:
+                                 #  Detalhe, Progressões (+ tela cheia), lições de graus, Treino de graus,
+                                 #  Braço do violão, Dicionário, Passagens, Repertório, Metrônomo/Capotraste
+                                 #  (PlayTools), Detectar tom, Doação (+ ui/dev na versão DEV)
 tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
 tools/icon/make_icon.py          # Gera o ícone em todos os formatos a partir da arte em tools/icon/source/
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar

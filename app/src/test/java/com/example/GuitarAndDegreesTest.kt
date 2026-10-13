@@ -19,7 +19,7 @@ class GuitarAndDegreesTest {
         assertEquals(listOf("1", "2m", "3m", "4", "5", "6m", "7°"), g.chords.mapIndexed { i, c -> degreeLabel(i, c.cipher) })
         val am = HarmonicDatabase.getField("Am")!!
         assertEquals(listOf("1m", "2°", "3", "4m", "5m", "6", "7"), am.chords.mapIndexed { i, c -> degreeLabel(i, c.cipher) })
-        assertEquals("1 – 6m – 2m – 5 – 1", degreeSequence(listOf(0, 5, 1, 4, 0), g))
+        assertEquals("1 - 6m - 2m - 5 - 1", degreeSequence(listOf(0, 5, 1, 4, 0), g))
     }
 
     @Test

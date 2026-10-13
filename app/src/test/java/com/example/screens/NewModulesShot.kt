@@ -49,7 +49,7 @@ class NewModulesShot {
 
     @Test fun passagens() {
         set { PassagesScreen("G", {}, PaddingValues()) }
-        rule.onAllNodes(hasText("No braço ⌄"))[2].performClick()
+        rule.onAllNodes(hasText("Formas"))[2].performClick()
         rule.waitForIdle()
         rule.onRoot().captureRoboImage("$out/passagens.png")
     }
@@ -74,7 +74,7 @@ class NewModulesShot {
         Repertoire.items.add(SetItem(3, 545, "", "Am", 0, "Subir meio tom na última estrofe"))
         set { RepertoireScreen({}, PaddingValues()) }
         rule.onRoot().captureRoboImage("$out/repertorio.png")
-        rule.onNode(hasText("+ Adicionar hino")).performClick()
+        rule.onNode(hasText("Adicionar hino")).performClick()
         rule.waitForIdle()
         rule.onRoot().captureRoboImage("$out/repertorio_novo.png")
         Repertoire.items.clear()

@@ -349,7 +349,7 @@ object DevStore {
         return Intent(Intent.ACTION_SEND).apply {
             type = "application/zip"
             putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_SUBJECT, "Treino real — detector de tom (${zip.name})")
+            putExtra(Intent.EXTRA_SUBJECT, "Treino real: detector de tom (${zip.name})")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }.let { Intent.createChooser(it, "Enviar material de treino") }
     }
@@ -404,7 +404,7 @@ object DevStore {
     private fun writeReadme() {
         File(dir, "LEIA-ME.txt").writeText(
             """
-            TREINO REAL — Detector de tom (versão DEV)
+            TREINO REAL: Detector de tom (versão DEV)
             ==========================================
             Esta pasta guarda os trechos captados no culto para treinar o detector.
             Para enviar: no app, Ferramentas → Treino real → "Compartilhar .zip".

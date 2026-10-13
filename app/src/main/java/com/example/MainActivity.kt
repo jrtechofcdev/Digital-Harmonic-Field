@@ -95,7 +95,7 @@ private enum class Tab(val label: String, val icon: Int) {
 }
 
 @Composable
-private fun HarmonicApp() {
+internal fun HarmonicApp() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 

@@ -32,11 +32,15 @@ partir de `debug.keystore.base64`.
 ## Arquitetura
 
 Navegação por abas via estado (sem `navigation-compose`): `MainActivity`
-mantém `Tab` e `detailKey`; o detalhe do campo é uma sobreposição de tela cheia.
+(`HarmonicApp`) mantém a `Tab` e os estados das telas internas, que abrem como
+sobreposição de tela cheia. As 4 abas são pelo que o músico quer fazer:
+**Culto** (detectar tom, repertório, metrônomo, capotraste), **Campos**
+(Tons | Progressões), **Violão** (braço, dicionário, harmonizar, passagens) e
+**Aprender** (Treinar + Lições 1 a 10). Ver `docs/DESIGN.md`.
 
 ```
 com/example/
-├── MainActivity.kt        # Scaffold + NavigationBar (Campos/Progressões/Aprender/Ferramentas)
+├── MainActivity.kt        # HarmonicApp: NavigationBar (Culto/Campos/Violão/Aprender) + sobreposições
 ├── HarmonicData.kt        # Os 24 campos (dados brutos) + HarmonicDatabase
 ├── music/
 │   ├── MusicTheory.kt     # HarmonicFunction (T/SD/D), transposição, formação de acordes
@@ -63,16 +67,29 @@ com/example/
 │                          #   (ui/dev: DevLabelForm, DevPanelScreen)
 └── ui/
     ├── theme/             # Color.kt (tokens), Type.kt (Space Grotesk), Theme.kt
-    ├── components/         # CommonUi.kt, ChordStrip.kt, Notation.kt (Cifra|Grau), GuitarViews.kt
-    └── screens/            # Fields, FieldDetail, Progressions, ProgressionStage (tela cheia),
-                            # Learn (+ DegreeLessons), DegreeTrainer, Guitar, ChordDictionary,
-                            # Passages, Repertoire, Tools, KeyFinder, Donation
+    ├── components/         # Controls.kt (ScreenHeader, PrimaryButton, SecondaryButton, OptionChip,
+    │                       #   Segmented, NavRow/RowGroup, Panel, RoundIconButton), CommonUi.kt,
+    │                       #   ChordStrip.kt, Notation.kt (Cifra|Grau), GuitarViews.kt
+    └── screens/            # Home (aba Culto), Fields (CamposScreen), GuitarHub (aba Violão), Learn,
+                            # FieldDetail, Progressions, ProgressionStage (tela cheia), DegreeLessons,
+                            # DegreeTrainer, Guitar (+ GuitarChordsTab, GuitarStudyTab), ChordDictionary,
+                            # Passages, Repertoire, PlayTools (Metrônomo, Capotraste), KeyFinder, Donation
 ```
 
 ## Convenções e princípios
 
 - **Design sóbrio (anti-slop):** dark neutro, um único acento (latão `Brass`),
   sem brilhos/gradientes decorativos nem linguagem de marketing na UI.
+- **Latão só no foco:** `Brass` é para a ação principal da tela
+  (`PrimaryButton`, no máximo um por tela), a aba ativa e o ponto de foco
+  (nota escolhida no braço). Item escolhido usa `Selection` (claro, texto
+  `Ink`) via `OptionChip`/`Segmented`. Subtítulos em `TextBody`, nunca latão.
+- **Peças prontas:** monte telas com `Controls.kt` (não crie botão/chip local).
+  Toque mínimo de 44 dp; ícones só do Phosphor (`res/drawable/ic_*.xml`, com
+  `tint`); sem "›"/"▶" como texto em botões.
+- **Texto:** sem travessão (— ou –) na UI; use dois-pontos, vírgula ou
+  parênteses. Sequências com hífen (`2m - 5 - 1`). Sem rótulos em MAIÚSCULAS.
+  `TextMuted` é o texto mais fraco permitido (contraste AA).
 - **Cor com significado:** todo acorde é pintado pela função tonal
   (`HarmonicFunction.color()` — Tônica/Subdominante/Dominante). Não introduza
   cores por acorde fora desse sistema.

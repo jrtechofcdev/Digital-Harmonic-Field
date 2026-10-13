@@ -216,7 +216,7 @@ fun DevPanelScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
                     Fact("Melhor ajuste (validação cruzada)", pct(r.adaptedAccuracy))
                     Text(
                         if (o.adapted) "O ajuste melhorou nos seus hinos e foi salvo. Pode testar ligando abaixo."
-                        else "Nenhum ajuste superou o original ainda — o original continua. Siga rotulando.",
+                        else "Nenhum ajuste superou o original ainda: o original continua. Siga rotulando.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (o.adapted) FuncTonic else FuncDominant,
                     )

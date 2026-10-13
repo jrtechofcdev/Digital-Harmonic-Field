@@ -98,7 +98,7 @@ fun LearnScreen(
             LessonCard("1. O que é campo harmônico?") {
                 Paragraph(
                     "Campo harmônico é o \"time\" de acordes que combinam dentro de um tom. " +
-                        "Cada tom (Sol, Dó, Ré...) tem 7 acordes que soam bem juntos — são eles que " +
+                        "Cada tom (Sol, Dó, Ré...) tem 7 acordes que soam bem juntos: são eles que " +
                         "aparecem na maioria das músicas daquele tom."
                 )
                 Paragraph(
@@ -114,7 +114,7 @@ fun LearnScreen(
         item {
             LessonCard("2. As três funções: para onde cada acorde puxa") {
                 FunctionLine(FuncTonic, "Tônica (T)", "É a casa, o repouso. A música começa e termina aqui. Dá sensação de \"chegou\".")
-                FunctionLine(FuncSubdominant, "Subdominante (SD)", "A preparação. Tira você do lugar sem criar muita tensão — geralmente aponta para a dominante.")
+                FunctionLine(FuncSubdominant, "Subdominante (SD)", "A preparação. Tira você do lugar sem criar muita tensão: geralmente aponta para a dominante.")
                 FunctionLine(FuncDominant, "Dominante (D)", "A tensão. Cria aquele \"segura que vai voltar\" e pede para resolver na tônica.")
                 Spacer(Modifier.height(6.dp))
                 Paragraph(
@@ -131,11 +131,11 @@ fun LearnScreen(
                 )
                 ChordFlow(listOf("Sol" to FuncTonic, "Mi m" to FuncTonic, "Lá m" to FuncSubdominant, "Ré" to FuncDominant, "Sol" to FuncTonic))
                 Paragraph(
-                    "Em graus: I – vi – ii – V – I. Ou seja: tônica, relativa menor, subdominante, " +
+                    "Em graus: I - vi - ii - V - I. Ou seja: tônica, relativa menor, subdominante, " +
                         "dominante e volta pra tônica. Em qualquer tom é só usar os acordes daquele campo."
                 )
                 Paragraph(
-                    "Sacada: Mi → Lá → Ré → Sol descem de quinta em quinta — é o círculo das quintas " +
+                    "Sacada: Mi → Lá → Ré → Sol descem de quinta em quinta: é o círculo das quintas " +
                         "girando (veja o tópico do círculo abaixo)."
                 )
                 Paragraph(
@@ -150,7 +150,7 @@ fun LearnScreen(
                 StepLine("2", "Abra o campo desse tom", "Na aba Campos. Ali estão os 7 acordes candidatos da música.")
                 StepLine("3", "Comece pelo 1, 4 e 5", "A maioria dos trechos usa tônica (1), subdominante (4) e dominante (5). Teste esses primeiro.")
                 StepLine("4", "Ouça a tensão", "Quando sentir que \"vai voltar pra casa\", provavelmente é a dominante (5) resolvendo na tônica (1).")
-                StepLine("5", "Use a Harpa", "Em hinos, teste a volta I – vi – ii – V – I. Encaixa na maioria.")
+                StepLine("5", "Use a Harpa", "Em hinos, teste a volta I - vi - ii - V - I. Encaixa na maioria.")
             }
         }
 
@@ -158,13 +158,13 @@ fun LearnScreen(
             LessonCard("5. Sistema de números (1, 4, 5)") {
                 Paragraph(
                     "Na igreja é comum alguém dizer \"vai no 4\" ou \"faz o 6m\". Os números são os graus " +
-                        "do campo, contando a partir da tônica — e o \"m\" indica acorde menor."
+                        "do campo, contando a partir da tônica, e o \"m\" indica acorde menor."
                 )
                 Paragraph(
                     "No tom de Sol: 1 = Sol, 2m = Lá m, 3m = Si m, 4 = Dó, 5 = Ré, 6m = Mi m, 7° = Fá# dim."
                 )
                 Paragraph(
-                    "A vantagem: o número não muda de tom para tom. \"1 – 4 – 5\" é sempre a mesma ideia; " +
+                    "A vantagem: o número não muda de tom para tom. \"1 - 4 - 5\" é sempre a mesma ideia; " +
                         "só trocam as notas. Aprendendo por números, você toca em qualquer tom. Quem toca " +
                         "assim pode ligar o modo Grau: o app inteiro passa a mostrar os números."
                 )

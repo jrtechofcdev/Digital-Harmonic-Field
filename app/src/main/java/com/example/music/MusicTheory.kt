@@ -17,9 +17,9 @@ enum class HarmonicFunction(
     val tendency: String,
 ) {
     TONIC("T", "Tônica", "É a casa. Pode descansar aqui ou partir para qualquer acorde."),
-    SUBDOMINANT("SD", "Subdominante", "Prepara o caminho — costuma seguir para a dominante."),
-    DOMINANT("D", "Dominante", "Tensão máxima — pede para voltar à tônica."),
-    NEUTRAL("—", "Passagem", "Acorde de passagem, liga um trecho ao outro.");
+    SUBDOMINANT("SD", "Subdominante", "Prepara o caminho: costuma seguir para a dominante."),
+    DOMINANT("D", "Dominante", "Tensão máxima: pede para voltar à tônica."),
+    NEUTRAL("P", "Passagem", "Acorde de passagem, liga um trecho ao outro.");
 
     fun color(): Color = when (this) {
         TONIC -> FuncTonic

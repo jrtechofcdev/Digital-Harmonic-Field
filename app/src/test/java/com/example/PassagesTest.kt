@@ -32,8 +32,8 @@ class PassagesTest {
     }
 
     @Test fun chordsInG() {
-        assertEquals(listOf("Am7", "D7", "G"), ciphers(PassageMove.VOLTAR, 7, false, "2m – 5 – 1 (a caída mais usada)"))
-        assertEquals(listOf("G", "D/F#", "Em"), ciphers(PassageMove.DESCER, 7, false, "1 – 5/7 – 6m"))
+        assertEquals(listOf("Am7", "D7", "G"), ciphers(PassageMove.VOLTAR, 7, false, "2m - 5 - 1 (a caída mais usada)"))
+        assertEquals(listOf("G", "D/F#", "Em"), ciphers(PassageMove.DESCER, 7, false, "1 - 5/7 - 6m"))
         assertEquals(listOf("G", "B7", "Em"), ciphers(PassageMove.UM_SEIS, 7, false, "5 do 6m"))
         assertEquals(listOf("C", "C#°7", "D"), ciphers(PassageMove.QUATRO_CINCO, 7, false, "Diminuto subindo"))
         assertEquals(listOf("D#", "F", "G"), ciphers(PassageMove.FINAL, 7, false, "Final de vitória"))
@@ -48,7 +48,7 @@ class PassagesTest {
 
     @Test fun outsideTheFieldIsMarked() {
         val g = Passages.forMove(PassageMove.VOLTAR, 7, false)
-        assertEquals(0, g.first { it.name == "2m – 5 – 1 (a caída mais usada)" }.outsideCount)
+        assertEquals(0, g.first { it.name == "2m - 5 - 1 (a caída mais usada)" }.outsideCount)
         val dd = g.first { it.name.startsWith("5 do 5") }
         assertTrue(dd.steps.first().outside)                  // A7 sai do campo de Sol (Dó#)
         assertFalse(dd.steps.last().outside)

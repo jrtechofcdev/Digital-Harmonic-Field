@@ -58,60 +58,64 @@ de igreja precisa:
 
 ## O que tem dentro
 
-O app tem quatro áreas na barra de baixo:
+O app tem quatro abas na barra de baixo, separadas pelo que o músico quer
+fazer:
 
-### 🎼 Campos
-Os **24 tons** (12 maiores e 12 menores). Em cada um aparecem os 7 acordes,
-a função de cada um, as notas que formam o acorde, a escala, os caminhos mais
-comuns (como a **Progressão da Harpa**, 1 – 6m – 2m – 5 – 1) e a transposição.
-Os tons favoritos ficam salvos. Deitando o celular, tudo cabe numa tela só.
-
-### 🔁 Progressões
-Sequências prontas no tom escolhido: **essenciais para hinos**, **finais de
-frase** (como o do "Amém") e **louvor**. Cada uma abre em **tela cheia para
-tocar**, com troca de tom na hora.
-
-### 📚 Aprender
-Um guia para quem está começando: o que é campo harmônico, as três funções,
-como tirar música de ouvido, o sistema de números, o círculo das quintas com uso
-prático e os módulos de graus:
-- **Como pegar os graus**, com **treino pelo ouvido** (o app toca e você
-  responde qual é o grau) e pela cifra.
-- **Graus a fundo**: sétimas, dominantes secundárias, diminutos de passagem,
-  baixo caminhando e empréstimos, tudo calculado no tom escolhido.
-
-### 🧰 Ferramentas
-- **Detectar tom**: ouve em rodadas de 5 s, com um modelo treinado com hinos no
-  estilo da Harpa e ajuste de sensibilidade do microfone (*Culto forte*,
-  *Normal*, *Capela baixa*). Sem evidência suficiente, **não chuta um tom**.
-- **Braço do violão**: um braço realista para ver as notas, montar acordes
-  automaticamente (com variações pelo braço), harmonizar hinos e decorar o
-  braço com jogos.
-- **Repertório do culto**: a lista de hinos do dia com o tom de cada um; abre o
-  campo ou as passagens no tom certo.
-- **Passagens e enfeites**: as "graças" entre os acordes, do básico ao
-  profissional, com áudio e desenho no braço.
-- **Dicionário de acordes**: as 5 formas mais usadas (CAGED) e todas as formas
-  de cada acorde, com os dedos e o passo a passo.
-- **Treino de graus**: pelo ouvido ou pela cifra, em níveis.
+### ⛪ Culto (na hora de tocar)
+- **Detectar o tom** (o botão principal): ouve em rodadas de 5 s, com um
+  modelo treinado com hinos no estilo da Harpa e ajuste de sensibilidade do
+  microfone (*Culto forte*, *Normal*, *Capela baixa*). Sem evidência
+  suficiente, **não chuta um tom**.
+- **Repertório**: os hinos do dia na ordem, com o tom de cada um. Um toque
+  abre os acordes no tom certo; dentro dele também ficam as passagens.
 - **Metrônomo**, com marcar tempo (tap tempo) e compassos.
 - **Capotraste**, que mostra em que casa colocar o capo para usar acordes
   abertos.
+
+### 🎼 Campos (consultar tons)
+Um seletor **Tons | Progressões**:
+- **Tons:** os 24 campos (12 maiores e 12 menores). Em cada um aparecem os 7
+  acordes, a função de cada um, as notas, a escala, os caminhos mais comuns
+  (como a **Progressão da Harpa**, 1 - 6m - 2m - 5 - 1) e a transposição. Os
+  favoritos ficam salvos e, deitando o celular, tudo cabe numa tela só.
+- **Progressões:** sequências prontas no tom escolhido (**essenciais para
+  hinos**, **finais de frase**, **louvor**), cada uma com **tela cheia para
+  tocar** e troca de tom na hora.
+
+### 🎸 Violão (tudo no braço)
+- **Braço do violão**: um braço realista para ver as notas, montar acordes
+  automaticamente (com variações pelo braço), harmonizar hinos e decorar o
+  braço com jogos.
+- **Dicionário de acordes**: as 5 formas mais usadas (CAGED) e todas as formas
+  de cada acorde, com os dedos e o passo a passo.
+- **Harmonizar**: trocar o acorde seco por um com mais cor ((9), 7M, sus4).
+- **Passagens e enfeites**: as "graças" entre os acordes, do básico ao
+  profissional, com áudio e desenho no braço.
+
+### 📚 Aprender (estudar)
+- **Treinar**: **Treino de graus** (pelo ouvido ou pela cifra, em níveis) e
+  **Decorar o braço**.
+- **Lições de 1 a 10**, na ordem: o que é campo harmônico, as três funções,
+  como tirar música de ouvido, o sistema de números, como pegar os graus,
+  graus a fundo (sétimas, dominantes secundárias, diminutos, baixo
+  caminhando, empréstimos), os graus no braço, as "graças" e o círculo das
+  quintas com uso prático.
 
 ---
 
 ## Como é usar no dia a dia
 
-1. **Antes do culto:** escolha o tom do hino em **Campos**, veja os acordes e
-   abra a **Progressão** em tela cheia.
-2. **Na hora:** se não souber o tom, abra **Detectar tom** enquanto a
-   congregação canta. Em 5 a 15 segundos aparece o tom mais provável.
+1. **Antes do culto:** monte o **Repertório** na aba Culto com os hinos e o tom
+   de cada um.
+2. **Na hora:** toque no hino para abrir os acordes no tom. Se não souber o
+   tom, toque em **Detectar o tom** enquanto a congregação canta; em 5 a 15
+   segundos aparece o tom mais provável.
 3. **Para enfeitar:** abra **Passagens e enfeites** no tom do hino e escolha
-   uma caída para o fim da frase (ex.: 2m – 5 – 1).
-4. **Para soar melhor:** no **Braço do violão → Harmonizar**, escolha uma ou
-   duas trocas por estrofe (ex.: 1(9) e 5sus4 → 5).
-5. **Em casa:** 10 minutos por dia em **Aprender**, **Treino de graus** e
-   **Decorar**.
+   uma caída para o fim da frase (ex.: 2m - 5 - 1).
+4. **Para soar melhor:** em **Violão > Harmonizar**, escolha uma ou duas trocas
+   por estrofe (ex.: 1(9) e 5sus4 → 5).
+5. **Em casa:** 10 minutos por dia em **Aprender**, no **Treino de graus** e
+   no **Decorar o braço**.
 
 ---
 
@@ -151,4 +155,4 @@ Mais detalhes:
 ## Apoie
 
 O app é gratuito. Quem quiser ajudar a manter o projeto pode usar o botão
-**Apoiar** na tela inicial.
+**Apoiar** no fim da aba Culto.

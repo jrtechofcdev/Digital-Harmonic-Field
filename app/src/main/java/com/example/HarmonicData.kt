@@ -16,7 +16,7 @@ data class HarmonicField(
     val keyCipher: String,       // e.g. "C", "Am"
     val keyNamePt: String,       // e.g. "Dó Maior", "Lá menor"
     val isMinor: Boolean,
-    val scaleNotes: String,      // e.g. "C — D — E — F — G — A — B"
+    val scaleNotes: String,      // e.g. "C, D, E, F, G, A, B"
     val chords: List<ChordInfo>
 )
 
@@ -27,7 +27,7 @@ object HarmonicDatabase {
             keyCipher = "C",
             keyNamePt = "Dó Maior",
             isMinor = false,
-            scaleNotes = "Dó — Ré — Mi — Fá — Sol — Lá — Si",
+            scaleNotes = "Dó, Ré, Mi, Fá, Sol, Lá, Si",
             chords = listOf(
                 ChordInfo("I", "C", "Tônica", "Repouso", "Dó Maior"),
                 ChordInfo("ii", "Dm", "Subdominante", "Passagem", "Ré menor"),
@@ -43,7 +43,7 @@ object HarmonicDatabase {
             keyCipher = "D",
             keyNamePt = "Ré Maior",
             isMinor = false,
-            scaleNotes = "Ré — Mi — Fá# — Sol — Lá — Si — Dó#",
+            scaleNotes = "Ré, Mi, Fá#, Sol, Lá, Si, Dó#",
             chords = listOf(
                 ChordInfo("I", "D", "Tônica", "Repouso", "Ré Maior"),
                 ChordInfo("ii", "Em", "Subdominante", "Passagem", "Mi menor"),
@@ -59,7 +59,7 @@ object HarmonicDatabase {
             keyCipher = "E",
             keyNamePt = "Mi Maior",
             isMinor = false,
-            scaleNotes = "Mi — Fá# — Sol# — Lá — Si — Dó# — Ré#",
+            scaleNotes = "Mi, Fá#, Sol#, Lá, Si, Dó#, Ré#",
             chords = listOf(
                 ChordInfo("I", "E", "Tônica", "Repouso", "Mi Maior"),
                 ChordInfo("ii", "F#m", "Subdominante", "Passagem", "Fá# menor"),
@@ -75,7 +75,7 @@ object HarmonicDatabase {
             keyCipher = "F",
             keyNamePt = "Fá Maior",
             isMinor = false,
-            scaleNotes = "Fá — Sol — Lá — Sib — Dó — Ré — Mi",
+            scaleNotes = "Fá, Sol, Lá, Sib, Dó, Ré, Mi",
             chords = listOf(
                 ChordInfo("I", "F", "Tônica", "Repouso", "Fá Maior"),
                 ChordInfo("ii", "Gm", "Subdominante", "Passagem", "Ré menor"),
@@ -91,7 +91,7 @@ object HarmonicDatabase {
             keyCipher = "G",
             keyNamePt = "Sol Maior",
             isMinor = false,
-            scaleNotes = "Sol — Lá — Si — Dó — Ré — Mi — Fá#",
+            scaleNotes = "Sol, Lá, Si, Dó, Ré, Mi, Fá#",
             chords = listOf(
                 ChordInfo("I", "G", "Tônica", "Repouso", "Sol Maior"),
                 ChordInfo("ii", "Am", "Subdominante", "Passagem", "Lá menor"),
@@ -107,7 +107,7 @@ object HarmonicDatabase {
             keyCipher = "A",
             keyNamePt = "Lá Maior",
             isMinor = false,
-            scaleNotes = "Lá — Si — Dó# — Ré — Mi — Fá# — Sol#",
+            scaleNotes = "Lá, Si, Dó#, Ré, Mi, Fá#, Sol#",
             chords = listOf(
                 ChordInfo("I", "A", "Tônica", "Repouso", "Lá Maior"),
                 ChordInfo("ii", "Bm", "Subdominante", "Passagem", "Si menor"),
@@ -123,7 +123,7 @@ object HarmonicDatabase {
             keyCipher = "B",
             keyNamePt = "Si Maior",
             isMinor = false,
-            scaleNotes = "Si — Dó# — Ré# — Fá# — Sol# — Lá#",
+            scaleNotes = "Si, Dó#, Ré#, Mi, Fá#, Sol#, Lá#",
             chords = listOf(
                 ChordInfo("I", "B", "Tônica", "Repouso", "Si Maior"),
                 ChordInfo("ii", "C#m", "Subdominante", "Passagem", "Dó# menor"),
@@ -139,7 +139,7 @@ object HarmonicDatabase {
             keyCipher = "C#",
             keyNamePt = "Dó# Maior",
             isMinor = false,
-            scaleNotes = "Dó# — Ré# — Mí — Fá# — Sol# — Lá# — Si#",
+            scaleNotes = "Dó#, Ré#, Fá, Fá#, Sol#, Lá#, Dó",
             chords = listOf(
                 ChordInfo("I", "C#", "Tônica", "Repouso", "Dó# Maior"),
                 ChordInfo("ii", "D#m", "Subdominante", "Passagem", "Ré# menor"),
@@ -155,7 +155,7 @@ object HarmonicDatabase {
             keyCipher = "D#",
             keyNamePt = "Ré# Maior",
             isMinor = false,
-            scaleNotes = "Ré# — Fá — Sol — Sol# — Lá# — Dó — Ré",
+            scaleNotes = "Ré#, Fá, Sol, Sol#, Lá#, Dó, Ré",
             chords = listOf(
                 ChordInfo("I", "D#", "Tônica", "Repouso", "Ré# Maior"),
                 ChordInfo("ii", "Fm", "Subdominante", "Passagem", "Fá menor"),
@@ -171,7 +171,7 @@ object HarmonicDatabase {
             keyCipher = "F#",
             keyNamePt = "Fá# Maior",
             isMinor = false,
-            scaleNotes = "Fá# — Sol# — Lá# — Si — Dó# — Ré# — Mí#",
+            scaleNotes = "Fá#, Sol#, Lá#, Si, Dó#, Ré#, Fá",
             chords = listOf(
                 ChordInfo("I", "F#", "Tônica", "Repouso", "Fá# Maior"),
                 ChordInfo("ii", "G#m", "Subdominante", "Passagem", "Sol# menor"),
@@ -187,7 +187,7 @@ object HarmonicDatabase {
             keyCipher = "G#",
             keyNamePt = "Sol# Maior",
             isMinor = false,
-            scaleNotes = "Sol# — Lá# — Dó — Dó# — Ré# — Fá — Sol",
+            scaleNotes = "Sol#, Lá#, Dó, Dó#, Ré#, Fá, Sol",
             chords = listOf(
                 ChordInfo("I", "G#", "Tônica", "Repouso", "Sol# Maior"),
                 ChordInfo("ii", "A#m", "Subdominante", "Passagem", "Lá# menor"),
@@ -203,7 +203,7 @@ object HarmonicDatabase {
             keyCipher = "A#",
             keyNamePt = "Lá# Maior",
             isMinor = false,
-            scaleNotes = "Lá# — Dó — Ré — Ré# — Fá — Sol — Lá",
+            scaleNotes = "Lá#, Dó, Ré, Ré#, Fá, Sol, Lá",
             chords = listOf(
                 ChordInfo("I", "A#", "Tônica", "Repouso", "Lá# Maior"),
                 ChordInfo("ii", "Cm", "Subdominante", "Passagem", "Dó menor"),
@@ -222,7 +222,7 @@ object HarmonicDatabase {
             keyCipher = "Cm",
             keyNamePt = "Dó menor",
             isMinor = true,
-            scaleNotes = "Dó — Ré — Ré# — Fá — Sol — Sol# — Lá#",
+            scaleNotes = "Dó, Ré, Ré#, Fá, Sol, Sol#, Lá#",
             chords = listOf(
                 ChordInfo("i", "Cm", "Tônica", "Repouso", "Dó menor"),
                 ChordInfo("ii°", "D°", "Subdominante", "Tensão forte", "Ré diminuto"),
@@ -238,7 +238,7 @@ object HarmonicDatabase {
             keyCipher = "Dm",
             keyNamePt = "Ré menor",
             isMinor = true,
-            scaleNotes = "Ré — Mi — Fá — Sol — Lá — Lá# — Dó",
+            scaleNotes = "Ré, Mi, Fá, Sol, Lá, Lá#, Dó",
             chords = listOf(
                 ChordInfo("i", "Dm", "Tônica", "Repouso", "Ré menor"),
                 ChordInfo("ii°", "E°", "Subdominante", "Tensão forte", "Mi diminuto"),
@@ -254,7 +254,7 @@ object HarmonicDatabase {
             keyCipher = "Em",
             keyNamePt = "Mi menor",
             isMinor = true,
-            scaleNotes = "Mi — Fá# — Sol — Lá — Si — Dó — Ré",
+            scaleNotes = "Mi, Fá#, Sol, Lá, Si, Dó, Ré",
             chords = listOf(
                 ChordInfo("i", "Em", "Tônica", "Repouso", "Mi menor"),
                 ChordInfo("ii°", "F#°", "Subdominante", "Tensão forte", "Fá# diminuto"),
@@ -270,7 +270,7 @@ object HarmonicDatabase {
             keyCipher = "Fm",
             keyNamePt = "Fá menor",
             isMinor = true,
-            scaleNotes = "Fá — Sol — Sol# — Lá# — Dó — Dó# — Ré#",
+            scaleNotes = "Fá, Sol, Sol#, Lá#, Dó, Dó#, Ré#",
             chords = listOf(
                 ChordInfo("i", "Fm", "Tônica", "Repouso", "Fá menor"),
                 ChordInfo("ii°", "G°", "Subdominante", "Tensão forte", "Sol diminuto"),
@@ -286,7 +286,7 @@ object HarmonicDatabase {
             keyCipher = "Gm",
             keyNamePt = "Sol menor",
             isMinor = true,
-            scaleNotes = "Sol — Lá — Lá# — Dó — Ré — Ré# — Fá",
+            scaleNotes = "Sol, Lá, Lá#, Dó, Ré, Ré#, Fá",
             chords = listOf(
                 ChordInfo("i", "Gm", "Tônica", "Repouso", "Sol menor"),
                 ChordInfo("ii°", "A°", "Subdominante", "Tensão forte", "Lá diminuto"),
@@ -302,7 +302,7 @@ object HarmonicDatabase {
             keyCipher = "Am",
             keyNamePt = "Lá menor",
             isMinor = true,
-            scaleNotes = "Lá — Si — Dó — Ré — Mi — Fá — Sol",
+            scaleNotes = "Lá, Si, Dó, Ré, Mi, Fá, Sol",
             chords = listOf(
                 ChordInfo("i", "Am", "Tônica", "Repouso", "Lá menor"),
                 ChordInfo("ii°", "B°", "Subdominante", "Tensão forte", "Si diminuto"),
@@ -318,7 +318,7 @@ object HarmonicDatabase {
             keyCipher = "Bm",
             keyNamePt = "Si menor",
             isMinor = true,
-            scaleNotes = "Si — Dó# — Ré — Mi — Fá# — Sol — Lá",
+            scaleNotes = "Si, Dó#, Ré, Mi, Fá#, Sol, Lá",
             chords = listOf(
                 ChordInfo("i", "Bm", "Tônica", "Repouso", "Si menor"),
                 ChordInfo("ii°", "C#°", "Subdominante", "Tensão forte", "Dó# diminuto"),
@@ -335,7 +335,7 @@ object HarmonicDatabase {
             keyCipher = "C#m",
             keyNamePt = "Dó# menor",
             isMinor = true,
-            scaleNotes = "Dó# — Ré# — Mi — Fá# — Sol# — Lá — Si",
+            scaleNotes = "Dó#, Ré#, Mi, Fá#, Sol#, Lá, Si",
             chords = listOf(
                 ChordInfo("i", "C#m", "Tônica", "Repouso", "Dó# menor"),
                 ChordInfo("ii°", "D#°", "Subdominante", "Tensão forte", "Ré# diminuto"),
@@ -351,7 +351,7 @@ object HarmonicDatabase {
             keyCipher = "D#m",
             keyNamePt = "Ré# menor",
             isMinor = true,
-            scaleNotes = "Ré# — Fá — Fá# — Sol# — Lá# — Si — Dó#",
+            scaleNotes = "Ré#, Fá, Fá#, Sol#, Lá#, Si, Dó#",
             chords = listOf(
                 ChordInfo("i", "D#m", "Tônica", "Repouso", "Ré# menor"),
                 ChordInfo("ii°", "F°", "Subdominante", "Tensão forte", "Fá diminuto"),
@@ -367,7 +367,7 @@ object HarmonicDatabase {
             keyCipher = "F#m",
             keyNamePt = "Fá# menor",
             isMinor = true,
-            scaleNotes = "Fá# — Sol# — Lá — Si — Dó# — Ré — Mi",
+            scaleNotes = "Fá#, Sol#, Lá, Si, Dó#, Ré, Mi",
             chords = listOf(
                 ChordInfo("i", "F#m", "Tônica", "Repouso", "Fá# menor"),
                 ChordInfo("ii°", "G#°", "Subdominante", "Tensão forte", "Sol# diminuto"),
@@ -383,7 +383,7 @@ object HarmonicDatabase {
             keyCipher = "G#m",
             keyNamePt = "Sol# menor",
             isMinor = true,
-            scaleNotes = "Sol# — Lá# — Si — Dó# — Ré# — Mi — Fá#",
+            scaleNotes = "Sol#, Lá#, Si, Dó#, Ré#, Mi, Fá#",
             chords = listOf(
                 ChordInfo("i", "G#m", "Tônica", "Repouso", "Sol# menor"),
                 ChordInfo("ii°", "A#°", "Subdominante", "Tensão forte", "Lá# diminuto"),
@@ -399,7 +399,7 @@ object HarmonicDatabase {
             keyCipher = "A#m",
             keyNamePt = "Lá# menor",
             isMinor = true,
-            scaleNotes = "Lá# — Dó — Dó# — Ré# — Fá — Fá# — Sol#",
+            scaleNotes = "Lá#, Dó, Dó#, Ré#, Fá, Fá#, Sol#",
             chords = listOf(
                 ChordInfo("i", "A#m", "Tônica", "Repouso", "Lá# menor"),
                 ChordInfo("ii°", "C°", "Subdominante", "Tensão forte", "Dó diminuto"),

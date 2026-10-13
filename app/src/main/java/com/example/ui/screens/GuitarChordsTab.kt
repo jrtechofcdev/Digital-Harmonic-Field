@@ -298,9 +298,9 @@ internal fun ColumnScope.ChordsTab(
             Text("Como montar sozinho", style = MaterialTheme.typography.titleMedium, color = TextStrong)
             Spacer(Modifier.height(6.dp))
             listOf(
-                "1. Deixe só o \"1\" ligado e escolha um na 6ª ou na 5ª corda — ele é o baixo do acorde.",
+                "1. Deixe só o \"1\" ligado e escolha um na 6ª ou na 5ª corda: ele é o baixo do acorde.",
                 "2. Ligue a \"3\" (ou \"3m\") e procure uma nas cordas de cima, perto do 1 (até 3 casas). É ela que diz se o acorde é maior ou menor.",
-                "3. Ligue a \"5\" e complete. Pode repetir o 1 e a 5 em outras cordas — repetir a 3 deixa o som pesado.",
+                "3. Ligue a \"5\" e complete. Pode repetir o 1 e a 5 em outras cordas: repetir a 3 deixa o som pesado.",
                 "4. Quer mais cor? Troque um 1 ou uma 5 repetida pela 9, 7M ou 6. Na 1ª corda (a mais aguda) ela aparece mais.",
             ).forEach { Text(it, style = MaterialTheme.typography.bodyMedium, color = TextBody, modifier = Modifier.padding(vertical = 2.dp)) }
         }
@@ -337,7 +337,7 @@ internal fun ColumnScope.HarmonizeTab(
         BeforeAfterRow("Harmonioso", rich, keyRoot, minor, byDegree) { play(player, rich.map { it.chord }) }
         Spacer(Modifier.height(6.dp))
         Text(
-            "Mesma função, mesmo caminho — só mudou o tempero de cada acorde.",
+            "Mesma função, mesmo caminho: só mudou o tempero de cada acorde.",
             style = MaterialTheme.typography.labelSmall, color = TextMuted,
         )
     }
@@ -377,7 +377,7 @@ internal fun ColumnScope.HarmonizeTab(
         listOf(
             "Não troque tudo de uma vez: 1 ou 2 acordes \"temperados\" por estrofe já mudam o hino.",
             "O (9) é o curinga: cabe no 1, no 4 e no 6m quase sempre, sem brigar com a melodia.",
-            "Cuidado com o 7M quando a voz canta a nota do 1 — as duas notas ficam coladas e soa errado.",
+            "Cuidado com o 7M quando a voz canta a nota do 1: as duas notas ficam coladas e soa errado.",
             "sus4 é tensão: segure e resolva no acorde normal (5sus4 → 5 → 1).",
             "Com teclado e baixo junto, prefira formas mais agudas (casa 5 em diante): o violão não embola com eles.",
             "No final do hino (\"Amém\"), o 1⁶⁽⁹⁾ ou o 4m → 1 dão aquele fechamento de igreja.",

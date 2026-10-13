@@ -108,7 +108,7 @@ fun FieldDetailScreen(
 
     val keyNamePt = remember(field, transpose) { transposePtChord(field.keyNamePt, transpose) }
     val scaleNotes = remember(field, transpose) {
-        field.scaleNotes.split(" — ").joinToString(", ") { transposePtNote(it, transpose) }
+        field.scaleNotes.split(", ").joinToString(", ") { transposePtNote(it, transpose) }
     }
     val chords = remember(field, transpose) {
         field.chords.map {
@@ -577,7 +577,7 @@ private fun CommonPathsCard(
         Text("Caminhos comuns neste tom", style = MaterialTheme.typography.titleMedium, color = TextStrong)
         if (!compact) {
             Text(
-                "Sequências prontas para acompanhar — é só seguir a ordem.",
+                "Sequências prontas para acompanhar: é só seguir a ordem.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextMuted,
             )

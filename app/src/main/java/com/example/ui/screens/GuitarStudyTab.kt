@@ -156,7 +156,7 @@ private fun ColumnScope.NeckGame(latin: Boolean) {
 
     if (done) {
         Text(
-            if (correct) "Isso! Diga em voz alta: \"$name\" — falar ajuda a gravar."
+            if (correct) "Isso! Diga em voz alta \"$name\". Falar ajuda a gravar."
             else "Era $name ($stringName, casa ${spot.fret}). Procure o marco mais perto e conte as casas.",
             style = MaterialTheme.typography.bodyMedium,
             color = if (correct) FuncTonic else FuncDominant,
@@ -174,7 +174,7 @@ private fun ColumnScope.NeckGame(latin: Boolean) {
 private val METHOD = listOf(
     "1. Os nomes das cordas soltas" to listOf(
         "Da mais grossa para a mais fina: Mi, Lá, Ré, Sol, Si, Mi (E A D G B E).",
-        "Frase para lembrar: \"Eu Amo Deus, Glória Bendita Eternamente\" — a primeira letra é a cifra de cada corda.",
+        "Frase para lembrar: \"Eu Amo Deus, Glória Bendita Eternamente\". A primeira letra é a cifra de cada corda.",
     ),
     "2. A regra das casas" to listOf(
         "Cada casa sobe meio tom. Entre duas notas naturais existe uma casa no meio (o sustenido)…",
@@ -208,7 +208,7 @@ private val CHORD_TIPS = listOf(
         "Todo acorde é 1 + 3 + 5. Sol = Sol, Si, Ré. Ao montar, diga as notas. Na aba Acordes, use \"Onde estão 1, 3, 5\".",
     "As 5 formas que andam pelo braço (CAGED)" to
         "Os desenhos de Dó, Lá, Sol, Mi e Ré abertos se repetem pelo braço, um emendado no outro, nessa ordem. " +
-            "Por isso o mesmo acorde aparece em vários lugares — são as \"variações\" da aba Acordes.",
+            "Por isso o mesmo acorde aparece em vários lugares: são as \"variações\" da aba Acordes.",
     "Tríades nas cordas de cima" to
         "Só 3 notas (1ª, 2ª e 3ª cordas) já formam o acorde. São leves, não embolam com o teclado e o baixo, e ficam lindas em hino lento.",
     "Dedo guia" to

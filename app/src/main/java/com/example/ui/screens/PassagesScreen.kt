@@ -143,7 +143,7 @@ fun PassagesScreen(
             Spacer(Modifier.height(6.dp))
             listOf(
                 "Use a passagem onde a melodia segura uma nota longa (fim de frase): é o espaço do enfeite.",
-                "Os acordes de passagem duram pouco — meio tempo ou um tempo cada. O acorde de chegada dura mais.",
+                "Os acordes de passagem duram pouco (meio tempo ou um tempo cada). O acorde de chegada dura mais.",
                 "Comece pelas de nível Básico. Quando ficar natural, troque por uma Intermediária no mesmo lugar.",
                 "Acordes marcados \"fora\" saem do campo: soam especiais, então use com moderação (1 por estrofe).",
                 "Tocando com baixo e teclado, combine antes: a passagem fica bonita quando todos fazem juntos.",
@@ -215,7 +215,7 @@ private fun PassageCard(p: Passage, plain: List<PassageStep>, player: ChordPlaye
         }
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            SecondaryButton(if (player.isPlaying) "Tocando…" else "Ouvir", Modifier.weight(1f), icon = R.drawable.ic_play) { play(player, p.steps) }
+            SecondaryButton("Ouvir", Modifier.weight(1f), icon = R.drawable.ic_play) { play(player, p.steps) }
             SecondaryButton("Direto", Modifier.weight(1f), icon = R.drawable.ic_play) { play(player, plain) }
             LabChip("Formas", showShapes, Modifier.weight(0.9f)) { showShapes = !showShapes }
         }

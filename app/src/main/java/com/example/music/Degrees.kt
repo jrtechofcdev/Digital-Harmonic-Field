@@ -69,7 +69,7 @@ fun degreeLabel(index: Int, cipher: String): String {
 
 /** Sequência em números de uma progressão (ex.: "1 – 6m – 2m – 5 – 1"). */
 fun degreeSequence(degrees: List<Int>, field: HarmonicField): String =
-    degrees.joinToString(" – ") { i -> field.chords.getOrNull(i)?.let { degreeLabel(i, it.cipher) } ?: "?" }
+    degrees.joinToString(" - ") { i -> field.chords.getOrNull(i)?.let { degreeLabel(i, it.cipher) } ?: "?" }
 
 /** Um exemplo de "grau a fundo": rótulo em números, acorde real no tom e explicação curta. */
 data class DegreeExample(val label: String, val chord: Chord, val note: String = "")

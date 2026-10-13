@@ -66,7 +66,7 @@ object DegreeQuiz {
         2 -> "O 3m é passagem: parecido com o 1, mas mais suave e triste."
         3 -> "O 4 abre: levanta, \"sai de casa\" sem tensão."
         4 -> "O 5 é tensão: parece que pede para voltar ao 1."
-        5 -> "O 6m é o lado triste do 1 — repousa, mas com saudade."
+        5 -> "O 6m é o lado triste do 1: repousa, mas com saudade."
         else -> "O 7° é tensão forte e rara: puxa para o 1."
     }
 }

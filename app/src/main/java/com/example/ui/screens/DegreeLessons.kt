@@ -83,15 +83,15 @@ internal fun HowToFindDegreesLesson(onOpenTrainer: () -> Unit) {
         }
         Spacer(Modifier.height(12.dp))
         StepLine("3", "Ouça a sensação de cada grau", "")
-        FeelingLine(FuncTonic, "1 — a casa", "Resolvido, dá vontade de parar.")
-        FeelingLine(FuncSubdominant, "4 — sai de casa", "Levanta, abre, sem tensão.")
-        FeelingLine(FuncDominant, "5 — tensão", "Parece que pede para voltar ao 1.")
-        FeelingLine(FuncTonic, "6m — a casa com saudade", "Repousa, mas triste. É a \"relativa menor\".")
-        FeelingLine(FuncSubdominant, "2m — prepara", "Soa \"a caminho\"; quase sempre vem antes do 5.")
-        FeelingLine(FuncTonic, "3m — passagem", "Parecido com o 1, mais suave. Aparece pouco.")
+        FeelingLine(FuncTonic, "1: a casa", "Resolvido, dá vontade de parar.")
+        FeelingLine(FuncSubdominant, "4: sai de casa", "Levanta, abre, sem tensão.")
+        FeelingLine(FuncDominant, "5: tensão", "Parece que pede para voltar ao 1.")
+        FeelingLine(FuncTonic, "6m: a casa com saudade", "Repousa, mas triste. É a \"relativa menor\".")
+        FeelingLine(FuncSubdominant, "2m: prepara", "Soa \"a caminho\"; quase sempre vem antes do 5.")
+        FeelingLine(FuncTonic, "3m: passagem", "Parecido com o 1, mais suave. Aparece pouco.")
         Spacer(Modifier.height(6.dp))
         StepLine("4", "Siga o baixo", "O baixo costuma tocar a nota do grau. Se ele sai do 1 e sobe 4 notas da escala (ex.: Sol → Dó), o acorde é o 4.")
-        StepLine("5", "Conheça os caminhos de hino", "1 – 4 – 1 – 5 – 1 (estrofe) · 1 – 6m – 2m – 5 – 1 (volta da Harpa) · 4 – 5 – 1 (fim de frase) · 4 – 1 (Amém).")
+        StepLine("5", "Conheça os caminhos de hino", "1 - 4 - 1 - 5 - 1 (estrofe) · 1 - 6m - 2m - 5 - 1 (volta da Harpa) · 4 - 5 - 1 (fim de frase) · 4 - 1 (Amém).")
         StepLine("6", "Treine um pouco todo dia", "5 minutos no treino pelo ouvido já mudam o jeito de ouvir. Comece no 1 · 4 · 5.")
         ActionButton("Abrir o treino de graus", onOpenTrainer)
     }
@@ -100,7 +100,7 @@ internal fun HowToFindDegreesLesson(onOpenTrainer: () -> Unit) {
 @Composable
 internal fun DegreesDeepDiveLesson() {
     LessonCard("7. Graus a fundo (aprendizado estendido)") {
-        Paragraph("Tudo abaixo aparece no tom que você escolher — os números são os mesmos em qualquer tom.")
+        Paragraph("Tudo abaixo aparece no tom que você escolher: os números são os mesmos em qualquer tom.")
         KeyStepper { field ->
             val t = remember(field.keyCipher) { DegreeTheory(field) }
             val relMinorKey = pitchClassCiphers[(com.example.music.rootPc(field.keyCipher)!! + 9) % 12] + "m"
@@ -110,7 +110,7 @@ internal fun DegreesDeepDiveLesson() {
             Paragraph("Maior: 1 · 2m · 3m · 4 · 5 · 6m · 7°.  Menor: 1m · 2° · 3 · 4m · 5m · 6 · 7.")
             if (minorField != null) {
                 val tm = remember(relMinorKey) { DegreeTheory(minorField) }
-                Paragraph("Nos hinos em tom menor, o 5 quase sempre vira MAIOR (5 ou 5⁷) — é ele que faz a volta forte para o 1m. Em ${HarmonicDatabase.ptNameByCipher[relMinorKey]}:")
+                Paragraph("Nos hinos em tom menor, o 5 quase sempre vira MAIOR (5 ou 5⁷): é ele que faz a volta forte para o 1m. Em ${HarmonicDatabase.ptNameByCipher[relMinorKey]}:")
                 DegreeLadder(
                     tm.minorWithMajorFive,
                     colors = listOf(FuncTonic, FuncSubdominant, FuncDominant, FuncDominant, FuncTonic),
@@ -118,10 +118,10 @@ internal fun DegreesDeepDiveLesson() {
             }
 
             Topic("2. Graus com sétima")
-            Paragraph("Acrescentar a sétima deixa o acorde mais \"cheio\". O mais importante é o 5⁷: aumenta a tensão e a volta para o 1 fica mais forte. O caminho 2m⁷ – 5⁷ – 1⁷M é o mais elegante.")
+            Paragraph("Acrescentar a sétima deixa o acorde mais \"cheio\". O mais importante é o 5⁷: aumenta a tensão e a volta para o 1 fica mais forte. O caminho 2m⁷ - 5⁷ - 1⁷M é o mais elegante.")
             DegreeLadder(t.sevenths, colors = (0..6).map { degreeColor(it) })
 
-            Topic("3. Dominantes secundárias — o \"5\" de cada grau")
+            Topic("3. Dominantes secundárias: o \"5\" de cada grau")
             Paragraph("Qualquer grau pode ganhar o seu próprio 5: um acorde MAIOR com sétima, uma quinta acima dele. O mais comum em hino é o 1⁷ indo para o 4.")
             t.secondaryDominants.forEach { (dom, target) ->
                 val ti = t.triads.indexOf(target)
@@ -130,7 +130,7 @@ internal fun DegreesDeepDiveLesson() {
 
             if (t.passingDiminished.isNotEmpty()) {
                 Topic("4. Diminutos de passagem")
-                Paragraph("Sobem meio tom ligando dois graus — dão movimento sem sair do tom.")
+                Paragraph("Sobem meio tom ligando dois graus: dão movimento sem sair do tom.")
                 t.passingDiminished.forEach { (a, d, b) ->
                     DegreeLadder(
                         listOf(a, d, b),
@@ -155,14 +155,14 @@ internal fun DegreesDeepDiveLesson() {
 
             if (t.borrowedFourMinor.isNotEmpty()) {
                 Topic("6. Empréstimo: o 4m")
-                Paragraph("O 4 vira menor por um instante antes de voltar ao 1 — o \"Amém\" com emoção. É um acorde \"emprestado\" do tom menor.")
+                Paragraph("O 4 vira menor por um instante antes de voltar ao 1: o \"Amém\" com emoção. É um acorde \"emprestado\" do tom menor.")
                 DegreeLadder(t.borrowedFourMinor, colors = listOf(FuncSubdominant, FuncSubdominant, FuncTonic))
             }
 
             Topic("7. Transpor pelos graus")
             Paragraph(
-                "Os números não mudam: 1 – 4 – 5 em Sol é Sol – Dó – Ré; em Ré é Ré – Sol – Lá. Pensou em " +
-                    "grau, toca em qualquer tom — e com capotraste, os números continuam os mesmos."
+                "Os números não mudam: 1 - 4 - 5 em Sol é Sol - Dó - Ré; em Ré é Ré - Sol - Lá. Pensou em " +
+                    "grau, toca em qualquer tom, e com capotraste, os números continuam os mesmos."
             )
         }
     }
@@ -195,11 +195,11 @@ internal fun PassagesLesson(onOpenPassages: () -> Unit, onOpenDictionary: () -> 
         )
         Paragraph(
             "Regra para começar: a passagem vai onde a melodia segura uma nota longa (fim de frase). Os acordes " +
-                "de passagem duram pouco; o de chegada dura mais. Comece pelo 2m – 5 – 1 e pelo 1 – 5/7 – 6m."
+                "de passagem duram pouco; o de chegada dura mais. Comece pelo 2m - 5 - 1 e pelo 1 - 5/7 - 6m."
         )
         Paragraph(
             "Alguns acordes saem do campo harmônico (o app marca como \"fora\"). Eles soam especiais justamente " +
-                "por isso — use um por estrofe, não em todo lugar."
+                "por isso: use um por estrofe, não em todo lugar."
         )
         ActionButton("Abrir Passagens e enfeites", onOpenPassages)
         ActionButton("Dicionário de acordes (todas as formas)", onOpenDictionary)

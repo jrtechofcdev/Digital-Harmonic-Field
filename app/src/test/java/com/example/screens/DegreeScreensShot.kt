@@ -50,7 +50,7 @@ class DegreeScreensShot {
         rule.onNode(androidx.compose.ui.test.hasText("(9)")).performClick()
     }
     @Test fun violaoMontar() = guitarTab("Acordes", "violao_montar") {
-        rule.onNode(androidx.compose.ui.test.hasText("Onde estão 1 · 3 · 5")).performClick()
+        rule.onNode(androidx.compose.ui.test.hasText("Onde estão 1, 3, 5")).performClick()
     }
     @Test fun violaoHarmonizar() = guitarTab("Harmonizar", "violao_harmonizar")
     @Test fun violaoDecorar() = guitarTab("Decorar", "violao_decorar")

@@ -123,7 +123,7 @@ fun DevLabelForm(
             Spacer(Modifier.size(8.dp))
             Text("Qual era o tom certo?", style = MaterialTheme.typography.titleMedium, color = TextStrong)
         }
-        Text("Sessão $sessionId — o áudio já está salvo como pendente.", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        Text("Sessão $sessionId: o áudio já está salvo como pendente.", style = MaterialTheme.typography.labelSmall, color = TextMuted)
 
         // 1) O app acertou? Um toque no tom sugerido.
         if (detected.isNotEmpty()) {

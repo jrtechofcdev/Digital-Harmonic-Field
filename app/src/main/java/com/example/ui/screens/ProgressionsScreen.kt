@@ -19,6 +19,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import com.example.ui.components.OptionChip
+import com.example.ui.components.Panel
+import com.example.ui.components.SecondaryButton
+import com.example.ui.components.SectionTitle
+import com.example.ui.components.Segmented
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +69,7 @@ fun ProgressionsScreen(
     onOpenKey: (String) -> Unit,
     onPlayFullScreen: (Progression, String) -> Unit,
     contentPadding: PaddingValues,
+    header: @Composable () -> Unit = {},
 ) {
     var root by rememberSaveable { mutableIntStateOf(7) }   // Sol
     var isMinor by rememberSaveable { mutableStateOf(false) }
@@ -76,57 +88,35 @@ fun ProgressionsScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("Progressões", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-                    Text(
-                        "Tom de ${ptByCipher[selectedKey] ?: selectedKey}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Brass,
-                    )
-                }
-                NotationToggle()
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    "Ver campo ›",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Brass,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onOpenKey(selectedKey) }
-                        .padding(8.dp),
-                )
-            }
-        }
+        item { header() }
 
-        // Seletor de tom compacto: maior/menor + 12 notas.
+        // Tom: maior/menor + 12 notas, a chave Cifra|Grau e o atalho para o campo.
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Pill("Maior", !isMinor, Modifier.weight(1f)) { isMinor = false }
-                    Pill("Menor", isMinor, Modifier.weight(1f)) { isMinor = true }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Segmented(listOf("Maior", "Menor"), if (isMinor) 1 else 0, { isMinor = it == 1 }, Modifier.weight(1f))
+                    NotationToggle()
                 }
                 (0 until 12).chunked(6).forEach { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         row.forEach { r ->
-                            Pill(
-                                label = pitchClassCiphers[r] + if (isMinor) "m" else "",
-                                selected = r == root,
-                                modifier = Modifier.weight(1f),
-                            ) { root = r }
+                            OptionChip(pitchClassCiphers[r] + if (isMinor) "m" else "", r == root, Modifier.weight(1f)) { root = r }
                         }
                     }
                 }
+                SecondaryButton(
+                    "Ver o campo de ${ptByCipher[selectedKey] ?: selectedKey}",
+                    Modifier.fillMaxWidth(),
+                ) { onOpenKey(selectedKey) }
             }
         }
 
         groups.forEach { (group, list) ->
             item {
-                Column(Modifier.padding(top = 8.dp)) {
-                    SectionLabel(group.title)
-                    Spacer(Modifier.height(4.dp))
-                    Text(group.subtitle, style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+                Column(Modifier.padding(top = 12.dp)) {
+                    SectionTitle(group.title)
+                    Spacer(Modifier.height(2.dp))
+                    Text(group.subtitle, style = MaterialTheme.typography.bodyMedium, color = TextBody)
                 }
             }
             items(list, key = { it.name }) { prog ->
@@ -143,79 +133,42 @@ fun ProgressionsScreen(
 }
 
 @Composable
-private fun Pill(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Box(
-        modifier = modifier
-            .height(40.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) Brass else Surface1)
-            .border(1.dp, if (selected) Brass else Hairline, RoundedCornerShape(10.dp))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = if (selected) Ink else TextBody,
-            maxLines = 1,
-        )
-    }
-}
-
-@Composable
 private fun ProgressionCard(prog: Progression, chords: List<com.example.ChordInfo>, sequence: String, onPlay: () -> Unit) {
     var expanded by rememberSaveable(prog.name) { mutableStateOf(false) }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Surface1)
-            .border(
-                if (prog.featured) 1.5.dp else 1.dp,
-                if (prog.featured) Brass.copy(alpha = 0.55f) else Hairline,
-                RoundedCornerShape(14.dp),
-            )
-            .clickable { expanded = !expanded }
-            .padding(14.dp),
-    ) {
+    Panel {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(prog.name, style = MaterialTheme.typography.titleMedium, color = TextStrong)
-                Text(sequence, style = MaterialTheme.typography.labelLarge, color = Brass)
+                Text(prog.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextStrong)
+                Text(sequence, style = MaterialTheme.typography.bodyMedium, color = TextBody)
             }
-            // Tela cheia: acordes grandes para tocar.
-            Box(
-                Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Brass)
-                    .clickable { onPlay() }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-            ) {
-                Text("Tela cheia", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = Ink)
-            }
+            Spacer(Modifier.width(8.dp))
+            SecondaryButton("Tela cheia", onClick = onPlay)
         }
         Spacer(Modifier.height(12.dp))
         ChordStrip(degrees = prog.degrees, chords = chords)
-        Spacer(Modifier.height(10.dp))
         if (expanded) {
+            Spacer(Modifier.height(12.dp))
             Text(prog.description, style = MaterialTheme.typography.bodyMedium, color = TextBody)
             if (prog.tip.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Brass.copy(alpha = 0.10f))
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                ) {
-                    Text("Dica", style = MaterialTheme.typography.labelSmall, color = Brass)
-                    Spacer(Modifier.width(8.dp))
-                    Text(prog.tip, style = MaterialTheme.typography.bodyMedium, color = TextBody)
-                }
+                Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = TextStrong)) { append("Dica: ") }
+                        append(prog.tip)
+                    },
+                    style = MaterialTheme.typography.bodyMedium, color = TextBody,
+                )
             }
-        } else {
-            Text("Toque para ver a explicação", style = MaterialTheme.typography.labelSmall, color = TextMuted)
         }
+        Text(
+            if (expanded) "Fechar explicação" else "Ver explicação",
+            style = MaterialTheme.typography.labelLarge,
+            color = TextStrong,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .heightIn(min = 44.dp)
+                .clickable(role = Role.Button) { expanded = !expanded }
+                .wrapContentHeight(Alignment.CenterVertically),
+        )
     }
 }

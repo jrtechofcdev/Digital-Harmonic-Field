@@ -1,5 +1,7 @@
 package com.example.ui.screens
 
+import com.example.R
+import com.example.ui.components.RoundIconButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.example.ui.components.SecondaryButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -61,7 +64,7 @@ private fun degreeColor(index: Int) = functionForDegree(index, false).color()
 
 @Composable
 internal fun HowToFindDegreesLesson(onOpenTrainer: () -> Unit) {
-    LessonCard("Como pegar os graus (passo a passo)", startExpanded = true) {
+    LessonCard("6. Como pegar os graus (passo a passo)") {
         Paragraph(
             "Tocar por grau é pensar em NÚMEROS em vez de nomes de acorde: \"1, 4, 5, 6m\". " +
                 "Assim você toca a mesma música em qualquer tom. Ligue o modo Grau (abaixo) e o app " +
@@ -96,7 +99,7 @@ internal fun HowToFindDegreesLesson(onOpenTrainer: () -> Unit) {
 
 @Composable
 internal fun DegreesDeepDiveLesson() {
-    LessonCard("Graus a fundo (aprendizado estendido)") {
+    LessonCard("7. Graus a fundo (aprendizado estendido)") {
         Paragraph("Tudo abaixo aparece no tom que você escolher — os números são os mesmos em qualquer tom.")
         KeyStepper { field ->
             val t = remember(field.keyCipher) { DegreeTheory(field) }
@@ -167,7 +170,7 @@ internal fun DegreesDeepDiveLesson() {
 
 @Composable
 internal fun GuitarLesson(onOpenGuitar: () -> Unit) {
-    LessonCard("Os graus no braço do violão") {
+    LessonCard("8. Os graus no braço do violão") {
         Paragraph(
             "Um braço de violão na tela: toque numa nota e veja todas as posições dela; escolha um grau e " +
                 "o acorde se monta sozinho, com variações pelo braço e versões mais harmoniosas (9, 7M, sus4…) " +
@@ -184,7 +187,7 @@ internal fun GuitarLesson(onOpenGuitar: () -> Unit) {
 
 @Composable
 internal fun PassagesLesson(onOpenPassages: () -> Unit, onOpenDictionary: () -> Unit) {
-    LessonCard("As \"graças\": passagens entre acordes") {
+    LessonCard("9. As \"graças\": passagens entre acordes") {
         Paragraph(
             "O tocador experiente não vai \"seco\" de um acorde para o outro: ele coloca um ou dois acordes " +
                 "rápidos no caminho. É a caída antes do 1, o baixo que desce degrau por degrau, o diminuto que " +
@@ -207,7 +210,7 @@ internal fun PassagesLesson(onOpenPassages: () -> Unit, onOpenDictionary: () -> 
 // Peças
 // ---------------------------------------------------------------------------
 
-/** Seletor de tom maior compacto (‹ Tom de Sol ›) + conteúdo calculado para ele. */
+/** Seletor de tom maior compacto (< Tom de Sol >) + conteúdo calculado para ele. */
 @Composable
 private fun KeyStepper(content: @Composable (com.example.HarmonicField) -> Unit) {
     var root by rememberSaveable { mutableIntStateOf(7) }
@@ -219,31 +222,17 @@ private fun KeyStepper(content: @Composable (com.example.HarmonicField) -> Unit)
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        StepButton("‹") { root = (root + 11) % 12 }
+        RoundIconButton(R.drawable.ic_chevron_left, "Tom anterior") { root = (root + 11) % 12 }
         Text(
             "Tom de ${HarmonicDatabase.ptNameByCipher[key] ?: key}",
             style = MaterialTheme.typography.titleMedium,
-            color = Brass,
+            color = TextStrong,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
         )
-        StepButton("›") { root = (root + 1) % 12 }
+        RoundIconButton(R.drawable.ic_chevron, "Próximo tom") { root = (root + 1) % 12 }
     }
     content(field)
-}
-
-@Composable
-private fun StepButton(label: String, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .size(36.dp)
-            .clip(CircleShape)
-            .background(Surface2)
-            .border(1.dp, Hairline, CircleShape)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(label, style = MaterialTheme.typography.titleLarge, color = TextStrong)
-    }
 }
 
 /**
@@ -303,17 +292,5 @@ private fun FeelingLine(color: Color, title: String, text: String) {
 }
 
 @Composable
-private fun ActionButton(label: String, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .padding(top = 6.dp)
-            .height(46.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Brass)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Ink)
-    }
-}
+private fun ActionButton(label: String, onClick: () -> Unit) =
+    SecondaryButton(label, Modifier.fillMaxWidth().padding(top = 6.dp), onClick = onClick)

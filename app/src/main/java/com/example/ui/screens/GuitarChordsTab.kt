@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.HarmonicDatabase
+import com.example.R
 import com.example.audio.ChordPlayer
 import com.example.music.ChordType
 import com.example.music.Guitar
@@ -50,6 +51,9 @@ import com.example.ui.components.NeckBarre
 import com.example.ui.components.NeckDot
 import com.example.ui.components.NotationSettings
 import com.example.ui.components.NotationToggle
+import com.example.ui.components.RoundIconButton
+import com.example.ui.components.SecondaryButton
+import com.example.ui.components.Segmented
 import com.example.ui.components.SectionLabel
 import com.example.ui.components.chordLabels
 import com.example.ui.theme.FuncNeutral
@@ -182,23 +186,25 @@ internal fun ColumnScope.ChordsTab(
                     style = MaterialTheme.typography.bodyMedium, color = TextBody,
                 )
             }
-            LabChip(if (player.isPlaying) "Tocando…" else "▶ Ouvir", true, Modifier.width(104.dp)) {
+            SecondaryButton("Ouvir", Modifier.width(104.dp), icon = R.drawable.ic_play) {
                 voicings.getOrNull(vIdx)?.let { player.play(listOf(it.midiNotes), secondsEach = 2.4, strum = 0.04) }
             }
         }
         Spacer(Modifier.height(6.dp))
         Text(
-            "Notas: " + chord.type.intervals.joinToString("  ·  ") { iv ->
+            "Notas: " + chord.type.intervals.joinToString(", ") { iv ->
                 noteName((chord.root + iv) % 12, latin) + " (" + chord.type.role(iv) + ")"
-            } + (chord.bass?.let { "  ·  baixo " + noteName(it, latin) } ?: ""),
+            } + (chord.bass?.let { ", baixo " + noteName(it, latin) } ?: ""),
             style = MaterialTheme.typography.bodyMedium, color = TextStrong,
         )
     }
 
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        LabChip("Montado (forma pronta)", assembled, Modifier.weight(1.2f)) { assembled = true }
-        LabChip("Onde estão 1 · 3 · 5", !assembled, Modifier.weight(1f)) { assembled = false }
-    }
+    Segmented(
+        listOf("Forma pronta", "Onde estão 1, 3, 5"),
+        if (assembled) 0 else 1,
+        { assembled = it == 0 },
+        Modifier.fillMaxWidth(),
+    )
 
     if (assembled) {
         val v = voicings.getOrNull(vIdx)
@@ -225,23 +231,26 @@ internal fun ColumnScope.ChordsTab(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Do grave ao agudo: " + v.strings.joinToString(" · ") { s ->
+                "Do grave ao agudo: " + v.strings.joinToString(", ") { s ->
                     val pc = Guitar.pitchClassAt(s, v.frets[s])
                     noteName(pc, latin) + " (" + (chord.role(pc) ?: "baixo") + ")"
                 },
                 style = MaterialTheme.typography.bodyMedium, color = TextBody,
             )
             Text(
-                "${v.fingers} dedo(s)" + (v.barre?.let { " · pestana na casa $it" } ?: "") +
-                    (if (v.usesOpen) " · usa corda solta" else "") +
-                    " · bolinha cheia = base (1, 3, 5) · anel = nota de cor (7, 9, 6, 4)",
-                style = MaterialTheme.typography.labelSmall, color = TextMuted,
+                "${v.fingers} dedo(s)" + (v.barre?.let { ", pestana na casa $it" } ?: "") +
+                    (if (v.usesOpen) ", usa corda solta" else ""),
+                style = MaterialTheme.typography.bodySmall, color = TextBody,
+            )
+            Text(
+                "Bolinha cheia: base (1, 3, 5). Anel: nota de cor (7, 9, 6, 4).",
+                style = MaterialTheme.typography.bodySmall, color = TextMuted,
             )
         }
         // Todas as variações em desenho, para comparar.
         Row(verticalAlignment = Alignment.CenterVertically) {
             SectionLabel("Formas mais usadas", Modifier.weight(1f))
-            LabChip("Todas as formas ›", false, Modifier.width(150.dp)) { onOpenDictionary(chord) }
+            SecondaryButton("Todas as formas") { onOpenDictionary(chord) }
         }
         voicings.withIndex().chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -396,7 +405,7 @@ private fun BeforeAfterRow(title: String, items: List<Harmonization>, keyRoot: I
             }
         }
         Spacer(Modifier.width(6.dp))
-        LabChip("▶", false, Modifier.width(44.dp), onPlay)
+        RoundIconButton(R.drawable.ic_play, "Ouvir: $title", onClick = onPlay)
     }
 }
 
@@ -431,10 +440,10 @@ private fun IdeaCard(
             Text(idea.why, style = MaterialTheme.typography.bodyMedium, color = TextBody)
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                LabChip("▶ Ouvir", false, Modifier.weight(1f)) {
+                SecondaryButton("Ouvir", Modifier.weight(1f), icon = R.drawable.ic_play) {
                     v?.let { player.play(listOf(it.midiNotes), secondsEach = 2.2, strum = 0.04) }
                 }
-                LabChip("No braço ›", false, Modifier.weight(1f)) { onOpenChord(idea.chord) }
+                SecondaryButton("No braço", Modifier.weight(1f)) { onOpenChord(idea.chord) }
             }
         }
     }

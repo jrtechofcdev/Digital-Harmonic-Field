@@ -1,5 +1,8 @@
 package com.example.ui.dev
 
+import com.example.R
+import androidx.compose.ui.res.painterResource
+import com.example.ui.theme.Selection
 import android.media.MediaPlayer
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -232,7 +235,7 @@ fun DevPanelScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
                         checked = DevStore.useAdapted,
                         enabled = DevStore.hasAdaptedModel,
                         onCheckedChange = { DevStore.setUseAdapted(it) },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Ink, checkedTrackColor = Brass),
+                        colors = SwitchDefaults.colors(checkedThumbColor = Ink, checkedTrackColor = Selection),
                     )
                 }
             }
@@ -309,13 +312,18 @@ private fun SessionRow(s: DevStore.Summary, playing: Boolean, onPlay: () -> Unit
     ) {
         Box(
             Modifier
-                .size(40.dp)
+                .size(44.dp)
                 .clip(CircleShape)
-                .background(if (playing) Brass else Surface2)
-                .clickable { onPlay() },
+                .background(if (playing) Selection else Surface2)
+                .clickable(role = androidx.compose.ui.semantics.Role.Button, onClickLabel = if (playing) "Parar" else "Ouvir") { onPlay() },
             contentAlignment = Alignment.Center,
         ) {
-            Text(if (playing) "■" else "▶", color = if (playing) Ink else TextStrong, style = MaterialTheme.typography.titleMedium)
+            Icon(
+                painterResource(if (playing) R.drawable.ic_stop else R.drawable.ic_play),
+                contentDescription = if (playing) "Parar" else "Ouvir",
+                tint = if (playing) Ink else TextStrong,
+                modifier = Modifier.size(20.dp),
+            )
         }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
@@ -324,18 +332,18 @@ private fun SessionRow(s: DevStore.Summary, playing: Boolean, onPlay: () -> Unit
                 style = MaterialTheme.typography.labelSmall, color = TextMuted,
             )
             Text(
-                "App: ${s.detected ?: "—"}" + (s.detectedStatus?.let { " ($it)" } ?: ""),
+                "App: ${s.detected ?: "sem tom"}" + (s.detectedStatus?.let { " ($it)" } ?: ""),
                 style = MaterialTheme.typography.titleSmall, color = TextStrong,
             )
             Text(
                 when (s.labelKind) {
-                    null -> "Pendente — toque para rotular"
+                    null -> "Pendente: toque para rotular"
                     "nao_sei" -> "Rótulo: não sei o tom"
                     "nao_era_hino" -> "Rótulo: não era hino"
                     else -> "Certo: ${s.label}" + (s.stars?.let { " · ${"★".repeat(it)}" } ?: "")
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (s.labelKind == null) Brass else TextBody,
+                color = if (s.labelKind == null) TextStrong else TextBody,
             )
         }
         Text(
@@ -347,24 +355,7 @@ private fun SessionRow(s: DevStore.Summary, playing: Boolean, onPlay: () -> Unit
 
 @Composable
 private fun Header(title: String, onBack: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Surface1)
-                .border(1.dp, Hairline, CircleShape)
-                .clickable { onBack() },
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = TextStrong, modifier = Modifier.size(18.dp))
-        }
-        Spacer(Modifier.width(14.dp))
-        Column {
-            Text(title, style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-            Text("Versão DEV · dados reais para treinar o detector", style = MaterialTheme.typography.labelSmall, color = FuncDominant)
-        }
-    }
+    com.example.ui.components.ScreenHeader(title, subtitle = "Versão DEV: dados reais para treinar o detector", onBack = onBack)
 }
 
 @Composable

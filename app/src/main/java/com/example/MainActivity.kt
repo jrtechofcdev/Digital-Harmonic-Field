@@ -12,11 +12,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -33,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -42,18 +36,29 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.music.ChordType
+import com.example.music.LabChord
+import com.example.ui.screens.CamposScreen
+import com.example.ui.screens.CapoScreen
+import com.example.ui.screens.ChordDictionaryScreen
+import com.example.ui.screens.DegreeTrainerScreen
 import com.example.ui.screens.DonationScreen
+import com.example.ui.screens.GuitarHubScreen
+import com.example.ui.screens.GuitarScreen
+import com.example.ui.screens.GuitarTab
+import com.example.ui.screens.HomeScreen
+import com.example.ui.screens.MetronomeScreen
+import com.example.ui.screens.PassagesScreen
+import com.example.ui.screens.RepertoireScreen
+import com.example.ui.theme.TextStrong
 import com.example.ui.screens.FieldDetailScreen
-import com.example.ui.screens.FieldsScreen
 import com.example.ui.screens.LearnScreen
 import com.example.ui.screens.KeyFinderScreen
 import com.example.ui.screens.ProgressionStageScreen
-import com.example.ui.screens.ProgressionsScreen
 import com.example.music.Progression
-import com.example.ui.screens.ToolsScreen
 import com.example.ui.theme.Brass
 import com.example.ui.theme.HarmonicTheme
-import com.example.ui.theme.Hairline
 import com.example.ui.theme.Ink
 import com.example.ui.theme.Surface1
 import com.example.ui.theme.TextMuted
@@ -81,15 +86,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(
-    val label: String,
-    val iconVector: ImageVector? = null,
-    val iconRes: Int? = null,
-) {
-    CAMPOS("Campos", iconVector = Icons.Filled.Home),
-    PROGRESSOES("Progressões", iconVector = Icons.AutoMirrored.Filled.List),
-    APRENDER("Aprender", iconVector = Icons.Filled.Info),
-    FERRAMENTAS("Ferramentas", iconVector = Icons.Filled.Settings),
+/** As 4 áreas do app, pelo que o músico quer fazer. */
+private enum class Tab(val label: String, val icon: Int) {
+    CULTO("Culto", R.drawable.ic_church),         // na hora de tocar
+    CAMPOS("Campos", R.drawable.ic_music_notes),   // tons e progressões
+    VIOLAO("Violão", R.drawable.ic_guitar),        // tudo no braço
+    APRENDER("Aprender", R.drawable.ic_learn),     // lições e treinos
 }
 
 @Composable
@@ -110,70 +112,73 @@ private fun HarmonicApp() {
         }
     }
 
-    var tab by remember { mutableStateOf(Tab.CAMPOS) }
+    var tab by rememberSaveable { mutableStateOf(Tab.CULTO) }
     var detailKey by remember { mutableStateOf<String?>(null) }
     var showDonation by remember { mutableStateOf(false) }
     var showKeyFinder by remember { mutableStateOf(false) }
     var stage by remember { mutableStateOf<Pair<Progression, String>?>(null) }
     var showDevPanel by remember { mutableStateOf(false) }
     var showTrainer by remember { mutableStateOf(false) }
-    var guitarKey by remember { mutableStateOf<String?>(null) }
-    var dictionary by remember { mutableStateOf<com.example.music.LabChord?>(null) }
+    var guitar by remember { mutableStateOf<Pair<String, Int>?>(null) }     // (tom, aba interna)
+    var dictionary by remember { mutableStateOf<LabChord?>(null) }
     var passagesKey by remember { mutableStateOf<String?>(null) }
     var showRepertoire by remember { mutableStateOf(false) }
+    var showMetronome by remember { mutableStateOf(false) }
+    var showCapo by remember { mutableStateOf(false) }
 
     BackHandler(
         enabled = detailKey != null || showDonation || showKeyFinder || stage != null || showDevPanel ||
-            showTrainer || guitarKey != null || dictionary != null || passagesKey != null || showRepertoire,
+            showTrainer || guitar != null || dictionary != null || passagesKey != null || showRepertoire ||
+            showMetronome || showCapo,
     ) {
         when {
             dictionary != null -> dictionary = null
-            guitarKey != null -> guitarKey = null
+            guitar != null -> guitar = null
             passagesKey != null -> passagesKey = null
             showTrainer -> showTrainer = false
             showDevPanel -> showDevPanel = false
             stage != null -> stage = null
             showKeyFinder -> showKeyFinder = false
             showDonation -> showDonation = false
+            showMetronome -> showMetronome = false
+            showCapo -> showCapo = false
             detailKey != null -> detailKey = null
             else -> showRepertoire = false
         }
     }
 
     val openKey: (String) -> Unit = { detailKey = it }
+    val openDictionary: () -> Unit = { dictionary = LabChord(7, ChordType.MAJOR) }
     val insets = WindowInsets.safeDrawing.asPaddingValues()
+
+    @Composable
+    fun Overlay(content: @Composable () -> Unit) =
+        Surface(color = Ink, modifier = Modifier.fillMaxSize()) { content() }
 
     // O dicionário de acordes abre POR CIMA da tela atual (braço do violão,
     // passagens…): ao voltar, a tela de baixo continua exatamente onde estava.
     Box(Modifier.fillMaxSize()) {
-        if (guitarKey != null) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-                com.example.ui.screens.GuitarScreen(
-                    initialKey = guitarKey!!,
-                    onBack = { guitarKey = null },
+        when {
+            guitar != null -> Overlay {
+                GuitarScreen(
+                    initialKey = guitar!!.first,
+                    onBack = { guitar = null },
                     contentPadding = insets,
                     onOpenDictionary = { dictionary = it },
+                    startTab = guitar!!.second,
                 )
             }
-        } else if (passagesKey != null) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-                com.example.ui.screens.PassagesScreen(
+            passagesKey != null -> Overlay {
+                PassagesScreen(
                     initialKey = passagesKey!!,
                     onBack = { passagesKey = null },
                     contentPadding = insets,
                     onOpenDictionary = { dictionary = it },
                 )
             }
-        } else if (showTrainer) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-                com.example.ui.screens.DegreeTrainerScreen(onBack = { showTrainer = false }, contentPadding = insets)
-            }
-        } else if (showDevPanel) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-                com.example.ui.dev.DevPanelScreen(onBack = { showDevPanel = false }, contentPadding = insets)
-            }
-        } else if (stage != null) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            showTrainer -> Overlay { DegreeTrainerScreen(onBack = { showTrainer = false }, contentPadding = insets) }
+            showDevPanel -> Overlay { com.example.ui.dev.DevPanelScreen(onBack = { showDevPanel = false }, contentPadding = insets) }
+            stage != null -> Overlay {
                 ProgressionStageScreen(
                     progression = stage!!.first,
                     keyCipher = stage!!.second,
@@ -181,8 +186,7 @@ private fun HarmonicApp() {
                     contentPadding = insets,
                 )
             }
-        } else if (showKeyFinder) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            showKeyFinder -> Overlay {
                 KeyFinderScreen(
                     onOpenKey = { showKeyFinder = false; openKey(it) },
                     onBack = { showKeyFinder = false },
@@ -190,36 +194,29 @@ private fun HarmonicApp() {
                     contentPadding = insets,
                 )
             }
-        } else if (showDonation) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-                DonationScreen(
-                    onBack = { showDonation = false },
-                    contentPadding = insets,
-                )
-            }
-        } else if (detailKey != null) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
+            showDonation -> Overlay { DonationScreen(onBack = { showDonation = false }, contentPadding = insets) }
+            showMetronome -> Overlay { MetronomeScreen(onBack = { showMetronome = false }, contentPadding = insets) }
+            showCapo -> Overlay { CapoScreen(onBack = { showCapo = false }, contentPadding = insets) }
+            detailKey != null -> Overlay {
                 FieldDetailScreen(
                     keyCipher = detailKey!!,
                     isFavorite = favorites.contains(detailKey),
                     onToggleFavorite = { detailKey?.let { toggleFavorite(it) } },
                     onBack = { detailKey = null },
-                    contentPadding = WindowInsets.safeDrawing.asPaddingValues(),
-                    onOpenGuitar = { guitarKey = it },
+                    contentPadding = insets,
+                    onOpenGuitar = { guitar = it to GuitarTab.ACORDES },
                     onOpenPassages = { passagesKey = it },
                 )
             }
-        } else if (showRepertoire) {
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-                com.example.ui.screens.RepertoireScreen(
+            showRepertoire -> Overlay {
+                RepertoireScreen(
                     onBack = { showRepertoire = false },
                     contentPadding = insets,
                     onOpenField = { detailKey = it },
                     onOpenPassages = { passagesKey = it },
                 )
             }
-        } else {
-            Scaffold(
+            else -> Scaffold(
                 containerColor = Ink,
                 bottomBar = {
                     NavigationBar(containerColor = Surface1, tonalElevation = 0.dp) {
@@ -227,20 +224,11 @@ private fun HarmonicApp() {
                             NavigationBarItem(
                                 selected = tab == entry,
                                 onClick = { tab = entry },
-                                icon = {
-                                    when {
-                                        entry.iconRes != null -> Icon(
-                                            painterResource(entry.iconRes),
-                                            contentDescription = entry.label,
-                                            modifier = Modifier.size(22.dp),
-                                        )
-                                        entry.iconVector != null -> Icon(entry.iconVector, contentDescription = entry.label)
-                                    }
-                                },
-                                label = { Text(entry.label, style = MaterialTheme.typography.labelSmall) },
+                                icon = { Icon(painterResource(entry.icon), contentDescription = null, modifier = Modifier.size(24.dp)) },
+                                label = { Text(entry.label, style = MaterialTheme.typography.labelMedium) },
                                 colors = NavigationBarItemDefaults.colors(
                                     selectedIconColor = Ink,
-                                    selectedTextColor = Brass,
+                                    selectedTextColor = TextStrong,
                                     indicatorColor = Brass,
                                     unselectedIconColor = TextMuted,
                                     unselectedTextColor = TextMuted,
@@ -251,43 +239,42 @@ private fun HarmonicApp() {
                 },
             ) { innerPadding ->
                 when (tab) {
-                    Tab.CAMPOS -> FieldsScreen(
-                        favorites = favorites,
-                        onOpenKey = openKey,
-                        onDetectKey = { showKeyFinder = true },
-                        onSupport = { showDonation = true },
+                    Tab.CULTO -> HomeScreen(
                         contentPadding = innerPadding,
+                        onDetectKey = { showKeyFinder = true },
+                        onOpenKey = openKey,
+                        onOpenRepertoire = { showRepertoire = true },
+                        onOpenMetronome = { showMetronome = true },
+                        onOpenCapo = { showCapo = true },
+                        onSupport = { showDonation = true },
+                        onOpenDevPanel = { showDevPanel = true },
                     )
-                    Tab.PROGRESSOES -> ProgressionsScreen(
+                    Tab.CAMPOS -> CamposScreen(
+                        favorites = favorites,
                         onOpenKey = openKey,
                         onPlayFullScreen = { prog, key -> stage = prog to key },
                         contentPadding = innerPadding,
+                    )
+                    Tab.VIOLAO -> GuitarHubScreen(
+                        contentPadding = innerPadding,
+                        onOpenLab = { guitar = "G" to it },
+                        onOpenDictionary = openDictionary,
+                        onOpenPassages = { passagesKey = "G" },
                     )
                     Tab.APRENDER -> LearnScreen(
                         onOpenKey = openKey,
                         contentPadding = innerPadding,
                         onOpenTrainer = { showTrainer = true },
-                        onOpenGuitar = { guitarKey = "G" },
+                        onOpenGuitar = { guitar = "G" to GuitarTab.NOTAS },
                         onOpenPassages = { passagesKey = "G" },
-                        onOpenDictionary = { dictionary = com.example.music.LabChord(7, com.example.music.ChordType.MAJOR) },
-                    )
-                    Tab.FERRAMENTAS -> ToolsScreen(
-                        onOpenKeyFinder = { showKeyFinder = true },
-                        onOpenDevPanel = { showDevPanel = true },
-                        onOpenGuitar = { guitarKey = "G" },
-                        onOpenTrainer = { showTrainer = true },
-                        onOpenDictionary = { dictionary = com.example.music.LabChord(7, com.example.music.ChordType.MAJOR) },
-                        onOpenPassages = { passagesKey = "G" },
-                        onOpenRepertoire = { showRepertoire = true },
-                        contentPadding = innerPadding,
+                        onOpenDictionary = openDictionary,
+                        onOpenStudy = { guitar = "G" to GuitarTab.DECORAR },
                     )
                 }
             }
         }
         dictionary?.let { chord ->
-            Surface(color = Ink, modifier = Modifier.fillMaxSize()) {
-                com.example.ui.screens.ChordDictionaryScreen(initial = chord, onBack = { dictionary = null }, contentPadding = insets)
-            }
+            Overlay { ChordDictionaryScreen(initial = chord, onBack = { dictionary = null }, contentPadding = insets) }
         }
     }
 }

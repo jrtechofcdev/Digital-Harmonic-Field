@@ -62,7 +62,7 @@ fun ChordStrip(
                     ) {
                         if (!compact) {
                             Text(
-                                "${rowIndex * perRow + i + 1}º · $secondary",
+                                "${rowIndex * perRow + i + 1}º  $secondary",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = TextMuted,
                                 maxLines = 1,
@@ -77,7 +77,8 @@ fun ChordStrip(
                             softWrap = false,
                             overflow = TextOverflow.Clip,
                         )
-                        if (showFunction) {
+                        // Com 5 acordes por linha o nome da função não cabe: a cor já a mostra.
+                        if (showFunction && perRow <= 4) {
                             Spacer(Modifier.height(2.dp))
                             Text(
                                 chord.function.label,

@@ -25,6 +25,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.example.R
+import com.example.ui.components.RoundIconButton
+import com.example.ui.components.ScreenHeader
+import com.example.ui.components.SecondaryButton
+import com.example.ui.components.Segmented
+import com.example.ui.theme.Selection
+import com.example.ui.theme.Surface3
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -121,24 +128,7 @@ fun ChordDictionaryScreen(initial: LabChord, onBack: () -> Unit, contentPadding:
             ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Surface1)
-                    .border(1.dp, Hairline, CircleShape)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = TextStrong, modifier = Modifier.size(18.dp))
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Dicionário de acordes", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-                Text("Todas as formas de tocar cada acorde", style = MaterialTheme.typography.labelLarge, color = Brass)
-            }
-        }
+        ScreenHeader("Dicionário de acordes", subtitle = "Todas as formas de tocar cada acorde", onBack = onBack)
 
         // Nota e tipo.
         SectionLabel("Nota")
@@ -161,16 +151,16 @@ fun ChordDictionaryScreen(initial: LabChord, onBack: () -> Unit, contentPadding:
         LabCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(chord.cipher, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = Brass)
+                    Text(chord.cipher, style = MaterialTheme.typography.displaySmall, color = TextStrong)
                     Text("${ptPitchClass(chord.root)} ${chord.type.ptName}", style = MaterialTheme.typography.bodyMedium, color = TextBody)
                 }
-                LabChip(if (player.isPlaying) "Tocando…" else "▶ Ouvir", true, Modifier.width(104.dp)) {
+                SecondaryButton(if (player.isPlaying) "Tocando…" else "Ouvir", icon = R.drawable.ic_play) {
                     current?.let { player.play(listOf(it.voicing.midiNotes), secondsEach = 2.4, strum = 0.04) }
                 }
             }
             Spacer(Modifier.height(6.dp))
             Text(
-                "Notas: " + chord.type.intervals.joinToString("  ·  ") { iv ->
+                "Notas: " + chord.type.intervals.joinToString(", ") { iv ->
                     ptPitchClass((chord.root + iv) % 12) + " (" + chord.type.role(iv) + ")"
                 },
                 style = MaterialTheme.typography.bodyMedium, color = TextStrong,
@@ -178,10 +168,10 @@ fun ChordDictionaryScreen(initial: LabChord, onBack: () -> Unit, contentPadding:
         }
 
         // Mais usadas × todas.
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LabChip("Mais usadas (${common.size})", !showAll, Modifier.weight(1f)) { showAll = false }
-            LabChip("Todas (${all?.size ?: "…"})", showAll, Modifier.weight(1f)) { showAll = true }
-        }
+        Segmented(
+            listOf("Mais usadas (${common.size})", "Todas (${all?.size ?: "…"})"),
+            if (showAll) 1 else 0, { showAll = it == 1 }, Modifier.fillMaxWidth(),
+        )
         if (showAll) {
             ShapeFilter.entries.chunked(3).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -196,7 +186,7 @@ fun ChordDictionaryScreen(initial: LabChord, onBack: () -> Unit, contentPadding:
             Text("Nenhuma forma com esse filtro.", style = MaterialTheme.typography.bodyMedium, color = TextMuted)
         } else {
             ShapeDetail(chord, current, selected, list.size, fingers, onFingers = { fingers = it }) { selected = it }
-            SectionLabel(if (showAll) "Formas no braço · toque para ver grande" else "As formas mais usadas · toque para ver grande")
+            SectionLabel(if (showAll) "Todas as formas no braço. Toque numa para ver grande." else "As formas mais usadas. Toque numa para ver grande.")
             val shown = if (showAll) list.take(page * PAGE) else list
             shown.withIndex().chunked(3).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -206,13 +196,13 @@ fun ChordDictionaryScreen(initial: LabChord, onBack: () -> Unit, contentPadding:
                             Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(if (on) Brass.copy(alpha = 0.14f) else Surface1)
-                                .border(if (on) 2.dp else 1.dp, if (on) Brass else Hairline, RoundedCornerShape(12.dp))
+                                .background(if (on) Surface3 else Surface1)
+                                .border(if (on) 2.dp else 1.dp, if (on) Selection else Hairline, RoundedCornerShape(12.dp))
                                 .clickable { selected = i }
                                 .padding(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            ChordDiagram(nv.voicing.shape, Brass)
+                            ChordDiagram(nv.voicing.shape, if (on) Brass else TextBody)
                             Text(nv.name.removePrefix("Forma de ").removePrefix("Baixo na "), style = MaterialTheme.typography.labelSmall, color = TextBody, maxLines = 1)
                             Text(nv.voicing.position, style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1)
                         }
@@ -221,7 +211,7 @@ fun ChordDictionaryScreen(initial: LabChord, onBack: () -> Unit, contentPadding:
                 }
             }
             if (showAll && list.size > shown.size) {
-                LabChip("Mostrar mais (${list.size - shown.size})", false, Modifier.fillMaxWidth()) { page++ }
+                SecondaryButton("Mostrar mais ${minOf(PAGE, list.size - shown.size)} de ${list.size - shown.size}", Modifier.fillMaxWidth()) { page++ }
             }
         }
 
@@ -252,18 +242,15 @@ private fun ShapeDetail(
     val v = nv.voicing
     LabCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            LabChip("‹", false, Modifier.width(44.dp)) { onSelect((index - 1 + count) % count) }
+            RoundIconButton(R.drawable.ic_chevron_left, "Forma anterior") { onSelect((index - 1 + count) % count) }
             Column(Modifier.weight(1f).padding(horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(nv.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextStrong, maxLines = 2)
                 Text("${index + 1} de $count", style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }
-            LabChip("›", false, Modifier.width(44.dp)) { onSelect((index + 1) % count) }
+            RoundIconButton(R.drawable.ic_chevron, "Próxima forma") { onSelect((index + 1) % count) }
         }
         Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LabChip("Dedos (1 a 4)", fingers, Modifier.weight(1f)) { onFingers(true) }
-            LabChip("Notas (1 · 3 · 5)", !fingers, Modifier.weight(1f)) { onFingers(false) }
-        }
+        Segmented(listOf("Dedos (1 a 4)", "Notas (1, 3, 5)"), if (fingers) 0 else 1, { onFingers(it == 0) }, Modifier.fillMaxWidth())
         Spacer(Modifier.height(8.dp))
         val fg = v.fingering
         val dots = v.strings.map { s ->
@@ -293,8 +280,8 @@ private fun ShapeDetail(
         }
         Spacer(Modifier.height(4.dp))
         Text(
-            if (fingers) "1 = indicador · 2 = médio · 3 = anelar · 4 = mindinho · 0 = corda solta · contorno = fundamental"
-            else "Cheia = base do acorde (1, 3, 5) · anel = nota de cor (7, 9, 6, 4) · contorno = fundamental",
+            if (fingers) "1 indicador, 2 médio, 3 anelar, 4 mindinho, 0 corda solta.\nO contorno claro marca a fundamental."
+            else "Bolinha cheia: base do acorde (1, 3, 5). Anel: nota de cor (7, 9, 6, 4).\nO contorno claro marca a fundamental.",
             style = MaterialTheme.typography.labelSmall, color = TextMuted,
         )
     }

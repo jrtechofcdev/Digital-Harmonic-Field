@@ -29,12 +29,15 @@ import com.example.ui.theme.Hairline
 import com.example.ui.theme.Surface1
 import com.example.ui.theme.TextMuted
 
-/** Rótulo de seção discreto, em caixa alta e espaçado. */
+/**
+ * Rótulo de um grupo de controles ("Tom", "Tipo de acorde"…). Frase normal, sem
+ * caixa alta espaçada: quem lê é iniciante e o rótulo precisa ser lido, não enfeitar.
+ */
 @Composable
 fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
         color = TextMuted,
         modifier = modifier,
     )
@@ -56,43 +59,22 @@ fun AppCard(
     ) { content() }
 }
 
-/** Etiqueta pequena com ponto colorido — usada para a função tonal (T/SD/D). */
+/** Etiqueta da função tonal (Tônica / Subdominante / Dominante), na cor da função. */
 @Composable
 fun FunctionTag(function: HarmonicFunction, modifier: Modifier = Modifier) {
     val color = function.color()
-    Row(
+    Box(
         modifier = modifier
             .clip(RoundedCornerShape(6.dp))
             .background(color.copy(alpha = 0.12f))
             .padding(horizontal = 8.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(6.dp)
-                .clip(CircleShape)
-                .background(color)
-        )
         Text(
             text = function.label,
             style = MaterialTheme.typography.labelSmall,
             color = color,
         )
     }
-}
-
-/** Barra vertical fina que sinaliza a função de um item de lista. */
-@Composable
-fun AccentBar(color: Color, height: Dp) {
-    Box(
-        modifier = Modifier
-            .width(3.dp)
-            .size(width = 3.dp, height = height)
-            .clip(RoundedCornerShape(2.dp))
-            .background(color)
-    )
-    Spacer(Modifier.width(12.dp))
 }
 
 /**

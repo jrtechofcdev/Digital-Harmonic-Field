@@ -25,6 +25,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.example.R
+import com.example.ui.components.OptionChip
+import com.example.ui.components.PrimaryButton
+import com.example.ui.components.ScreenHeader
+import com.example.ui.components.SecondaryButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -94,24 +99,11 @@ fun DegreeTrainerScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
             ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Surface1)
-                    .border(1.dp, Hairline, CircleShape)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = TextStrong, modifier = Modifier.size(18.dp))
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Treino de graus", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-                Text("Acertos: $right de $total" + if (streak >= 3) " · $streak seguidos" else "", style = MaterialTheme.typography.labelLarge, color = Brass)
-            }
-        }
+        ScreenHeader(
+            "Treino de graus",
+            subtitle = "Acertos: $right de $total" + if (streak >= 3) ", $streak seguidos" else "",
+            onBack = onBack,
+        )
 
         // Modo e nível.
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -146,7 +138,7 @@ fun DegreeTrainerScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
         ) {
             when (question.kind) {
                 DegreeQuiz.Kind.EAR -> {
-                    Text("Tom de $keyName", style = MaterialTheme.typography.labelLarge, color = Brass)
+                    Text("Tom de $keyName", style = MaterialTheme.typography.labelLarge, color = TextBody)
                     Spacer(Modifier.height(6.dp))
                     Text(
                         "O app toca o 1 (a casa) e depois outro acorde.\nQual é o grau do segundo?",
@@ -154,22 +146,22 @@ fun DegreeTrainerScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
                     )
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Pill(if (player.isPlaying) "Tocando…" else "▶ Ouvir de novo", true, Modifier.width(150.dp)) {
+                        PrimaryButton(if (player.isPlaying) "Tocando…" else "Ouvir de novo", Modifier.weight(1.4f), icon = R.drawable.ic_play) {
                             player.play(question.playback)
                         }
-                        Pill("Só o 1", false, Modifier.width(90.dp)) {
+                        SecondaryButton("Só o 1", Modifier.weight(1f).height(52.dp)) {
                             parseCipher(question.key)?.let { player.play(listOf(chordMidiNotes(it))) }
                         }
                     }
                 }
                 DegreeQuiz.Kind.CIPHER_TO_DEGREE -> {
-                    Text("Tom de $keyName", style = MaterialTheme.typography.labelLarge, color = Brass)
+                    Text("Tom de $keyName", style = MaterialTheme.typography.labelLarge, color = TextBody)
                     Spacer(Modifier.height(6.dp))
                     Text(question.chordCipher, fontSize = 56.sp, fontWeight = FontWeight.Bold, color = TextStrong)
                     Text("Qual é o grau deste acorde?", style = MaterialTheme.typography.bodyLarge, color = TextBody)
                 }
                 DegreeQuiz.Kind.DEGREE_TO_CIPHER -> {
-                    Text("Tom de $keyName", style = MaterialTheme.typography.labelLarge, color = Brass)
+                    Text("Tom de $keyName", style = MaterialTheme.typography.labelLarge, color = TextBody)
                     Spacer(Modifier.height(6.dp))
                     Text(
                         com.example.music.degreeLabel(question.degree, question.chordCipher),
@@ -238,7 +230,7 @@ fun DegreeTrainerScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
                 Spacer(Modifier.height(4.dp))
                 Text(DegreeQuiz.feeling(question.degree), style = MaterialTheme.typography.bodyMedium, color = color)
             }
-            Pill("Próxima ›", true, Modifier.fillMaxWidth()) { newQuestion() }
+            PrimaryButton("Próxima pergunta", Modifier.fillMaxWidth()) { newQuestion() }
         }
 
         Text(
@@ -250,17 +242,5 @@ fun DegreeTrainerScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
 }
 
 @Composable
-private fun Pill(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Box(
-        modifier
-            .height(40.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) Brass else Surface2)
-            .border(1.dp, if (selected) Brass else Hairline, RoundedCornerShape(10.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 6.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = if (selected) Ink else TextBody, maxLines = 1)
-    }
-}
+private fun Pill(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) =
+    OptionChip(label, selected, modifier, onClick)

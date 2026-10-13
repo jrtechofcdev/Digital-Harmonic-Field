@@ -17,11 +17,16 @@ val HairlineStrong = Color(0xFF3A414D)
 
 val TextStrong = Color(0xFFECEEF1)   // títulos e destaques
 val TextBody = Color(0xFFA6ADBA)     // texto corrente
-val TextMuted = Color(0xFF6B7280)    // rótulos e legendas
+val TextMuted = Color(0xFF8C93A0)    // rótulos e legendas (AA ≥ 4,6:1 em todas as superfícies)
 
-// Acento da marca — latão/âmbar sóbrio. Sinaliza ação e foco, nunca decoração.
+// Acento da marca: latão. Usado SÓ na ação principal de cada tela, na aba ativa
+// e na marca. Seleção de chips/abas internas é neutra (Selection), para o acento
+// continuar significando "faça isto".
 val Brass = Color(0xFFE0A94A)
 val BrassDim = Color(0xFF7A5E28)
+
+// Seleção neutra (chip/segmento escolhido): claro sobre escuro, texto Ink.
+val Selection = Color(0xFFECEEF1)
 
 // Estrela de favorito (mantida discreta, um pouco mais fria que o latão).
 val Favorite = Color(0xFFE7B84B)
@@ -33,10 +38,10 @@ val Favorite = Color(0xFFE7B84B)
 // Tons dessaturados, "joia", que convivem bem no escuro.
 // ---------------------------------------------------------------------------
 
-val FuncTonic = Color(0xFF57B892)        // verde — repouso / resolução
-val FuncSubdominant = Color(0xFF5B8AD6)  // azul — preparação / movimento
-val FuncDominant = Color(0xFFD9695E)     // vermelho argila — tensão / condução
-val FuncNeutral = Color(0xFF8B93A1)      // ardósia — passagem / ambíguo
+val FuncTonic = Color(0xFF57B892)        // verde: repouso / resolução
+val FuncSubdominant = Color(0xFF6B97DF)  // azul: preparação / movimento
+val FuncDominant = Color(0xFFE07468)     // vermelho argila: tensão / condução
+val FuncNeutral = Color(0xFF8B93A1)      // ardósia: passagem / ambíguo
 
 // ---------------------------------------------------------------------------
 // Braço do violão (simulação): cores chapadas de madeira, trastes e cordas.

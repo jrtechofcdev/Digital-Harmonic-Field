@@ -19,10 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.music.degreeLabel
-import com.example.ui.theme.Brass
+import com.example.ui.theme.Selection
 import com.example.ui.theme.Hairline
 import com.example.ui.theme.Ink
 import com.example.ui.theme.Surface2
@@ -58,14 +61,14 @@ object NotationSettings {
 
 /**
  * Rótulos de um acorde do campo conforme o modo: (principal, secundário).
- * Cifra: ("C", "4") · Grau: ("4", "C").
+ * Cifra: ("C", "4"). Grau: ("4", "C").
  */
 fun chordLabels(index: Int, cipher: String): Pair<String, String> {
     val degree = degreeLabel(index, cipher)
     return if (NotationSettings.byDegree) degree to cipher else cipher to degree
 }
 
-/** Chave "Cifra | Grau" — muda o app inteiro. */
+/** Chave "Cifra | Grau": muda o app inteiro. Seleção neutra, como todo segmento. */
 @Composable
 fun NotationToggle(modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -80,17 +83,18 @@ fun NotationToggle(modifier: Modifier = Modifier) {
             val on = NotationSettings.mode == n
             Box(
                 Modifier
-                    .height(30.dp)
+                    .height(38.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(if (on) Brass else Surface2)
-                    .clickable { NotationSettings.set(context, n) }
-                    .padding(horizontal = 12.dp),
+                    .background(if (on) Selection else Surface2)
+                    .semantics { selected = on }
+                    .clickable(role = Role.Tab) { NotationSettings.set(context, n) }
+                    .padding(horizontal = 14.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     if (n == Notation.CIFRA) "Cifra" else "Grau",
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
                     color = if (on) Ink else TextBody,
                 )
             }

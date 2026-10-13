@@ -18,58 +18,32 @@ val SpaceGrotesk = FontFamily(
     Font(R.font.sg_700, FontWeight.Bold),
 )
 
-// Tipografia enxuta: poucos estilos, hierarquia clara. Letter-spacing negativo
-// nos títulos grandes para um ar mais editorial/profissional.
+// Escala tipográfica completa (todos os estilos do Material 3 definidos, para
+// nenhum texto cair na fonte padrão do sistema). Tamanhos pensados para leitura
+// no culto: corpo de 14 sp, legenda mínima de 12 sp, títulos com tracking
+// levemente negativo. Rótulos NÃO usam caixa alta espaçada.
+private fun style(size: Int, line: Int, weight: FontWeight, tracking: Double = 0.0) = TextStyle(
+    fontFamily = SpaceGrotesk,
+    fontWeight = weight,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+    letterSpacing = tracking.sp,
+)
+
 val AppTypography = Typography(
-    displaySmall = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.Bold,
-        fontSize = 30.sp,
-        lineHeight = 34.sp,
-        letterSpacing = (-0.5).sp,
-    ),
-    headlineMedium = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-        lineHeight = 26.sp,
-        letterSpacing = (-0.3).sp,
-    ),
-    titleLarge = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 18.sp,
-        lineHeight = 22.sp,
-    ),
-    titleMedium = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.Medium,
-        fontSize = 15.sp,
-        lineHeight = 20.sp,
-    ),
-    bodyLarge = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.Normal,
-        fontSize = 15.sp,
-        lineHeight = 22.sp,
-    ),
-    bodyMedium = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
-        lineHeight = 18.sp,
-    ),
-    labelLarge = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.Medium,
-        fontSize = 13.sp,
-        lineHeight = 16.sp,
-    ),
-    labelSmall = TextStyle(
-        fontFamily = SpaceGrotesk,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 10.sp,
-        lineHeight = 13.sp,
-        letterSpacing = 1.2.sp,
-    ),
+    displayLarge = style(44, 48, FontWeight.Bold, -1.0),
+    displayMedium = style(36, 40, FontWeight.Bold, -0.7),
+    displaySmall = style(30, 34, FontWeight.Bold, -0.5),
+    headlineLarge = style(26, 30, FontWeight.SemiBold, -0.4),
+    headlineMedium = style(22, 28, FontWeight.SemiBold, -0.3),
+    headlineSmall = style(20, 24, FontWeight.SemiBold, -0.2),
+    titleLarge = style(18, 24, FontWeight.SemiBold),
+    titleMedium = style(16, 22, FontWeight.Medium),
+    titleSmall = style(14, 20, FontWeight.SemiBold),
+    bodyLarge = style(16, 24, FontWeight.Normal),
+    bodyMedium = style(14, 20, FontWeight.Normal),
+    bodySmall = style(12, 16, FontWeight.Normal),
+    labelLarge = style(14, 18, FontWeight.Medium),
+    labelMedium = style(12, 16, FontWeight.Medium),
+    labelSmall = style(12, 16, FontWeight.Medium, 0.1),
 )

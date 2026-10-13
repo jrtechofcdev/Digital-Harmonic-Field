@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import com.example.ui.components.SecondaryButton
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -23,6 +24,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import com.example.R
+import com.example.ui.components.NavRow
+import com.example.ui.components.RowGroup
+import com.example.ui.components.ScreenHeader
+import com.example.ui.components.SectionTitle
+import com.example.ui.theme.Surface3
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +71,7 @@ fun LearnScreen(
     onOpenGuitar: () -> Unit = {},
     onOpenPassages: () -> Unit = {},
     onOpenDictionary: () -> Unit = {},
+    onOpenStudy: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
@@ -69,20 +82,20 @@ fun LearnScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        item { ScreenHeader("Aprender", subtitle = "Lições curtas, na ordem, e treinos para fixar") }
+
+        item { SectionTitle("Treinar", Modifier.padding(top = 12.dp)) }
         item {
-            Column {
-                Text("Aprender", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "Um guia direto para quem está começando na igreja. Toque em cada tópico para abrir.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextBody,
-                )
-            }
+            RowGroup(rows = listOf(
+                @Composable { NavRow("Treino de graus", subtitle = "Pelo ouvido e pela cifra, começando no 1, 4 e 5", onClick = onOpenTrainer) },
+                @Composable { NavRow("Decorar o braço", subtitle = "O método e dois jogos para gravar as notas", onClick = onOpenStudy) },
+            ))
         }
 
+        item { SectionTitle("Lições", Modifier.padding(top = 8.dp)) }
+
         item {
-            LessonCard("O que é campo harmônico?", startExpanded = true) {
+            LessonCard("1. O que é campo harmônico?") {
                 Paragraph(
                     "Campo harmônico é o \"time\" de acordes que combinam dentro de um tom. " +
                         "Cada tom (Sol, Dó, Ré...) tem 7 acordes que soam bem juntos — são eles que " +
@@ -99,7 +112,7 @@ fun LearnScreen(
         }
 
         item {
-            LessonCard("As três funções: para onde cada acorde puxa") {
+            LessonCard("2. As três funções: para onde cada acorde puxa") {
                 FunctionLine(FuncTonic, "Tônica (T)", "É a casa, o repouso. A música começa e termina aqui. Dá sensação de \"chegou\".")
                 FunctionLine(FuncSubdominant, "Subdominante (SD)", "A preparação. Tira você do lugar sem criar muita tensão — geralmente aponta para a dominante.")
                 FunctionLine(FuncDominant, "Dominante (D)", "A tensão. Cria aquele \"segura que vai voltar\" e pede para resolver na tônica.")
@@ -112,7 +125,7 @@ fun LearnScreen(
         }
 
         item {
-            LessonCard("A Progressão da Harpa (a mais usada)", startExpanded = true) {
+            LessonCard("3. A Progressão da Harpa (a mais usada)") {
                 Paragraph(
                     "É a \"volta\" que aparece em quase todo hino. No tom de Sol ela fica assim:"
                 )
@@ -132,7 +145,7 @@ fun LearnScreen(
         }
 
         item {
-            LessonCard("Como tirar música de ouvido") {
+            LessonCard("4. Como tirar música de ouvido") {
                 StepLine("1", "Ache a tônica", "Cante a nota onde a música \"descansa\" (normalmente o último acorde). Esse é o tom.")
                 StepLine("2", "Abra o campo desse tom", "Na aba Campos. Ali estão os 7 acordes candidatos da música.")
                 StepLine("3", "Comece pelo 1, 4 e 5", "A maioria dos trechos usa tônica (1), subdominante (4) e dominante (5). Teste esses primeiro.")
@@ -142,7 +155,7 @@ fun LearnScreen(
         }
 
         item {
-            LessonCard("Sistema de números (1 – 4 – 5)") {
+            LessonCard("5. Sistema de números (1, 4, 5)") {
                 Paragraph(
                     "Na igreja é comum alguém dizer \"vai no 4\" ou \"faz o 6m\". Os números são os graus " +
                         "do campo, contando a partir da tônica — e o \"m\" indica acorde menor."
@@ -164,7 +177,7 @@ fun LearnScreen(
         item { PassagesLesson(onOpenPassages, onOpenDictionary) }
 
         item {
-            LessonCard("Círculo das quintas: o que é e como usar", startExpanded = true) {
+            LessonCard("10. Círculo das quintas: o que é e como usar") {
                 Paragraph(
                     "O círculo das quintas é um mapa dos 12 tons. Tons vizinhos são \"parentes\": " +
                         "compartilham quase todos os acordes, então combinam muito bem."
@@ -196,27 +209,31 @@ internal fun LessonCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(Surface1)
-            .border(1.dp, Hairline, RoundedCornerShape(14.dp)),
+            .border(1.dp, Hairline, RoundedCornerShape(16.dp)),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded }
+                .heightIn(min = 56.dp)
+                .clickable(role = Role.Button) { expanded = !expanded }
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
                 color = TextStrong,
                 modifier = Modifier.weight(1f),
             )
-            Text(
-                if (expanded) "–" else "+",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Brass,
+            Spacer(Modifier.width(12.dp))
+            Icon(
+                painterResource(R.drawable.ic_chevron),
+                contentDescription = if (expanded) "Fechar" else "Abrir",
+                tint = TextMuted,
+                modifier = Modifier.size(20.dp).rotate(if (expanded) -90f else 90f),
             )
         }
         AnimatedVisibility(visible = expanded) {
@@ -259,12 +276,12 @@ internal fun StepLine(number: String, title: String, text: String) {
     Row(modifier = Modifier.padding(bottom = 12.dp)) {
         Box(
             Modifier
-                .size(26.dp)
+                .size(28.dp)
                 .clip(CircleShape)
-                .background(Brass),
+                .background(Surface3),
             contentAlignment = Alignment.Center,
         ) {
-            Text(number, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = Ink)
+            Text(number, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = TextStrong)
         }
         Spacer(Modifier.width(12.dp))
         Column {
@@ -274,23 +291,24 @@ internal fun StepLine(number: String, title: String, text: String) {
     }
 }
 
+/** Uma sequência curta de acordes em células iguais (cabe na largura, sem rolar). */
 @Composable
 private fun ChordFlow(chords: List<Pair<String, Color>>) {
     Row(
-        modifier = Modifier.padding(bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        chords.forEachIndexed { i, (label, color) ->
-            if (i > 0) Text("→", style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+        chords.forEach { (label, color) ->
             Box(
                 modifier = Modifier
+                    .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
                     .background(Surface2)
                     .border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
+                Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color, maxLines = 1)
             }
         }
     }
@@ -358,22 +376,7 @@ private fun CircleLesson(onOpenKey: (String) -> Unit) {
             )
         }
         Spacer(Modifier.height(12.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(Brass)
-                .clickable { onOpenKey(selected) }
-                .padding(vertical = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                "Abrir campo completo de $selected",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Ink,
-            )
-        }
+        SecondaryButton("Abrir o campo de $selected", Modifier.fillMaxWidth()) { onOpenKey(selected) }
     }
 }
 

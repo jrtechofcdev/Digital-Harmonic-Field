@@ -14,14 +14,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,13 +37,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.HarmonicDatabase
+import com.example.R
 import com.example.music.Progression
 import com.example.music.pitchClassCiphers
-import com.example.ui.theme.Brass
+import com.example.ui.components.PrimaryButton
+import com.example.ui.components.RoundIconButton
+import com.example.ui.components.SecondaryButton
 import com.example.ui.theme.Hairline
-import com.example.ui.theme.Ink
 import com.example.ui.theme.Surface1
-import com.example.ui.theme.Surface2
 import com.example.ui.theme.TextBody
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextStrong
@@ -93,9 +91,7 @@ fun ProgressionStageScreen(
     ) {
         // Topo: voltar, nome e troca de tom.
         Row(verticalAlignment = Alignment.CenterVertically) {
-            RoundButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = TextStrong, modifier = Modifier.size(18.dp))
-            }
+            RoundIconButton(R.drawable.ic_back, "Voltar", onClick = onBack)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -106,32 +102,28 @@ fun ProgressionStageScreen(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    // Modo Grau: a sequência em números ("1 – 6m – 2m – 5 – 1").
+                    // Modo Grau: a sequência em números ("1 - 6m - 2m - 5 - 1").
                     HarmonicDatabase.getField(cipher)
                         ?.takeIf { com.example.ui.components.NotationSettings.byDegree }
                         ?.let { com.example.music.degreeSequence(progression.degrees, it) }
                         ?: progression.roman,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Brass,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = TextBody,
                     maxLines = 1,
                 )
             }
             com.example.ui.components.NotationToggle()
             Spacer(Modifier.width(8.dp))
-            RoundButton(onClick = { root = (root + 11) % 12 }) {
-                Text("−", style = MaterialTheme.typography.titleLarge, color = TextStrong)
-            }
+            RoundIconButton(R.drawable.ic_minus, "Meio tom abaixo") { root = (root + 11) % 12 }
             Text(
                 HarmonicDatabase.ptNameByCipher[cipher] ?: cipher,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Brass,
+                color = TextStrong,
                 modifier = Modifier.padding(horizontal = 8.dp),
                 maxLines = 1,
             )
-            RoundButton(onClick = { root = (root + 1) % 12 }) {
-                Text("+", style = MaterialTheme.typography.titleLarge, color = TextStrong)
-            }
+            RoundIconButton(R.drawable.ic_plus, "Meio tom acima") { root = (root + 1) % 12 }
         }
 
         Spacer(Modifier.height(10.dp))
@@ -196,45 +188,12 @@ fun ProgressionStageScreen(
 
         // Passo a passo.
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StepButton("‹ Anterior", primary = false, modifier = Modifier.weight(1f)) {
+            SecondaryButton("Anterior", Modifier.weight(1f).heightIn(min = 56.dp), icon = R.drawable.ic_chevron_left) {
                 step = (step - 1 + n) % n
             }
-            StepButton(if (step == n - 1) "Recomeçar" else "Próximo ›", primary = true, modifier = Modifier.weight(2f)) {
+            PrimaryButton(if (step == n - 1) "Recomeçar" else "Próximo", Modifier.weight(2f).heightIn(min = 56.dp)) {
                 step = (step + 1) % n
             }
         }
-    }
-}
-
-@Composable
-private fun RoundButton(onClick: () -> Unit, content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
-            .background(Surface2)
-            .border(1.dp, Hairline, CircleShape)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center,
-    ) { content() }
-}
-
-@Composable
-private fun StepButton(label: String, primary: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Box(
-        modifier = modifier
-            .height(56.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (primary) Brass else Surface1)
-            .border(1.dp, if (primary) Brass else Hairline, RoundedCornerShape(14.dp))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = if (primary) Ink else TextBody,
-        )
     }
 }

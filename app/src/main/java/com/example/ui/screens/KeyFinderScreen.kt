@@ -35,6 +35,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.example.ui.components.PrimaryButton
+import com.example.ui.components.ScreenHeader
+import com.example.ui.theme.Selection
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableFloatStateOf
@@ -147,28 +150,11 @@ fun KeyFinderScreen(
                 bottom = contentPadding.calculateBottomPadding() + 24.dp,
             ),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Surface1)
-                    .border(1.dp, Hairline, CircleShape)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = TextStrong, modifier = Modifier.size(18.dp))
-            }
-            Spacer(Modifier.width(14.dp))
-            Column {
-                Text("Detectar tom", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-                Text(
-                    "Ouve em rodadas de ${KeyListener.PREROLL_SECONDS} s até ter certeza",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Brass,
-                )
-            }
-        }
+        ScreenHeader(
+            "Detectar tom",
+            subtitle = "Ouve em rodadas de ${KeyListener.PREROLL_SECONDS} s até ter certeza",
+            onBack = onBack,
+        )
 
         if (DevStore.enabled) {
             Spacer(Modifier.height(12.dp))
@@ -387,7 +373,7 @@ private fun LiveStatus(level: Float, hearingVoice: Boolean, liveResult: KeyResul
                         Modifier
                             .fillMaxWidth(fill)
                             .height(6.dp)
-                            .background(if (fill >= 1f) Brass else Brass.copy(alpha = 0.6f)),
+                            .background(if (fill >= 1f) Selection else Selection.copy(alpha = 0.55f)),
                     )
                 }
             }
@@ -457,7 +443,7 @@ private fun LiveStatus(level: Float, hearingVoice: Boolean, liveResult: KeyResul
                     "${(top.probability * 100).toInt()}%",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = if (liveResult.status == KeyStatus.ALTA) FuncTonic else Brass,
+                    color = if (liveResult.status == KeyStatus.ALTA) FuncTonic else TextStrong,
                 )
             }
         }
@@ -495,7 +481,7 @@ private fun ConfidenceBanner(result: KeyResult) {
     val topName = ptKeyName[top.keyCipher] ?: top.keyCipher
     val (title, body, color) = when (result.status) {
         KeyStatus.ALTA -> Triple("Tom identificado", "Pode começar em $topName.", FuncTonic)
-        KeyStatus.MEDIA -> Triple("Tom provável", "Confira com o primeiro acorde, ou toque em \"Ouvir mais 5 s\" para confirmar.", Brass)
+        KeyStatus.MEDIA -> Triple("Tom provável", "Confira com o primeiro acorde, ou toque em \"Ouvir mais 5 s\" para confirmar.", TextStrong)
         else -> Triple("Incerto", "Os tons abaixo estão parecidos. \"Ouvir mais 5 s\" costuma desempatar.", FuncDominant)
     }
     Column(
@@ -533,12 +519,12 @@ private fun CandidateCard(
     val field = remember(cipher) { HarmonicDatabase.getField(cipher) }
     val relation = when {
         isTop -> null
-        candidate.isRelativeOf(top) -> "Relativa — mesmos acordes"
+        candidate.isRelativeOf(top) -> "Relativa: mesmos acordes"
         result.betweenKeys && candidate.isMinor == top.isMinor &&
-            abs(candidate.root - top.root) in setOf(1, 11) -> "Vizinho — grupo entre dois tons"
+            abs(candidate.root - top.root) in setOf(1, 11) -> "Vizinho: grupo entre dois tons"
         else -> null
     }
-    val accent = if (isTop && result.status == KeyStatus.ALTA) FuncTonic else Brass
+    val accent = if (isTop && result.status == KeyStatus.ALTA) FuncTonic else TextStrong
 
     Column(
         Modifier
@@ -615,7 +601,12 @@ private fun CandidateCard(
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                Text("Abrir ›", style = MaterialTheme.typography.labelLarge, color = Brass, modifier = Modifier.align(Alignment.CenterVertically))
+                Icon(
+                    painterResource(R.drawable.ic_chevron),
+                    contentDescription = "Abrir o campo",
+                    tint = TextMuted,
+                    modifier = Modifier.align(Alignment.CenterVertically).size(20.dp),
+                )
             }
         }
     }
@@ -654,7 +645,7 @@ private fun EvidenceCard(result: KeyResult, analyzedSeconds: Float) {
                                 .fillMaxWidth()
                                 .height(80.dp * w.coerceAtLeast(0.03f))
                                 .clip(RoundedCornerShape(3.dp))
-                                .background(if (pc in inScale && w > 0.05f) Brass else Surface2),
+                                .background(if (pc in inScale && w > 0.05f) Selection else Surface2),
                         )
                     }
                     Spacer(Modifier.height(4.dp))
@@ -747,7 +738,7 @@ private fun Tip(text: String) {
                 .padding(top = 7.dp, end = 10.dp)
                 .size(5.dp)
                 .clip(CircleShape)
-                .background(Brass)
+                .background(TextMuted)
         )
         Text(text, style = MaterialTheme.typography.bodyMedium, color = TextBody)
     }
@@ -773,17 +764,7 @@ private fun PermissionPrompt(onRequest: () -> Unit) {
             color = TextBody,
         )
         Spacer(Modifier.height(14.dp))
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Brass)
-                .clickable { onRequest() }
-                .padding(vertical = 14.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("Permitir microfone", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Ink)
-        }
+        PrimaryButton("Permitir microfone", Modifier.fillMaxWidth(), icon = R.drawable.ic_mic, onClick = onRequest)
     }
 }
 
@@ -830,10 +811,10 @@ private fun DevBanner(onOpen: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text("MODO DEV · gravando trechos para treino", style = MaterialTheme.typography.labelLarge, color = FuncDominant)
+            Text("Versão DEV: gravando trechos para treino", style = MaterialTheme.typography.labelLarge, color = FuncDominant)
             Text("$count hinos na pasta de treino", style = MaterialTheme.typography.labelSmall, color = TextMuted)
         }
-        Text("Painel ›", style = MaterialTheme.typography.labelLarge, color = FuncDominant)
+        Text("Abrir painel", style = MaterialTheme.typography.labelLarge, color = TextStrong)
     }
 }
 
@@ -890,10 +871,10 @@ private fun MicSensitivityCard(
             Column(Modifier.weight(1f)) {
                 Text("Sensibilidade do microfone", style = MaterialTheme.typography.titleMedium, color = TextStrong)
                 Text(
-                    if (auto) "Automático · ganho agora %+.0f dB".format(appliedDb)
-                    else "Manual · fader %+.0f dB".format(db),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Brass,
+                    if (auto) "Automático: ganho agora %+.0f dB".format(appliedDb)
+                    else "Manual: fader em %+.0f dB".format(db),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextBody,
                 )
             }
             Text("Automático", style = MaterialTheme.typography.labelLarge, color = TextBody)
@@ -901,7 +882,7 @@ private fun MicSensitivityCard(
             androidx.compose.material3.Switch(
                 checked = auto,
                 onCheckedChange = onAuto,
-                colors = androidx.compose.material3.SwitchDefaults.colors(checkedThumbColor = Ink, checkedTrackColor = Brass),
+                colors = androidx.compose.material3.SwitchDefaults.colors(checkedThumbColor = Ink, checkedTrackColor = Selection),
             )
         }
 
@@ -936,9 +917,9 @@ private fun MicSensitivityCard(
         Spacer(Modifier.height(4.dp))
         Text(
             when {
-                level > IDEAL_HIGH -> "Alto demais — abaixe o fader"
-                level >= IDEAL_LOW -> "Bom — o canto está na faixa ideal"
-                else -> "Baixo — com o canto acontecendo, suba o fader (ou use o automático)"
+                level > IDEAL_HIGH -> "Alto demais: abaixe o fader"
+                level >= IDEAL_LOW -> "Bom: o canto está na faixa ideal"
+                else -> "Baixo: com o canto acontecendo, suba o fader (ou use o automático)"
             },
             style = MaterialTheme.typography.labelSmall,
             color = when {
@@ -956,8 +937,8 @@ private fun MicSensitivityCard(
                     Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(if (on) Brass else Surface2)
-                        .border(1.dp, if (on) Brass else Hairline, RoundedCornerShape(10.dp))
+                        .background(if (on) Selection else Surface2)
+                        .border(1.dp, if (on) Selection else Hairline, RoundedCornerShape(10.dp))
                         .clickable { onDb(value) }
                         .padding(vertical = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -974,8 +955,8 @@ private fun MicSensitivityCard(
             onValueChange = { onDb(Math.round(it).toFloat()) },
             valueRange = com.example.music.InputLeveler.MIN_MANUAL_DB.toFloat()..com.example.music.InputLeveler.MAX_MANUAL_DB.toFloat(),
             colors = androidx.compose.material3.SliderDefaults.colors(
-                thumbColor = if (auto) TextMuted else Brass,
-                activeTrackColor = if (auto) Hairline else Brass,
+                thumbColor = if (auto) TextMuted else Selection,
+                activeTrackColor = if (auto) Hairline else TextBody,
                 inactiveTrackColor = Surface2,
             ),
         )

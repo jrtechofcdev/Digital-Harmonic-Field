@@ -23,7 +23,9 @@ import com.example.music.NeckQuiz
 import com.example.ui.components.DotStyle
 import com.example.ui.components.GuitarNeck
 import com.example.ui.components.NeckDot
+import com.example.ui.components.PrimaryButton
 import com.example.ui.components.SectionLabel
+import com.example.ui.components.Segmented
 import com.example.ui.theme.Brass
 import com.example.ui.theme.FuncDominant
 import com.example.ui.theme.FuncTonic
@@ -53,7 +55,7 @@ internal fun ColumnScope.StudyTab(latin: Boolean) {
     SectionLabel("Para decorar os acordes")
     LabCard {
         CHORD_TIPS.forEach { (title, body) ->
-            Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = Brass)
+            Text(title, style = MaterialTheme.typography.titleSmall, color = TextStrong)
             Text(body, style = MaterialTheme.typography.bodyMedium, color = TextBody, modifier = Modifier.padding(bottom = 8.dp))
         }
     }
@@ -84,10 +86,13 @@ private fun ColumnScope.NeckGame(latin: Boolean) {
     val name = noteName(spot.pc, latin)
     val stringName = "${6 - spot.string}ª corda"
 
-    SectionLabel("Treino rápido · acertos $right de $total")
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Game.entries.forEach { g -> LabChip(g.title, g == game, Modifier.weight(1f)) { game = g; next() } }
-    }
+    SectionLabel("Treino rápido (acertos: $right de $total)")
+    Segmented(
+        Game.entries.map { it.title },
+        game.ordinal,
+        { game = Game.entries[it]; next() },
+        Modifier.fillMaxWidth(),
+    )
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         NeckQuiz.Stage.entries.forEach { s -> LabChip(s.title, s == stage, Modifier.weight(1f)) { stage = s; next(s) } }
     }
@@ -156,10 +161,10 @@ private fun ColumnScope.NeckGame(latin: Boolean) {
             style = MaterialTheme.typography.bodyMedium,
             color = if (correct) FuncTonic else FuncDominant,
         )
-        LabChip("Próxima ›", true, Modifier.padding(top = 2.dp).fillMaxWidth()) { next() }
+        PrimaryButton("Próxima", Modifier.padding(top = 2.dp).fillMaxWidth()) { next() }
     } else {
         Text(
-            "Marcos da 6ª corda: 0 Mi · 3 Sol · 5 Lá · 7 Si · 8 Dó · 10 Ré · 12 Mi.",
+            "Marcos da 6ª corda: 0 Mi, 3 Sol, 5 Lá, 7 Si, 8 Dó, 10 Ré, 12 Mi.",
             style = MaterialTheme.typography.labelSmall, color = TextMuted,
         )
     }
@@ -167,31 +172,31 @@ private fun ColumnScope.NeckGame(latin: Boolean) {
 
 /** O método em etapas. Cada uma leva de 3 a 7 dias com 5–10 minutos por dia. */
 private val METHOD = listOf(
-    "1 · Os nomes das cordas soltas" to listOf(
-        "Da mais grossa para a mais fina: Mi · Lá · Ré · Sol · Si · Mi (E A D G B E).",
+    "1. Os nomes das cordas soltas" to listOf(
+        "Da mais grossa para a mais fina: Mi, Lá, Ré, Sol, Si, Mi (E A D G B E).",
         "Frase para lembrar: \"Eu Amo Deus, Glória Bendita Eternamente\" — a primeira letra é a cifra de cada corda.",
     ),
-    "2 · A regra das casas" to listOf(
+    "2. A regra das casas" to listOf(
         "Cada casa sobe meio tom. Entre duas notas naturais existe uma casa no meio (o sustenido)…",
-        "…menos entre Mi–Fá e Si–Dó: elas são vizinhas, não tem casa no meio.",
+        "…menos entre Mi e Fá, e entre Si e Dó: elas são vizinhas, não tem casa no meio.",
         "Na casa 12 tudo recomeça (mesma nota, uma oitava acima). Então você só precisa decorar da casa 0 à 11.",
     ),
-    "3 · Uma corda de cada vez (6ª, depois 5ª)" to listOf(
+    "3. Uma corda de cada vez (6ª, depois 5ª)" to listOf(
         "Comece só pelas notas naturais da 6ª corda: 0 Mi, 1 Fá, 3 Sol, 5 Lá, 7 Si, 8 Dó, 10 Ré, 12 Mi.",
         "Depois a 5ª corda: 0 Lá, 2 Si, 3 Dó, 5 Ré, 7 Mi, 8 Fá, 10 Sol, 12 Lá.",
         "Por que essas duas primeiro? Porque o baixo dos acordes com pestana mora nelas: sabendo a 6ª e a 5ª, você acha qualquer acorde.",
         "Toque a nota e FALE o nome em voz alta. Suba e desça a corda. Use o jogo acima nas fases \"6ª corda\" e \"5ª corda\".",
     ),
-    "4 · Marcos e atalhos" to listOf(
+    "4. Marcos e atalhos" to listOf(
         "Use as bolinhas do braço como marcos (casas 3, 5, 7, 9 e 12). Decore a nota de cada marco e conte a partir dele.",
         "Atalho da oitava: da 6ª corda para a 4ª, mesma nota 2 casas à frente; da 5ª para a 3ª, também 2 casas.",
         "A 1ª corda é igual à 6ª (mesmas notas, mesmas casas).",
     ),
-    "5 · Uma nota por dia" to listOf(
+    "5. Uma nota por dia" to listOf(
         "Escolha a \"nota do dia\" (ex.: Ré) e ache TODAS no braço, corda por corda, devagar e depois com o metrônomo.",
         "Na aba Notas, toque nela para conferir as posições.",
     ),
-    "6 · Pouco e sempre" to listOf(
+    "6. Pouco e sempre" to listOf(
         "10 minutos por dia valem mais que 1 hora no sábado. Revise no dia seguinte, depois de 3 dias e depois de 1 semana.",
         "Testar a memória (jogos) grava mais do que só olhar o mapa. Erre à vontade: o erro mostra o que revisar.",
         "Leve para o hino: ao tocar, diga o nome da nota do baixo de cada acorde.",
@@ -200,7 +205,7 @@ private val METHOD = listOf(
 
 private val CHORD_TIPS = listOf(
     "Pense em notas, não só em desenho" to
-        "Todo acorde é 1 + 3 + 5. Sol = Sol, Si, Ré. Ao montar, diga as notas. Na aba Acordes, use \"Onde estão 1 · 3 · 5\".",
+        "Todo acorde é 1 + 3 + 5. Sol = Sol, Si, Ré. Ao montar, diga as notas. Na aba Acordes, use \"Onde estão 1, 3, 5\".",
     "As 5 formas que andam pelo braço (CAGED)" to
         "Os desenhos de Dó, Lá, Sol, Mi e Ré abertos se repetem pelo braço, um emendado no outro, nessa ordem. " +
             "Por isso o mesmo acorde aparece em vários lugares — são as \"variações\" da aba Acordes.",

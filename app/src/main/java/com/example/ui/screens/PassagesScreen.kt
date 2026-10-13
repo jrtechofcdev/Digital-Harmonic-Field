@@ -25,6 +25,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.example.R
+import com.example.ui.components.RoundIconButton
+import com.example.ui.components.ScreenHeader
+import com.example.ui.components.SecondaryButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -102,24 +106,7 @@ fun PassagesScreen(
             ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Surface1)
-                    .border(1.dp, Hairline, CircleShape)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = TextStrong, modifier = Modifier.size(18.dp))
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Passagens e enfeites", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-                Text("As \"graças\" que ligam um acorde ao outro", style = MaterialTheme.typography.labelLarge, color = Brass)
-            }
-        }
+        ScreenHeader("Passagens e enfeites", subtitle = "As \"graças\" que ligam um acorde ao outro", onBack = onBack)
 
         KeyPicker(root, minor) { r, m -> root = r; minor = m; player.stop() }
 
@@ -145,7 +132,7 @@ fun PassagesScreen(
                 Text("Direto", style = MaterialTheme.typography.labelLarge, color = TextMuted, modifier = Modifier.width(56.dp))
                 Box(Modifier.weight(1f)) { StepRow(plain) }
                 Spacer(Modifier.width(6.dp))
-                LabChip("▶", false, Modifier.width(44.dp)) { play(player, plain) }
+                RoundIconButton(R.drawable.ic_play, "Ouvir o caminho direto") { play(player, plain) }
             }
         }
 
@@ -190,7 +177,7 @@ private fun StepRow(steps: List<PassageStep>) {
                             maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
                         )
                         Text(
-                            (if (byDegree) st.chord.cipher else st.label) + if (st.outside) " · fora" else "",
+                            (if (byDegree) st.chord.cipher else st.label) + if (st.outside) " (fora)" else "",
                             style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1,
                         )
                     }
@@ -207,18 +194,13 @@ private fun PassageCard(p: Passage, plain: List<PassageStep>, player: ChordPlaye
     LabCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(p.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextStrong, modifier = Modifier.weight(1f))
-            val levelColor = when (p.level) {
-                PassageLevel.BASICO -> TextBody
-                PassageLevel.MEDIO -> Brass
-                PassageLevel.PRO -> TextStrong
-            }
             Box(
                 Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .border(1.dp, levelColor.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
-                    .padding(horizontal = 8.dp, vertical = 3.dp),
+                    .background(Surface2)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
-                Text(p.level.title, style = MaterialTheme.typography.labelSmall, color = levelColor)
+                Text(p.level.title, style = MaterialTheme.typography.labelSmall, color = TextBody)
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -233,9 +215,9 @@ private fun PassageCard(p: Passage, plain: List<PassageStep>, player: ChordPlaye
         }
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            LabChip(if (player.isPlaying) "Tocando…" else "▶ Ouvir", true, Modifier.weight(1.1f)) { play(player, p.steps) }
-            LabChip("▶ Direto", false, Modifier.weight(1f)) { play(player, plain) }
-            LabChip(if (showShapes) "Braço ⌃" else "No braço ⌄", showShapes, Modifier.weight(1f)) { showShapes = !showShapes }
+            SecondaryButton(if (player.isPlaying) "Tocando…" else "Ouvir", Modifier.weight(1f), icon = R.drawable.ic_play) { play(player, p.steps) }
+            SecondaryButton("Direto", Modifier.weight(1f), icon = R.drawable.ic_play) { play(player, plain) }
+            LabChip("Formas", showShapes, Modifier.weight(0.9f)) { showShapes = !showShapes }
         }
         if (showShapes) {
             Spacer(Modifier.height(8.dp))

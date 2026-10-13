@@ -49,6 +49,13 @@ import com.example.music.pitchClassCiphers
 import com.example.music.ptPitchClass
 import com.example.music.rootPc
 import com.example.ui.components.GuitarNeck
+import com.example.ui.components.OptionChip
+import com.example.ui.components.Panel
+import com.example.ui.components.RoundIconButton
+import com.example.ui.components.ScreenHeader
+import com.example.ui.components.Segmented
+import com.example.R
+import androidx.compose.ui.text.style.TextAlign
 import com.example.ui.components.NeckDot
 import com.example.ui.components.DotStyle
 import com.example.ui.theme.Brass
@@ -80,8 +87,9 @@ fun GuitarScreen(
     onBack: () -> Unit,
     contentPadding: PaddingValues,
     onOpenDictionary: (LabChord) -> Unit = {},
+    startTab: Int = 0,
 ) {
-    var tab by rememberSaveable { mutableStateOf(NeckTab.NOTAS) }
+    var tab by rememberSaveable { mutableStateOf(NeckTab.entries[startTab]) }
     var latin by rememberSaveable { mutableStateOf(true) }
     // Tom (para Acordes e Harmonizar) e acorde montado no braço.
     var keyRoot by rememberSaveable { mutableIntStateOf(rootPc(initialKey) ?: 7) }
@@ -103,49 +111,8 @@ fun GuitarScreen(
             ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Surface1)
-                    .border(1.dp, Hairline, CircleShape)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = TextStrong, modifier = Modifier.size(18.dp))
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Braço do violão", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-                Text("Notas, acordes e harmonia no braço", style = MaterialTheme.typography.labelLarge, color = Brass)
-            }
-        }
-
-        // Abas do laboratório.
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Surface2)
-                .border(1.dp, Hairline, RoundedCornerShape(12.dp))
-                .padding(3.dp),
-        ) {
-            NeckTab.entries.forEach { t ->
-                val on = t == tab
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .height(38.dp)
-                        .clip(RoundedCornerShape(9.dp))
-                        .background(if (on) Brass else Surface2)
-                        .clickable { tab = t; player.stop() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(t.title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = if (on) Ink else TextBody, maxLines = 1)
-                }
-            }
-        }
+        ScreenHeader("Braço do violão", subtitle = "Notas, acordes e harmonia no braço", onBack = onBack)
+        Segmented(NeckTab.entries.map { it.title }, tab.ordinal, { tab = NeckTab.entries[it]; player.stop() }, Modifier.fillMaxWidth())
 
         when (tab) {
             NeckTab.NOTAS -> NotesTab(latin, onLatin = { latin = it })
@@ -237,50 +204,27 @@ internal val NATURALS = setOf(0, 2, 4, 5, 7, 9, 11)
 // Peças visuais em comum
 // ---------------------------------------------------------------------------
 
+/** Chip de escolha do laboratório: o mesmo do sistema (seleção neutra, 44 dp). */
 @Composable
-internal fun LabChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Box(
-        modifier
-            .height(38.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) Brass else Surface2)
-            .border(1.dp, if (selected) Brass else Hairline, RoundedCornerShape(10.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 4.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = if (selected) Ink else TextBody, maxLines = 1)
-    }
-}
+internal fun LabChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) =
+    OptionChip(label, selected, modifier, onClick)
 
 @Composable
-internal fun LabCard(content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Surface1)
-            .border(1.dp, Hairline, RoundedCornerShape(14.dp))
-            .padding(12.dp),
-        content = content,
-    )
-}
+internal fun LabCard(content: @Composable ColumnScope.() -> Unit) = Panel(content = content)
 
-/** Seletor de tom compacto: − / nome / + e Maior | Menor. */
+/** Seletor de tom compacto: − / nome do tom / + e Maior | Menor. */
 @Composable
 internal fun KeyPicker(root: Int, minor: Boolean, onKey: (Int, Boolean) -> Unit) {
     val key = pitchClassCiphers[root] + if (minor) "m" else ""
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        LabChip("−", false, Modifier.width(44.dp)) { onKey((root + 11) % 12, minor) }
-        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            Text(
-                "Tom: " + (HarmonicDatabase.ptNameByCipher[key] ?: key),
-                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextStrong, maxLines = 1,
-            )
-        }
-        LabChip("+", false, Modifier.width(44.dp)) { onKey((root + 1) % 12, minor) }
-        LabChip("Maior", !minor, Modifier.width(66.dp)) { onKey(root, false) }
-        LabChip("Menor", minor, Modifier.width(66.dp)) { onKey(root, true) }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        RoundIconButton(R.drawable.ic_minus, "Meio tom abaixo") { onKey((root + 11) % 12, minor) }
+        Text(
+            HarmonicDatabase.ptNameByCipher[key] ?: key,
+            style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextStrong,
+            maxLines = 1, textAlign = TextAlign.Center, modifier = Modifier.weight(1f),
+        )
+        RoundIconButton(R.drawable.ic_plus, "Meio tom acima") { onKey((root + 1) % 12, minor) }
+        Segmented(listOf("Maior", "Menor"), if (minor) 1 else 0, { onKey(root, it == 1) }, Modifier.width(140.dp))
     }
 }
 

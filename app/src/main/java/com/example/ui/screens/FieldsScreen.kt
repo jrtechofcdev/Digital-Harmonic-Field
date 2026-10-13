@@ -23,6 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.Role
+import com.example.ui.components.ScreenHeader
+import com.example.ui.components.Segmented
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,13 +55,39 @@ private val minorOrder = majorOrder.map { it + "m" }
 
 private val ptNameByCipher: Map<String, String> = HarmonicDatabase.ptNameByCipher
 
+/**
+ * Aba Campos: os 24 tons (Tons) e as sequências prontas (Progressões), num
+ * controle segmentado. O cabeçalho rola junto com o conteúdo.
+ */
+@Composable
+fun CamposScreen(
+    favorites: Set<String>,
+    onOpenKey: (String) -> Unit,
+    onPlayFullScreen: (com.example.music.Progression, String) -> Unit,
+    contentPadding: PaddingValues,
+) {
+    var segment by rememberSaveable { mutableIntStateOf(0) }
+    val header: @Composable () -> Unit = {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            ScreenHeader(
+                "Campos",
+                subtitle = if (segment == 0) "Toque num tom para ver os 7 acordes e a função de cada um"
+                else "Sequências prontas para tocar no tom escolhido",
+            )
+            Segmented(listOf("Tons", "Progressões"), segment, { segment = it }, Modifier.fillMaxWidth())
+        }
+    }
+    if (segment == 0) FieldsScreen(favorites, onOpenKey, contentPadding, header)
+    else ProgressionsScreen(onOpenKey, onPlayFullScreen, contentPadding, header)
+}
+
+/** Os 24 tons em grade (maiores e menores), com os favoritos no topo. */
 @Composable
 fun FieldsScreen(
     favorites: Set<String>,
     onOpenKey: (String) -> Unit,
-    onDetectKey: () -> Unit,
-    onSupport: () -> Unit,
     contentPadding: PaddingValues,
+    header: @Composable () -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
@@ -63,11 +96,9 @@ fun FieldsScreen(
             top = contentPadding.calculateTopPadding() + 12.dp,
             bottom = contentPadding.calculateBottomPadding() + 24.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        item { BrandHeader(onSupport = onSupport) }
-
-        item { DetectKeyCard(onClick = onDetectKey) }
+        item { header() }
 
         if (favorites.isNotEmpty()) {
             item {
@@ -98,90 +129,6 @@ fun FieldsScreen(
                 KeyGrid(ciphers = minorOrder, favorites = favorites, onOpenKey = onOpenKey)
             }
         }
-    }
-}
-
-@Composable
-private fun BrandHeader(onSupport: () -> Unit) {
-    Column(Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            BrandMark(size = 46.dp)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    text = "Campo Harmônico",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = TextStrong,
-                )
-                Text(
-                    text = "JR TECH · guitarrista e developer",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Brass,
-                )
-            }
-            // Botão de apoio.
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Surface1)
-                    .border(1.dp, Hairline, RoundedCornerShape(10.dp))
-                    .clickable { onSupport() }
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    BrandMark(size = 18.dp)
-                    Spacer(Modifier.width(6.dp))
-                    Text("Apoiar", style = MaterialTheme.typography.labelLarge, color = TextBody)
-                }
-            }
-        }
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = "Escolha um tom para ver os sete graus, suas funções e a formação de cada acorde.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextBody,
-        )
-    }
-}
-
-/** Atalho para o detector de tom — o caminho mais rápido no meio do culto. */
-@Composable
-private fun DetectKeyCard(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Surface1)
-            .border(1.dp, Brass.copy(alpha = 0.55f), RoundedCornerShape(14.dp))
-            .clickable { onClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(Brass),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painterResource(R.drawable.ic_mic),
-                contentDescription = null,
-                tint = Ink,
-                modifier = Modifier.size(22.dp),
-            )
-        }
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Text("Detectar tom da música", style = MaterialTheme.typography.titleMedium, color = TextStrong)
-            Text(
-                "Ouve o canto e sugere o tom em segundos",
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextMuted,
-            )
-        }
-        Text("Ouvir ›", style = MaterialTheme.typography.labelLarge, color = Brass)
     }
 }
 
@@ -220,15 +167,11 @@ private fun KeyTile(
 ) {
     Box(
         modifier = modifier
-            .height(66.dp)
+            .height(68.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Surface1)
-            .border(
-                1.dp,
-                if (isFavorite) Favorite.copy(alpha = 0.55f) else Hairline,
-                RoundedCornerShape(12.dp),
-            )
-            .clickable { onClick() },
+            .border(1.dp, Hairline, RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClickLabel = "Abrir o campo de $namePt") { onClick() },
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -243,20 +186,20 @@ private fun KeyTile(
             Text(
                 text = namePt,
                 style = MaterialTheme.typography.labelSmall,
-                color = TextMuted,
+                color = TextBody,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
         if (isFavorite) {
             Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = null,
+                painterResource(R.drawable.ic_star_fill),
+                contentDescription = "Favorito",
                 tint = Favorite,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(6.dp)
-                    .size(11.dp),
+                    .size(12.dp),
             )
         }
     }

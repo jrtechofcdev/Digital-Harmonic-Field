@@ -31,6 +31,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.painterResource
+import com.example.R
+import com.example.ui.components.RoundIconButton
+import com.example.ui.components.ScreenHeader
+import com.example.ui.components.SecondaryButton
+import com.example.ui.components.SectionLabel
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -102,7 +108,7 @@ fun FieldDetailScreen(
 
     val keyNamePt = remember(field, transpose) { transposePtChord(field.keyNamePt, transpose) }
     val scaleNotes = remember(field, transpose) {
-        field.scaleNotes.split(" — ").joinToString(" · ") { transposePtNote(it, transpose) }
+        field.scaleNotes.split(" — ").joinToString(", ") { transposePtNote(it, transpose) }
     }
     val chords = remember(field, transpose) {
         field.chords.map {
@@ -191,34 +197,14 @@ private fun PortraitLayout(
         TransposeBar(transpose, onTranspose)
 
         Spacer(Modifier.height(12.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             NotationToggle()
-            Spacer(Modifier.weight(1f))
-            Text(
-                "Ver no braço do violão ›",
-                style = MaterialTheme.typography.labelLarge,
-                color = Brass,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onOpenGuitar() }
-                    .padding(8.dp),
-            )
-        }
-        Row {
-            Spacer(Modifier.weight(1f))
-            Text(
-                "Passagens e enfeites neste tom ›",
-                style = MaterialTheme.typography.labelLarge,
-                color = Brass,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onOpenPassages() }
-                    .padding(8.dp),
-            )
+            SecondaryButton("No braço", Modifier.weight(1f), icon = R.drawable.ic_guitar, onClick = onOpenGuitar)
+            SecondaryButton("Passagens", Modifier.weight(1f), onClick = onOpenPassages)
         }
 
         Spacer(Modifier.height(16.dp))
-        Text("Graus do campo", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        SectionLabel("Os 7 acordes do tom (toque para ver a formação)")
         Spacer(Modifier.height(10.dp))
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             chords.forEachIndexed { index, chord ->
@@ -271,14 +257,9 @@ private fun LandscapeLayout(
     ) {
         // Cabeçalho compacto com transposição embutida
         Row(verticalAlignment = Alignment.CenterVertically) {
-            CircleIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", onBack)
+            RoundIconButton(R.drawable.ic_back, "Voltar", onClick = onBack)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(
-                    "Campo de".uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Brass,
-                )
                 Text(
                     keyNamePt,
                     style = MaterialTheme.typography.headlineMedium,
@@ -286,18 +267,13 @@ private fun LandscapeLayout(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                Text("Campo harmônico", style = MaterialTheme.typography.bodySmall, color = TextBody)
             }
             NotationToggle()
             Spacer(Modifier.width(8.dp))
             TransposeCompact(transpose, onTranspose)
             Spacer(Modifier.width(8.dp))
-            IconButton(onClick = onToggleFavorite) {
-                Icon(
-                    Icons.Filled.Star, "Favoritar",
-                    tint = if (isFavorite) Favorite else Hairline,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
+            FavoriteButton(isFavorite, onToggleFavorite)
         }
 
         Spacer(Modifier.height(8.dp))
@@ -337,8 +313,8 @@ private fun LandscapeLayout(
         // Escala em uma linha só, no rodapé
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Escala:  ",
-                style = MaterialTheme.typography.labelSmall,
+                "Escala: ",
+                style = MaterialTheme.typography.labelLarge,
                 color = TextMuted,
             )
             Text(
@@ -349,18 +325,10 @@ private fun LandscapeLayout(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            Text(
-                "Braço ›",
-                style = MaterialTheme.typography.labelLarge,
-                color = Brass,
-                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { onOpenGuitar() }.padding(6.dp),
-            )
-            Text(
-                "Passagens ›",
-                style = MaterialTheme.typography.labelLarge,
-                color = Brass,
-                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { onOpenPassages() }.padding(6.dp),
-            )
+            Spacer(Modifier.width(8.dp))
+            SecondaryButton("No braço", icon = R.drawable.ic_guitar, onClick = onOpenGuitar)
+            Spacer(Modifier.width(8.dp))
+            SecondaryButton("Passagens", onClick = onOpenPassages)
         }
     }
 }
@@ -376,45 +344,21 @@ private fun DetailHeader(
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
 ) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        CircleIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", onBack)
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Text("Campo harmônico".uppercase(), style = MaterialTheme.typography.labelSmall, color = Brass)
-            Text(
-                keyNamePt,
-                style = MaterialTheme.typography.displaySmall,
-                color = TextStrong,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        IconButton(onClick = onToggleFavorite) {
-            Icon(
-                Icons.Filled.Star, "Favoritar",
-                tint = if (isFavorite) Favorite else Hairline,
-                modifier = Modifier.size(26.dp),
-            )
-        }
+    ScreenHeader(keyNamePt, subtitle = "Campo harmônico: os 7 acordes do tom", onBack = onBack) {
+        FavoriteButton(isFavorite, onToggleFavorite)
     }
 }
 
+/** Estrela de favorito: vazia ou cheia, com área de toque de 48 dp. */
 @Composable
-private fun CircleIconButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    desc: String,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
-            .background(Surface1)
-            .border(1.dp, Hairline, CircleShape)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = desc, tint = TextStrong, modifier = Modifier.size(18.dp))
+private fun FavoriteButton(isFavorite: Boolean, onToggle: () -> Unit) {
+    IconButton(onClick = onToggle) {
+        Icon(
+            painterResource(if (isFavorite) R.drawable.ic_star_fill else R.drawable.ic_star),
+            contentDescription = if (isFavorite) "Tirar dos favoritos" else "Favoritar",
+            tint = if (isFavorite) Favorite else TextMuted,
+            modifier = Modifier.size(26.dp),
+        )
     }
 }
 
@@ -431,21 +375,16 @@ private fun TransposeBar(transpose: Int, onChange: (Int) -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column {
-            Text("Transpor", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+            Text("Transpor", style = MaterialTheme.typography.labelMedium, color = TextMuted)
             Text(
                 transposeLabel(transpose),
                 style = MaterialTheme.typography.titleMedium,
-                color = if (transpose == 0) TextBody else Brass,
+                color = if (transpose == 0) TextBody else TextStrong,
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (transpose != 0) {
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onChange(0) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                ) { Text("Zerar", style = MaterialTheme.typography.labelLarge, color = TextMuted) }
+                SecondaryButton("Zerar") { onChange(0) }
             }
             StepButton("−", "Diminuir") { onChange(transpose - 1) }
             StepButton("+", "Aumentar") { onChange(transpose + 1) }
@@ -461,11 +400,11 @@ private fun TransposeCompact(transpose: Int, onChange: (Int) -> Unit) {
     ) {
         StepButton("−", "Diminuir") { onChange(transpose - 1) }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(64.dp)) {
-            Text("Transpor", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+            Text("Transpor", style = MaterialTheme.typography.labelMedium, color = TextMuted)
             Text(
                 if (transpose == 0) "Original" else (if (transpose > 0) "+$transpose" else "$transpose"),
                 style = MaterialTheme.typography.titleMedium,
-                color = if (transpose == 0) TextBody else Brass,
+                color = if (transpose == 0) TextBody else TextStrong,
             )
         }
         StepButton("+", "Aumentar") { onChange(transpose + 1) }
@@ -479,19 +418,8 @@ private fun transposeLabel(transpose: Int): String = when {
 }
 
 @Composable
-private fun StepButton(symbol: String, desc: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .clip(RoundedCornerShape(9.dp))
-            .background(Surface2)
-            .border(1.dp, Hairline, RoundedCornerShape(9.dp))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(symbol, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextStrong)
-    }
-}
+private fun StepButton(symbol: String, desc: String, onClick: () -> Unit) =
+    RoundIconButton(if (symbol == "+") R.drawable.ic_plus else R.drawable.ic_minus, desc, onClick = onClick)
 
 @Composable
 private fun ChordRow(chord: ChordInfo, index: Int, selected: Boolean, onClick: () -> Unit) {
@@ -666,7 +594,7 @@ private fun CommonPathsCard(
 @Composable
 private fun PathRow(prog: Progression, chords: List<ChordInfo>) {
     Column {
-        Text(prog.name, style = MaterialTheme.typography.labelSmall, color = Brass)
+        Text(prog.name, style = MaterialTheme.typography.labelLarge, color = TextBody)
         Spacer(Modifier.height(4.dp))
         // Sem rolagem lateral: os acordes dividem a largura (importante no modo paisagem).
         ChordStrip(degrees = prog.degrees, chords = chords, compact = true)
@@ -676,7 +604,7 @@ private fun PathRow(prog: Progression, chords: List<ChordInfo>) {
 @Composable
 private fun ScaleFooter(scaleNotes: String) {
     Column(Modifier.fillMaxWidth()) {
-        Text("Notas da escala", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        SectionLabel("Notas da escala")
         Spacer(Modifier.height(6.dp))
         Text(scaleNotes, style = MaterialTheme.typography.titleMedium, color = TextBody)
     }

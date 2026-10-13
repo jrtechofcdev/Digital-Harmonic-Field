@@ -25,6 +25,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import com.example.R
+import com.example.ui.components.PrimaryButton
+import com.example.ui.components.RowGroup
+import com.example.ui.components.ScreenHeader
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,28 +76,7 @@ fun DonationScreen(
                 bottom = contentPadding.calculateBottomPadding() + 24.dp,
             ),
     ) {
-        // Cabeçalho
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Surface1)
-                    .border(1.dp, Hairline, CircleShape)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
-                    tint = TextStrong,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            Text("Apoiar o criador", style = MaterialTheme.typography.headlineMedium, color = TextStrong)
-        }
-
+        ScreenHeader("Apoiar o projeto", onBack = onBack)
         Spacer(Modifier.height(20.dp))
 
         // Marca + assinatura
@@ -99,26 +85,23 @@ fun DonationScreen(
             Spacer(Modifier.width(14.dp))
             Column {
                 Text("JR TECH", style = MaterialTheme.typography.titleLarge, color = TextStrong)
-                Text("guitarrista e developer", style = MaterialTheme.typography.labelSmall, color = Brass)
+                Text("Guitarrista e developer", style = MaterialTheme.typography.bodyMedium, color = TextBody)
             }
         }
 
         Spacer(Modifier.height(16.dp))
         Text(
             "Este app é gratuito e sempre vai ser. Se ele te ajudou no louvor ou nos estudos, " +
-                "você pode contribuir com qualquer valor — é o que me ajuda a manter e melhorar o projeto. " +
-                "Muito obrigado!",
+                "você pode contribuir com qualquer valor: é o que me ajuda a manter e melhorar o projeto. " +
+                "Muito obrigado.",
             style = MaterialTheme.typography.bodyLarge,
             color = TextBody,
         )
 
         Spacer(Modifier.height(20.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            tiers.forEach { tier ->
-                TierRow(tier) { open(tier.url) }
-            }
-            FreeRow { open(FREE_URL) }
-        }
+        RowGroup(rows = tiers.map { tier -> @Composable { TierRow(tier) { open(tier.url) } } })
+        Spacer(Modifier.height(12.dp))
+        PrimaryButton("Escolher outro valor", Modifier.fillMaxWidth()) { open(FREE_URL) }
 
         Spacer(Modifier.height(16.dp))
         Text(
@@ -134,41 +117,18 @@ private fun TierRow(tier: Tier, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Surface1)
-            .border(1.dp, Hairline, RoundedCornerShape(12.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .heightIn(min = 60.dp)
+            .clickable(role = Role.Button, onClickLabel = "Apoiar com ${tier.amount}") { onClick() }
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             tier.amount,
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = Brass,
+            color = TextStrong,
             modifier = Modifier.width(88.dp),
         )
         Text(tier.note, style = MaterialTheme.typography.bodyLarge, color = TextBody, modifier = Modifier.weight(1f))
-        Text("Apoiar ›", style = MaterialTheme.typography.labelLarge, color = TextMuted)
-    }
-}
-
-@Composable
-private fun FreeRow(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Brass)
-            .clickable { onClick() }
-            .padding(vertical = 16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            "Escolher outro valor",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Ink,
-        )
+        Icon(painterResource(R.drawable.ic_chevron), contentDescription = null, tint = TextMuted, modifier = Modifier.size(18.dp))
     }
 }

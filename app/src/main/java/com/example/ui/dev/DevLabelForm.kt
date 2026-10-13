@@ -1,5 +1,10 @@
 package com.example.ui.dev
 
+import androidx.compose.foundation.layout.heightIn
+import com.example.ui.theme.HairlineStrong
+import com.example.ui.theme.Selection
+import com.example.ui.theme.Surface3
+import com.example.ui.theme.Favorite
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -171,7 +176,7 @@ fun DevLabelForm(
                 Icon(
                     Icons.Filled.Star,
                     contentDescription = "$i estrela${if (i > 1) "s" else ""}",
-                    tint = if (i <= stars) Brass else Surface2,
+                    tint = if (i <= stars) Favorite else Surface3,
                     modifier = Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(8.dp))
@@ -188,20 +193,21 @@ fun DevLabelForm(
                 Box(
                     Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(if (on) Brass.copy(alpha = 0.18f) else Surface2)
-                        .border(1.dp, if (on) Brass else Hairline, RoundedCornerShape(16.dp))
+                        .background(if (on) Selection else Surface2)
+                        .border(1.dp, if (on) Selection else Hairline, RoundedCornerShape(16.dp))
                         .clickable { tags = if (on) tags - code else tags + code }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                        .heightIn(min = 44.dp)
+                        .padding(horizontal = 12.dp, vertical = 12.dp),
                 ) {
-                    Text(label, style = MaterialTheme.typography.labelLarge, color = if (on) Brass else TextBody)
+                    Text(label, style = MaterialTheme.typography.labelLarge, color = if (on) Ink else TextBody)
                 }
             }
         }
 
         val fieldColors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Brass, unfocusedBorderColor = Hairline,
-            focusedTextColor = TextStrong, unfocusedTextColor = TextStrong, cursorColor = Brass,
-            focusedLabelColor = Brass, unfocusedLabelColor = TextMuted,
+            focusedBorderColor = Selection, unfocusedBorderColor = HairlineStrong,
+            focusedTextColor = TextStrong, unfocusedTextColor = TextStrong, cursorColor = TextStrong,
+            focusedLabelColor = TextStrong, unfocusedLabelColor = TextMuted,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
@@ -226,7 +232,7 @@ fun DevLabelForm(
         val canSave = kind != "tom" || key != null
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
-                if (saved) "Salvo ✓ (salvar de novo)" else "Salvar rótulo",
+                if (saved) "Salvo (salvar de novo)" else "Salvar rótulo",
                 primary = true, enabled = canSave, modifier = Modifier.weight(2f),
             ) {
                 val label = JSONObject()
@@ -260,10 +266,10 @@ fun DevLabelForm(
 internal fun Pill(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
         modifier = modifier
-            .height(38.dp)
+            .height(44.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) Brass else Surface2)
-            .border(1.dp, if (selected) Brass else Hairline, RoundedCornerShape(10.dp))
+            .background(if (selected) Selection else Surface2)
+            .border(1.dp, if (selected) Selection else Hairline, RoundedCornerShape(10.dp))
             .clickable { onClick() }
             .padding(horizontal = 4.dp),
         contentAlignment = Alignment.Center,
@@ -282,7 +288,7 @@ internal fun Pill(label: String, selected: Boolean, modifier: Modifier = Modifie
 internal fun Button(label: String, primary: Boolean, enabled: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
         modifier = modifier
-            .height(46.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(if (primary && enabled) Brass else Surface2)
             .border(1.dp, if (primary && enabled) Brass else Hairline, RoundedCornerShape(12.dp))

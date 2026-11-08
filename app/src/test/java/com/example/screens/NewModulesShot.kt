@@ -7,13 +7,10 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
-import com.example.data.Repertoire
-import com.example.data.SetItem
 import com.example.music.ChordType
 import com.example.music.LabChord
 import com.example.ui.screens.ChordDictionaryScreen
 import com.example.ui.screens.PassagesScreen
-import com.example.ui.screens.RepertoireScreen
 import com.example.ui.theme.HarmonicTheme
 import com.example.ui.theme.Ink
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -62,21 +59,17 @@ class NewModulesShot {
     }
 
     @Test @Config(qualifiers = "w873dp-h393dp-xxhdpi")
-    fun campoPaisagem() {
-        set { com.example.ui.screens.FieldDetailScreen("G", false, {}, {}, PaddingValues()) }
-        rule.onRoot().captureRoboImage("$out/campo_paisagem.png")
+    fun tocarPaisagem() {
+        com.example.data.Live.start(demoSetlists().id, 0)
+        set { PlayForTest() }
+        rule.onRoot().captureRoboImage("$out/tocar_paisagem.png")
+        resetLive()
     }
 
-    @Test fun repertorio() {
-        Repertoire.items.clear()
-        Repertoire.items.add(SetItem(1, 15, "Louvai a Jesus", "G", 0, "Começa só com violão"))
-        Repertoire.items.add(SetItem(2, 291, "Mais perto quero estar", "D", 2))
-        Repertoire.items.add(SetItem(3, 545, "", "Am", 0, "Subir meio tom na última estrofe"))
-        set { RepertoireScreen({}, PaddingValues()) }
-        rule.onRoot().captureRoboImage("$out/repertorio.png")
-        rule.onNode(hasText("Adicionar hino")).performClick()
-        rule.waitForIdle()
-        rule.onRoot().captureRoboImage("$out/repertorio_novo.png")
-        Repertoire.items.clear()
+    @Test @Config(qualifiers = "w873dp-h393dp-xxhdpi")
+    fun appPaisagem() {
+        resetLive()
+        rule.setContent { HarmonicTheme { com.example.HarmonicApp() } }
+        rule.onRoot().captureRoboImage("$out/app_paisagem.png")
     }
 }

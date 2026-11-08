@@ -1,6 +1,6 @@
 # Dominantes secundárias: o "5 de cada grau"
 
-Guia do módulo **Dominantes secundárias** do detalhe do campo harmônico: o
+Guia do módulo **Dominantes secundárias** da aba Tocar (campo harmônico): o
 que é, de onde veio, o que foi conferido e como usar no culto.
 
 ---
@@ -67,7 +67,7 @@ no tom menor; agora mostra todas, calculadas pelo mesmo código do módulo.
 
 ## 3. Como o app mostra
 
-No **detalhe do campo** (qualquer um dos 24 tons, com transposição):
+Na **aba Tocar** (qualquer um dos 24 tons, com transposição):
 
 - **Chave "Dominantes secundárias"** (fica salva no aparelho).
 - Ligada, aparece **em cima de cada acorde** o dominante que chama ele, na cor

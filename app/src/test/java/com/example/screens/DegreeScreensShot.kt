@@ -12,7 +12,6 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.example.ui.components.Notation
 import com.example.ui.components.NotationSettings
 import com.example.ui.screens.DegreeTrainerScreen
-import com.example.ui.screens.FieldDetailScreen
 import com.example.ui.screens.GuitarScreen
 import com.example.ui.theme.HarmonicTheme
 import com.example.ui.theme.Ink
@@ -57,7 +56,8 @@ class DegreeScreensShot {
     @Test fun treino() = shot("treino") { DegreeTrainerScreen({}, PaddingValues()) }
     @Test fun campoPorGrau() {
         NotationSettings.set(ApplicationProvider.getApplicationContext(), Notation.GRAU)
-        shot("campo_grau") { FieldDetailScreen("G", false, {}, {}, PaddingValues()) }
+        resetLive()
+        shot("campo_grau") { PlayForTest() }
         NotationSettings.set(ApplicationProvider.getApplicationContext(), Notation.CIFRA)
     }
 

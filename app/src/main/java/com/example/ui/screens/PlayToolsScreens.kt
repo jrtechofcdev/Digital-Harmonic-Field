@@ -78,17 +78,22 @@ private fun ToolColumn(contentPadding: PaddingValues, content: @Composable () ->
  * latão), ajuste fino, "marcar tempo" tocando na tela e escolha do compasso.
  */
 @Composable
-fun MetronomeScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
+fun MetronomeScreen(onBack: () -> Unit, contentPadding: PaddingValues, initialBpm: Int? = null) {
     val metronome = remember { Metronome() }
     DisposableEffect(Unit) { onDispose { metronome.stop() } }
-    var bpm by rememberSaveable { mutableIntStateOf(90) }
+    var bpm by rememberSaveable { mutableIntStateOf(initialBpm?.coerceIn(30, 240) ?: 90) }
     var beats by rememberSaveable { mutableIntStateOf(4) }
     var taps by remember { mutableStateOf(listOf<Long>()) }
     LaunchedEffect(bpm) { metronome.bpm = bpm }
     LaunchedEffect(beats) { metronome.beatsPerMeasure = beats }
 
     ToolColumn(contentPadding) {
-        ScreenHeader("Metrônomo", subtitle = "Tempo firme para ensaio e culto", onBack = onBack)
+        ScreenHeader(
+            "Metrônomo",
+            subtitle = com.example.data.Live.currentItem?.takeIf { it.bpm != null && it.bpm == initialBpm }
+                ?.let { "No andamento de ${it.heading}" } ?: "Tempo firme para ensaio e culto",
+            onBack = onBack,
+        )
 
         Panel {
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
@@ -158,37 +163,38 @@ fun MetronomeScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
 // ---------------------------------------------------------------------------
 
 /**
- * Capotraste: escolha o tom em que a música soa e veja em que casa colocar o
- * capo para tocar com um formato aberto (Dó, Lá, Sol, Mi ou Ré).
+ * Capotraste: escolha o tom em que a música soa (abre no tom do momento) e veja
+ * em que casa colocar o capo para tocar com um formato aberto (no maior: Dó,
+ * Lá, Sol, Mi ou Ré; no menor: Lá menor, Mi menor ou Ré menor).
  */
 @Composable
-fun CapoScreen(onBack: () -> Unit, contentPadding: PaddingValues) {
-    val easyShapes = listOf(0 to "Dó", 9 to "Lá", 7 to "Sol", 4 to "Mi", 2 to "Ré") // formatos abertos (CAGED)
-    var target by rememberSaveable { mutableIntStateOf(7) }
-    val suggestions = easyShapes
-        .map { (pc, name) -> Triple(pitchClassCiphers[pc], name, Math.floorMod(target - pc, 12)) }
-        .sortedBy { it.third }
-    val targetName = HarmonicDatabase.ptNameByCipher[pitchClassCiphers[target]] ?: pitchClassCiphers[target]
+fun CapoScreen(onBack: () -> Unit, contentPadding: PaddingValues, initialKey: String = "G") {
+    var target by rememberSaveable { mutableIntStateOf(com.example.music.rootPc(initialKey) ?: 7) }
+    var minor by rememberSaveable { mutableStateOf(initialKey.endsWith("m")) }
+    val key = pitchClassCiphers[target] + if (minor) "m" else ""
+    val suggestions = remember(key) { com.example.music.Capo.options(key) }
+    val targetName = HarmonicDatabase.ptNameByCipher[key] ?: key
 
     ToolColumn(contentPadding) {
         ScreenHeader("Capotraste", subtitle = "Acordes abertos em qualquer tom", onBack = onBack)
         SectionLabel("A música soa em")
+        Segmented(listOf("Maior", "Menor"), if (minor) 1 else 0, { minor = it == 1 }, Modifier.fillMaxWidth())
         (0 until 12).chunked(6).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                row.forEach { pc -> OptionChip(pitchClassCiphers[pc], pc == target, Modifier.weight(1f)) { target = pc } }
+                row.forEach { pc -> OptionChip(pitchClassCiphers[pc] + if (minor) "m" else "", pc == target, Modifier.weight(1f)) { target = pc } }
             }
         }
         SectionLabel("Como tocar em $targetName")
         Panel {
-            suggestions.forEachIndexed { i, (cipher, name, fret) ->
+            suggestions.forEachIndexed { i, tip ->
                 if (i > 0) Box(Modifier.fillMaxWidth().padding(vertical = 10.dp).height(1.dp).background(Hairline))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        if (fret == 0) "Sem capo" else "Casa $fret",
+                        if (tip.fret == 0) "Sem capo" else "Casa ${tip.fret}",
                         style = MaterialTheme.typography.titleLarge, color = TextStrong, modifier = Modifier.width(120.dp),
                     )
                     Column(Modifier.weight(1f)) {
-                        Text("Formato de $name ($cipher)", style = MaterialTheme.typography.bodyLarge, color = TextBody)
+                        Text("Formato de ${tip.shapeName} (${tip.shapeCipher})", style = MaterialTheme.typography.bodyLarge, color = TextBody)
                         if (i == 0) Text("O mais perto da cabeça do violão", style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
                 }

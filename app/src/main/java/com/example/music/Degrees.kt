@@ -67,7 +67,7 @@ fun degreeLabel(index: Int, cipher: String): String {
     return "${index + 1}${q.degreeSuffix}"
 }
 
-/** Sequência em números de uma progressão (ex.: "1 – 6m – 2m – 5 – 1"). */
+/** Sequência em números de uma progressão (ex.: "1 - 6m - 2m - 5 - 1"). */
 fun degreeSequence(degrees: List<Int>, field: HarmonicField): String =
     degrees.joinToString(" - ") { i -> field.chords.getOrNull(i)?.let { degreeLabel(i, it.cipher) } ?: "?" }
 

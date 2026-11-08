@@ -1,6 +1,6 @@
 # Termos de uso: Digital Harmonic Field
 
-Última atualização: 13 de outubro de 2026. O mesmo texto aparece no app em
+Última atualização: 8 de novembro de 2026. O mesmo texto aparece no app em
 **Ajustes > Sobre e legal > Termos de uso** (`legal/LegalTexts.kt`).
 
 1. **Aceite.** Ao usar o app, você concorda com estes termos.

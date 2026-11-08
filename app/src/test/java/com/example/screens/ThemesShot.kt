@@ -4,17 +4,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
-import com.example.data.Repertoire
-import com.example.data.SetItem
 import com.example.legal.LegalDoc
 import com.example.settings.AppSettings
 import com.example.ui.screens.AboutScreen
 import com.example.ui.screens.BrandScreen
-import com.example.ui.screens.CamposScreen
-import com.example.ui.screens.FieldDetailScreen
-import com.example.ui.screens.GuitarHubScreen
-import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.LegalScreen
+import com.example.ui.screens.LibraryScreen
+import com.example.ui.screens.SetlistsScreen
+import com.example.data.Live
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.theme.AppBackground
 import com.example.ui.theme.DarkPalette
@@ -39,8 +36,8 @@ class ThemesShot {
     @get:Rule val rule = createComposeRule()
     private val out = System.getProperty("shotDir") ?: "build/shots/temas"
 
-    @Before fun setUp() = AppSettings.init(ApplicationProvider.getApplicationContext())
-    @After fun tearDown() { Palette.current = DarkPalette; Repertoire.items.clear() }
+    @Before fun setUp() { AppSettings.init(ApplicationProvider.getApplicationContext()); resetLive() }
+    @After fun tearDown() { Palette.current = DarkPalette; resetLive() }
 
     private fun shot(name: String, light: Boolean, content: @androidx.compose.runtime.Composable () -> Unit) {
         Palette.current = if (light) LightPalette else DarkPalette
@@ -48,15 +45,19 @@ class ThemesShot {
         rule.onRoot().captureRoboImage("$out/$name.png")
     }
 
-    @Test fun claroCulto() {
-        Repertoire.items.clear()
-        Repertoire.items.add(SetItem(1, 15, "Louvai a Jesus", "G"))
-        Repertoire.items.add(SetItem(2, 291, "Mais perto quero estar", "D", 2))
-        shot("claro_culto", true) { HomeScreen(PaddingValues(), {}, {}, {}, {}, {}, {}) }
+    @Test fun claroTocar() {
+        Live.start(demoSetlists().id, 0)
+        shot("claro_tocar", true) { PlayForTest() }
     }
-    @Test fun claroCampos() = shot("claro_campos", true) { CamposScreen(emptySet(), {}, { _, _ -> }, PaddingValues()) }
-    @Test fun claroViolao() = shot("claro_violao", true) { GuitarHubScreen(PaddingValues(), {}, {}, {}) }
-    @Test fun claroCampo() = shot("claro_campo_sol", true) { FieldDetailScreen("G", true, {}, {}, PaddingValues()) }
+    @Test fun escuroTocar() {
+        Live.start(demoSetlists().id, 0)
+        shot("escuro_tocar", false) { PlayForTest() }
+    }
+    @Test fun claroRepertorio() {
+        demoSetlists()
+        shot("claro_repertorio", true) { SetlistsScreen(PaddingValues(), {}, {}) }
+    }
+    @Test fun claroBiblioteca() = shot("claro_biblioteca", true) { LibraryScreen(PaddingValues(), setOf("G"), {}, {}, {}) }
     @Test fun claroAjustes() = shot("claro_ajustes", true) { SettingsScreen(PaddingValues(), {}, {}, {}, {}) }
     @Test fun escuroAjustes() = shot("escuro_ajustes", false) { SettingsScreen(PaddingValues(), {}, {}, {}, {}) }
     @Test fun escuroSobre() = shot("escuro_sobre", false) { AboutScreen({}, PaddingValues(), {}, {}) }

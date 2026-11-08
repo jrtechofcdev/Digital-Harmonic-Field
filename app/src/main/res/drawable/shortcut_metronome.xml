@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícone de atalho (segurar o ícone do app): círculo escuro com o símbolo
+     em latão. O símbolo é o "ic_metronome" do Phosphor Icons (MIT). Gerado à mão a
+     partir de ic_metronome.xml: mudou o símbolo lá, copie o pathData para cá. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+    <path
+        android:fillColor="#FF16181E"
+        android:pathData="M128,0a128,128,0,1,1,0,256a128,128,0,1,1,0,-256Z" />
+    <group
+        android:scaleX="0.55"
+        android:scaleY="0.55"
+        android:translateX="57.6"
+        android:translateY="57.6">
+        <path
+            android:fillColor="#FFE0A94A"
+            android:pathData="M187.14,114.84l26.78-29.46a8,8,0,0,0-11.84-10.76l-20.55,22.6-17.2-54.07A15.94,15.94,0,0,0,149.08,32H106.91A15.94,15.94,0,0,0,91.66,43.15l-50.91,160A16,16,0,0,0,56,224H200a16,16,0,0,0,15.25-20.85ZM184.72,160H146.08l28.62-31.48ZM106.91,48h42.17l20,62.9L124.46,160H71.27ZM56,208l10.18-32H189.81L200,208Z" />
+    </group>
+</vector>

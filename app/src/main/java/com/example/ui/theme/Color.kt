@@ -27,6 +27,7 @@ data class AppPalette(
     val surface1: Color,         // painéis e grupos
     val surface2: Color,         // chips, botões secundários
     val surface3: Color,         // pressionado / escolhido em grades
+    val sheet: Color,            // folhas que sobem de baixo (sempre sólidas)
     val hairline: Color,         // bordas finas e divisórias
     val hairlineStrong: Color,   // bordas que precisam aparecer mais
     val textStrong: Color,       // títulos e valores
@@ -48,6 +49,7 @@ val DarkPalette = AppPalette(
     surface1 = Color(0xFF14161B),
     surface2 = Color(0xFF1C1F26),
     surface3 = Color(0xFF262A33),
+    sheet = Color(0xFF16181E),
     hairline = Color(0xFF2C313B),
     hairlineStrong = Color(0xFF3A414D),
     textStrong = Color(0xFFECEEF1),
@@ -69,6 +71,7 @@ val LightPalette = AppPalette(
     surface1 = Color(0xE6FFFFFF),        // vidro fosco: branco a 90% sobre o fundo da abertura
     surface2 = Color(0xFFE8EDF5),
     surface3 = Color(0xFFDCE3EE),
+    sheet = Color(0xFFFAFBFD),
     hairline = Color(0xFFD3DAE5),
     hairlineStrong = Color(0xFFB4BFCF),
     textStrong = Color(0xFF121826),
@@ -93,6 +96,7 @@ val Ink: Color get() = Palette.current.ink
 val Surface1: Color get() = Palette.current.surface1
 val Surface2: Color get() = Palette.current.surface2
 val Surface3: Color get() = Palette.current.surface3
+val SheetSurface: Color get() = Palette.current.sheet
 val Hairline: Color get() = Palette.current.hairline
 val HairlineStrong: Color get() = Palette.current.hairlineStrong
 

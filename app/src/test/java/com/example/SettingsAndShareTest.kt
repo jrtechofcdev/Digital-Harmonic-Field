@@ -54,14 +54,38 @@ class SettingsAndShareTest {
         assertEquals(PackageManager.COMPONENT_ENABLED_STATE_ENABLED, state("com.example.IconDark"))
     }
 
+    @Test fun aberturaUmaVezPorDia() {
+        AppSettings.init(ctx)
+        AppSettings.resetAll(ctx)
+        assertTrue(AppSettings.introDaily)                       // padrão: só 1 vez por dia
+        assertTrue(AppSettings.openingDue("2026-11-08"))
+        AppSettings.markOpeningPlayed("2026-11-08")
+        assertFalse(AppSettings.openingDue("2026-11-08"))        // abriu de novo no mesmo dia: direto
+        assertTrue(AppSettings.openingDue("2026-11-09"))         // outro dia: toca de novo
+        AppSettings.setIntroDaily(false)
+        assertTrue(AppSettings.openingDue("2026-11-08"))         // "sempre"
+        AppSettings.setIntroVideo(false); AppSettings.setBrandScreen(false)
+        assertFalse(AppSettings.openingDue("2026-11-09"))        // tudo desligado: nunca
+        AppSettings.resetAll(ctx)
+    }
+
+    @Test fun atalhosDoIcone() {
+        val i = android.content.Intent().putExtra(com.example.AppShortcut.EXTRA, "metronomo")
+        assertEquals(com.example.AppShortcut.METRONOMO, com.example.AppShortcut.from(i))
+        assertEquals(null, com.example.AppShortcut.from(android.content.Intent()))
+        com.example.AppShortcuts.publish(ctx)
+        val ids = androidx.core.content.pm.ShortcutManagerCompat.getDynamicShortcuts(ctx).map { it.id }
+        assertEquals(setOf("detectar", "repertorio", "metronomo"), ids.toSet())
+    }
+
     @Test fun repertorioParaWhatsApp() {
         val text = Repertoire.shareText(listOf(
             SetItem(1, 15, "Louvai a Jesus", "G", 0, "Começa só com violão"),
-            SetItem(2, 291, "", "Am", 2),
-        ))
-        assertTrue(text.startsWith("*Repertório do culto*"))
+            SetItem(2, 291, "", "Am", 2, bpm = 64),
+        ), "Culto de domingo")
+        assertTrue(text.startsWith("*Culto de domingo*"))
         assertTrue(text.contains("1. *Hino 15 · Louvai a Jesus*: G (Sol Maior)"))
         assertTrue(text.contains("   _Começa só com violão_"))
-        assertTrue(text.contains("2. *Hino 291*: Am (Lá menor), capotraste na 2ª casa"))
+        assertTrue(text.contains("2. *Hino 291*: Am (Lá menor), capotraste na 2ª casa, 64 BPM"))
     }
 }

@@ -376,7 +376,7 @@ private fun CircleLesson(onOpenKey: (String) -> Unit) {
             )
         }
         Spacer(Modifier.height(12.dp))
-        SecondaryButton("Abrir o campo de $selected", Modifier.fillMaxWidth()) { onOpenKey(selected) }
+        SecondaryButton("Tocar em $selected", Modifier.fillMaxWidth(), icon = com.example.R.drawable.ic_play_circle) { onOpenKey(selected) }
     }
 }
 

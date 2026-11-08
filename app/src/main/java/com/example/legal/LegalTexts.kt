@@ -8,7 +8,7 @@ import com.example.R
  * fica em docs/legal/ para publicar num site, se o app for para a loja.
  * Ao mudar algo aqui, atualize a data e o arquivo em docs/legal/.
  */
-const val LEGAL_UPDATED = "13 de outubro de 2026"
+const val LEGAL_UPDATED = "8 de novembro de 2026"
 
 data class LegalSection(val title: String, val paragraphs: List<String>)
 
@@ -39,7 +39,7 @@ val privacySections: List<LegalSection> get() = listOf(
         "Você pode negar ou retirar a permissão nas configurações do Android. O resto do app continua funcionando.",
     )),
     LegalSection("O que fica guardado no seu aparelho", listOf(
-        "Tons favoritos, o repertório do culto (números, nomes e observações que você digita) e as preferências do app (tema, ícone, notação, abertura etc.).",
+        "Tons favoritos, os repertórios do culto (números, nomes, tons, BPM e observações que você digita), o tom em que você está tocando e o hino em andamento, e as preferências do app (tema, ícone, notação, abertura etc.).",
         "Esses dados ficam só no seu celular. Você pode apagá-los em Ajustes > Dados, limpando os dados do app ou desinstalando.",
         "Se o backup automático do Android estiver ligado no seu celular, essas preferências podem ir no backup da sua conta Google, sob o seu controle e o do Google.",
     )),

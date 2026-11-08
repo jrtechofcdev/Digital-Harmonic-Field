@@ -11,8 +11,16 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import com.example.HarmonicApp
-import com.example.data.Repertoire
+import com.example.data.Live
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextClearance
+import org.junit.Assert.assertEquals
 import com.example.ui.theme.HarmonicTheme
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Rule
@@ -23,9 +31,10 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Navegação de verdade: abre o app inteiro, toca em cada aba da barra de baixo
- * e nas linhas principais de cada aba, confere que a tela certa abriu e que o
- * "Voltar" devolve para a aba. Cada passo grava uma captura.
+ * Navegação de verdade: abre o app inteiro e faz o caminho do culto (trocar e
+ * transpor o tom, montar um repertório e seguir a lista, buscar na Biblioteca),
+ * confere que a tela certa abriu e que o "Voltar" devolve para a aba. Cada
+ * passo grava uma captura.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -36,7 +45,14 @@ class NavigationTest {
 
     private val isTab = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)
     private fun tab(label: String) = rule.onNode(hasText(label).and(isTab)).performClick().also { rule.waitForIdle() }
-    private fun tapText(text: String) = rule.onNode(hasText(text)).performClick().also { rule.waitForIdle() }
+    /** Toca no texto (rolando a tela até ele, se precisar). */
+    private fun tapText(text: String) {
+        val node = rule.onNode(hasText(text))
+        runCatching { node.performScrollTo() }
+        // Clique pela ação do próprio nó: depois de rolar, ele pode estar atrás da barra de abas.
+        node.performSemanticsAction(SemanticsActions.OnClick)
+        rule.waitForIdle()
+    }
     /** Rola a lista da tela de cima até o texto aparecer e toca nele. */
     private fun scrollTap(text: String) {
         rule.onNode(hasScrollAction()).performScrollToNode(hasText(text))
@@ -46,27 +62,46 @@ class NavigationTest {
     private fun back() = rule.onNode(hasContentDescription("Voltar")).performClick().also { rule.waitForIdle() }
     private fun shot(name: String) = rule.onRoot().captureRoboImage("$out/$name.png")
 
+    /** Nó com este rótulo de clique (ex.: as teclas de tom da folha "Trocar tom"). */
+    private fun clickLabel(label: String) = SemanticsMatcher("clique \"$label\"") {
+        it.config.getOrNull(SemanticsActions.OnClick)?.label == label
+    }
+
     @Test fun abasEAtalhos() {
-        Repertoire.items.clear()
+        resetLive()
         rule.setContent { HarmonicTheme { HarmonicApp() } }
 
-        // Culto (abre por padrão): foco em detectar o tom + ferramentas de palco.
-        shows("Detectar o tom")
-        tapText("Metrônomo"); shows("Iniciar"); shot("culto_metronomo"); back()
+        // Tocar (abre por padrão): o tom do momento, detectar, transpor, ferramentas.
+        shows("Detectar o tom"); shows("Sol Maior"); shot("tocar")
+        tapText("Trocar tom"); rule.onNode(clickLabel("Ré Maior")).performClick(); rule.waitForIdle()
+        shows("Ré Maior"); assertEquals("D", Live.key)
+        rule.onNode(hasContentDescription("Meio tom acima")).performClick(); rule.waitForIdle()
+        assertEquals("D#", Live.key); shows("Voltar ao original (D)")
+        tapText("Voltar ao original (D)"); assertEquals("D", Live.key)
+        tapText("Metrônomo"); shows("Iniciar"); shot("tocar_metronomo"); back()
         tapText("Capotraste"); shows("Sem capo"); back()
-        tapText("Montar a lista"); shows("Repertório do culto"); shot("culto_repertorio"); back()
+        tapText("Progressões"); shows("Sequências prontas para tocar no tom"); back()
+
+        // Repertório: cria a lista, põe um hino e começa a tocar.
+        tab("Repertório"); shows("Novo repertório"); shot("repertorio_vazio")
+        tapText("Novo repertório"); shows("Adicionar hino")
+        tapText("Adicionar hino")
+        rule.onNode(hasSetTextAction().and(hasText("Nome do hino"))).performTextInput("Louvai a Jesus")
+        tapText("Salvar"); shows("Louvai a Jesus"); shot("repertorio_lista")
+        tapText("Começar a tocar")
+        shows("Detectar o tom")                                    // voltou para o Tocar
+        rule.onNode(hasText("hino 1 de 1", substring = true)).assertIsDisplayed()
+        shot("tocar_seguindo_lista")
+
+        // Biblioteca: busca e ferramentas no tom do momento.
+        tab("Biblioteca"); shows("Tons, acordes e ferramentas"); shot("biblioteca")
+        rule.onNode(hasSetTextAction()).performTextInput("metronomo")
+        tapText("Metrônomo"); shows("Iniciar"); back()
+        rule.onNode(hasSetTextAction()).performTextClearance()
+        scrollTap("Dicionário de acordes"); shows("Todas as formas de tocar cada acorde"); back()
+        scrollTap("Passagens e enfeites"); shows("As \"graças\" que ligam um acorde ao outro"); back()
+        scrollTap("Lá menor"); assertEquals("Am", Live.key)          // tocar num tom leva ao Tocar
         shows("Detectar o tom")
-
-        // Campos: tons e, no mesmo lugar, as progressões.
-        tab("Campos"); shows("Tons"); shot("campos")
-        tapText("Progressões"); rule.onNode(hasText("Ver o campo de", substring = true)).assertIsDisplayed(); shot("campos_progressoes")
-
-        // Violão: o braço, o dicionário e as passagens.
-        tab("Violão"); shows("Abrir o braço do violão")
-        tapText("Abrir o braço do violão"); shows("Notas, acordes e harmonia no braço"); back()
-        tapText("Dicionário de acordes"); shows("Todas as formas de tocar cada acorde"); shot("violao_dicionario"); back()
-        tapText("Passagens e enfeites"); shows("As \"graças\" que ligam um acorde ao outro"); back()
-        shows("Abrir o braço do violão")
 
         // Aprender: treinos no topo, lições abaixo.
         tab("Aprender"); shows("Treino de graus")
@@ -81,7 +116,8 @@ class NavigationTest {
         back()
         shows("Sobre o app")              // voltou para os Ajustes, na mesma posição da lista
 
-        // Voltar para o Culto mantém a tela inicial.
-        tab("Culto"); shows("Detectar o tom")
+        // Voltar para o Tocar mantém o tom e a lista.
+        tab("Tocar"); shows("Detectar o tom"); shows("Lá menor")
+        resetLive()
     }
 }

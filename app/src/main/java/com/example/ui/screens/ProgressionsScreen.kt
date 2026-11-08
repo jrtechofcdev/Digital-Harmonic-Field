@@ -49,6 +49,7 @@ import com.example.ui.components.ChordStrip
 import com.example.ui.components.NotationSettings
 import com.example.ui.components.NotationToggle
 import com.example.ui.components.SectionLabel
+import com.example.ui.components.ScreenHeader
 import com.example.ui.theme.Hairline
 import com.example.ui.theme.Ink
 import com.example.ui.theme.Surface1
@@ -59,19 +60,20 @@ import com.example.ui.theme.TextStrong
 private val ptByCipher = HarmonicDatabase.ptNameByCipher
 
 /**
- * Progressões já montadas no tom escolhido. O seletor de tom fica no topo e é
- * compacto; cada progressão mostra os acordes ocupando a largura da tela (sem
- * rolagem lateral) e pode ser aberta em tela cheia para tocar.
+ * Progressões já montadas no tom escolhido (abre no tom do momento). O seletor
+ * de tom fica no topo e é compacto; cada progressão mostra os acordes ocupando
+ * a largura da tela (sem rolagem lateral) e pode ser aberta em tela cheia.
  */
 @Composable
 fun ProgressionsScreen(
-    onOpenKey: (String) -> Unit,
+    initialKey: String,
+    onBack: () -> Unit,
+    onPlayKey: (String) -> Unit,
     onPlayFullScreen: (Progression, String) -> Unit,
     contentPadding: PaddingValues,
-    header: @Composable () -> Unit = {},
 ) {
-    var root by rememberSaveable { mutableIntStateOf(7) }   // Sol
-    var isMinor by rememberSaveable { mutableStateOf(false) }
+    var root by rememberSaveable { mutableIntStateOf(com.example.music.rootPc(initialKey) ?: 7) }
+    var isMinor by rememberSaveable { mutableStateOf(initialKey.endsWith("m")) }
     val selectedKey = pitchClassCiphers[root] + if (isMinor) "m" else ""
     val field = remember(selectedKey) { HarmonicDatabase.getField(selectedKey) }
     val groups = remember(isMinor) {
@@ -82,14 +84,14 @@ fun ProgressionsScreen(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(
             start = 16.dp, end = 16.dp,
-            top = contentPadding.calculateTopPadding() + 12.dp,
+            top = contentPadding.calculateTopPadding() + 8.dp,
             bottom = contentPadding.calculateBottomPadding() + 24.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { header() }
+        item { ScreenHeader("Progressões", subtitle = "Sequências prontas para tocar no tom", onBack = onBack) }
 
-        // Tom: maior/menor + 12 notas, a chave Cifra|Grau e o atalho para o campo.
+        // Tom: maior/menor + 12 notas, a chave Cifra|Grau e o atalho para tocar no tom.
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -103,10 +105,13 @@ fun ProgressionsScreen(
                         }
                     }
                 }
-                SecondaryButton(
-                    "Ver o campo de ${ptByCipher[selectedKey] ?: selectedKey}",
-                    Modifier.fillMaxWidth(),
-                ) { onOpenKey(selectedKey) }
+                if (selectedKey != com.example.data.Live.key) {
+                    SecondaryButton(
+                        "Tocar em ${ptByCipher[selectedKey] ?: selectedKey}",
+                        Modifier.fillMaxWidth(),
+                        icon = com.example.R.drawable.ic_play_circle,
+                    ) { onPlayKey(selectedKey) }
+                }
             }
         }
 

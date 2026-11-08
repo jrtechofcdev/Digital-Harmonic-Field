@@ -136,6 +136,7 @@ fun SettingsScreen(
                 @Composable { SettingSwitch("Vídeo de abertura", "A palheta DHF ao abrir o app", AppSettings.introVideo) { AppSettings.setIntroVideo(it) } },
                 @Composable { SettingSwitch("Som do vídeo", "Desligue para abrir em silêncio no culto", AppSettings.introSound, enabled = AppSettings.introVideo) { AppSettings.setIntroSound(it) } },
                 @Composable { SettingSwitch("Tela JR TECH OFC", "O logo do desenvolvedor por 3 segundos", AppSettings.brandScreen) { AppSettings.setBrandScreen(it) } },
+                @Composable { SettingSwitch("Só 1 vez por dia", "Depois da primeira abertura do dia, o app abre direto (ideal no culto)", AppSettings.introDaily, enabled = AppSettings.introVideo || AppSettings.brandScreen) { AppSettings.setIntroDaily(it) } },
                 @Composable { NavRow("Ver a abertura agora", subtitle = "Toca o vídeo e a tela do logo de novo", onClick = onReplayIntro) },
             ))
         }
@@ -186,7 +187,7 @@ fun SettingsScreen(
                     scope.launch { context.dataStore.edit { it.remove(FAVORITES_KEY) } }
                 }
                 Spacer(Modifier.height(8.dp))
-                ConfirmButton("Apagar o repertório do culto") { Repertoire.clear() }
+                ConfirmButton("Apagar todos os repertórios") { Repertoire.clear(); com.example.data.Live.stop() }
                 Spacer(Modifier.height(8.dp))
                 ConfirmButton("Voltar todos os ajustes ao padrão") { AppSettings.resetAll(context) }
             }

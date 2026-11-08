@@ -65,6 +65,14 @@ import com.example.ui.theme.TextBody
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextStrong
 
+/** Abas internas do Braço do violão (mesma ordem de NeckTab). */
+object GuitarTab {
+    const val NOTAS = 0
+    const val ACORDES = 1
+    const val HARMONIZAR = 2
+    const val DECORAR = 3
+}
+
 /** As quatro partes do laboratório do braço. */
 private enum class NeckTab(val title: String) { NOTAS("Notas"), ACORDES("Acordes"), HARMONIZAR("Harmonizar"), DECORAR("Decorar") }
 

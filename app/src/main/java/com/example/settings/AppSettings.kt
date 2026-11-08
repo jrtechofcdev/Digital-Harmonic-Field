@@ -38,6 +38,7 @@ object AppSettings {
     var introVideo by mutableStateOf(true); private set       // vídeo de abertura
     var introSound by mutableStateOf(true); private set       // som do vídeo
     var brandScreen by mutableStateOf(true); private set      // tela JR TECH depois do vídeo
+    var introDaily by mutableStateOf(true); private set       // abertura só na 1ª vez do dia
     var keepScreenOn by mutableStateOf(true); private set     // tela acesa no campo e na tela cheia
     var textSize by mutableStateOf(TextSize.NORMAL); private set
     var reduceMotion by mutableStateOf(false); private set    // animações mais curtas e discretas
@@ -52,6 +53,7 @@ object AppSettings {
         introVideo = p.getBoolean("abertura_video", true)
         introSound = p.getBoolean("abertura_som", true)
         brandScreen = p.getBoolean("abertura_marca", true)
+        introDaily = p.getBoolean("abertura_diaria", true)
         keepScreenOn = p.getBoolean("tela_acesa", true)
         textSize = enumOr(p.getString("texto", null), TextSize.NORMAL)
         reduceMotion = p.getBoolean("menos_animacao", false)
@@ -74,11 +76,23 @@ object AppSettings {
     @JvmName("changeIntroVideo") fun setIntroVideo(v: Boolean) { introVideo = v; save { putBoolean("abertura_video", v) } }
     @JvmName("changeIntroSound") fun setIntroSound(v: Boolean) { introSound = v; save { putBoolean("abertura_som", v) } }
     @JvmName("changeBrandScreen") fun setBrandScreen(v: Boolean) { brandScreen = v; save { putBoolean("abertura_marca", v) } }
+    @JvmName("changeIntroDaily") fun setIntroDaily(v: Boolean) { introDaily = v; save { putBoolean("abertura_diaria", v) } }
     @JvmName("changeKeepScreenOn") fun setKeepScreenOn(v: Boolean) { keepScreenOn = v; save { putBoolean("tela_acesa", v) } }
     @JvmName("changeTextSize") fun setTextSize(v: TextSize) { textSize = v; save { putString("texto", v.name) } }
     @JvmName("changeReduceMotion") fun setReduceMotion(v: Boolean) { reduceMotion = v; save { putBoolean("menos_animacao", v) } }
     @JvmName("changeVibrate") fun setVibrate(v: Boolean) { vibrate = v; save { putBoolean("vibrar", v) } }
     @JvmName("changeLatinNames") fun setLatinNames(v: Boolean) { latinNames = v; save { putBoolean("nomes_latinos", v) } }
+
+    /**
+     * A abertura deve tocar agora? Com "só 1 vez por dia", toca na primeira
+     * abertura do dia ([today] = "2026-11-08") e depois o app abre direto,
+     * o que importa no culto, quando o app é aberto várias vezes.
+     */
+    fun openingDue(today: String): Boolean =
+        (introVideo || brandScreen) && (!introDaily || prefs?.getString("abertura_dia", null) != today)
+
+    /** Marca que a abertura já tocou hoje. */
+    fun markOpeningPlayed(today: String) { save { putString("abertura_dia", today) } }
 
     /** Volta tudo ao padrão (não apaga favoritos nem repertório). */
     fun resetAll(context: Context) {

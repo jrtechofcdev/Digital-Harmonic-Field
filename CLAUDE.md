@@ -33,17 +33,24 @@ partir de `debug.keystore.base64`.
 
 Navegação por estado (sem `navigation-compose`). `AppRoot` faz a abertura
 (vídeo `res/raw/abertura.mp4` → `BrandScreen` da JR TECH OFC → app; cada etapa
-desligável nos Ajustes). `HarmonicApp` tem 5 abas pelo que o músico quer fazer:
-**Culto** (detectar tom, repertório, metrônomo, capotraste), **Campos**
-(Tons | Progressões), **Violão** (braço, dicionário, harmonizar, passagens),
-**Aprender** (Treinar + Lições 1 a 10) e **Ajustes** (tudo o que é
-configurável, Sobre e legal). Telas internas são uma **pilha** (`Dest` +
+desligável nos Ajustes; por padrão só na 1ª abertura do dia). O centro do app é
+o **tom do momento** (`data/Live.kt`): a aba Tocar mostra o campo dele e todas
+as ferramentas abrem nele. `HarmonicApp` tem 5 abas pelo que o músico faz no
+culto: **Tocar** (o painel do tom: repertório em andamento, transpor, detectar,
+7 acordes com folha do acorde, ferramentas no tom), **Repertório** (várias
+listas, BPM, Começar/Tocar daqui), **Biblioteca** (busca de tom/acorde/
+ferramenta, ferramentas no tom, 24 tons), **Aprender** (Treinar + Lições 1 a
+10) e **Ajustes** (tudo o que é configurável, Sobre e legal). Em paisagem as
+abas viram `NavigationRail`. Telas internas são uma **pilha** (`Dest` +
 `push/pop/replace`): entram deslizando, a de baixo continua composta (mantém
-o estado) mas sem toques (`blockTouchesBelow`) nem semântica. Ver `docs/DESIGN.md`.
+o estado) mas sem toques (`blockTouchesBelow`) nem semântica. Cada aba guarda
+o próprio estado (`rememberSaveableStateHolder`). Atalhos do ícone
+(`AppShortcuts.kt`): Detectar tom, Repertório, Metrônomo. Ver `docs/DESIGN.md`.
 
 ```
 com/example/
 ├── MainActivity.kt        # AppRoot (abertura) + HarmonicApp (5 abas + pilha de telas) + troca de ícone no onStop
+├── AppShortcuts.kt        # Atalhos do ícone (dinâmicos): Detectar tom, Repertório, Metrônomo
 ├── AppInfo.kt             # Autor, marca, ano, contato (usado na abertura, Sobre e textos legais)
 ├── settings/AppSettings.kt # Todas as preferências (tema, ícone, abertura, texto, animação...) + IconSwitcher
 ├── legal/LegalTexts.kt    # Privacidade, termos, permissões, licenças (espelho em docs/legal/)
@@ -69,7 +76,9 @@ com/example/
 ├── audio/
 │   ├── AudioEngine.kt     # Metronome e ChordPlayer via AudioTrack (sem libs externas)
 │   └── KeyListener.kt     # Pré-buffer de 5 s (só memória) + rodadas (RECORD_AUDIO) + SessionTap
-├── data/Repertoire.kt     # Repertório do culto (SharedPreferences + JSON, só no aparelho)
+├── data/
+│   ├── Repertoire.kt      # Várias listas de hinos (SetItem com tom, capo, BPM, obs.), JSON no aparelho
+│   └── Live.kt            # Tom do momento + repertório em andamento (salvo em "ao_vivo")
 ├── dev/                   # SÓ versão DEV: DevStore (pasta treino-real), DevRecorder, DevJson
 │                          #   (ui/dev: DevLabelForm, DevPanelScreen)
 └── ui/
@@ -78,11 +87,12 @@ com/example/
     ├── components/         # Controls.kt (ScreenHeader, PrimaryButton, SecondaryButton, OptionChip,
     │                       #   Segmented, NavRow/RowGroup, Panel, RoundIconButton), CommonUi.kt,
     │                       #   ChordStrip.kt, Notation.kt (Cifra|Grau), GuitarViews.kt, Motion.kt (pressClick)
-    └── screens/            # Home (aba Culto), Fields (CamposScreen), GuitarHub (aba Violão), Learn,
-                            # FieldDetail, Progressions, ProgressionStage (tela cheia), DegreeLessons,
-                            # DegreeTrainer, Guitar (+ GuitarChordsTab, GuitarStudyTab), ChordDictionary,
-                            # Passages, Repertoire, PlayTools (Metrônomo, Capotraste), KeyFinder, Donation,
-                            # OpeningScreens (IntroVideo, BrandScreen), Settings, AboutScreens (Sobre, Legal)
+    └── screens/            # Abas: PlayScreen (Tocar + folhas Trocar tom/acorde), RepertoireScreen
+                            # (SetlistsScreen + SetlistScreen), LibraryScreen (busca), Learn, Settings.
+                            # Tools.kt (enum Tool + LibrarySearch). Internas: Progressions,
+                            # ProgressionStage (tela cheia), DegreeLessons, DegreeTrainer, Guitar
+                            # (+ GuitarChordsTab, GuitarStudyTab), ChordDictionary, Passages, PlayTools
+                            # (Metrônomo, Capotraste), KeyFinder, Donation, OpeningScreens, AboutScreens
 ```
 
 ## Convenções e princípios
@@ -104,11 +114,15 @@ com/example/
   cores por acorde fora desse sistema.
 - **Público iniciante:** textos claros e diretos, em português. A aba Aprender
   é o guia; explique conceitos como se fosse para quem toca há pouco tempo.
-- **Dominantes secundárias:** chave `DominantSettings` no detalhe do campo
+- **Tom do momento:** toda ferramenta nova abre em `Live.key` (via `Tool` +
+  `openTool` em `MainActivity`). Não crie seletor de tom próprio como entrada
+  principal; quem muda o tom é o `Live` (setKey/transpose/goTo).
+- **Dominantes secundárias:** chave `DominantSettings` na aba Tocar
   (`DominantsUi.kt`); cálculo só em `SecondaryDominants` (a lição Graus a fundo
   usa o mesmo). Cor = Dominante. Guia em `docs/dominantes-secundarias.md`.
-- **Detalhe do campo** tem dois layouts: retrato (rolável) e paisagem
-  (compacto, **sem rolagem**). Ao mexer no landscape, garanta que tudo caiba.
+- **Aba Tocar** tem dois layouts: retrato (rolável, volta ao topo quando o
+  hino/tom muda) e paisagem (compacto, **sem rolagem**, ao lado da barra
+  lateral). Ao mexer no landscape, garanta que tudo caiba.
 - **Sem rolagem lateral:** sequências de acordes usam `ChordStrip` (divide a
   largura e quebra linha). Não use `horizontalScroll`/`LazyRow` para acordes.
 - O afinador foi removido a pedido do autor; não reintroduza.

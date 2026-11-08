@@ -34,25 +34,39 @@ referências de design: *taste-skill* (Leonxlnx) e *anti-slop* (miqdadbadjuber).
 
 ## 2. Organização (as 5 abas)
 
-A barra de baixo separa o app **pelo que o músico quer fazer**, não pelo tipo
-de ferramenta:
+O app gira em volta de uma ideia: **o tom do momento** (`data/Live.kt`). É o
+tom em que o músico está tocando agora. A aba Tocar mostra o campo dele, e
+todas as ferramentas (progressões, passagens, braço, dicionário, capotraste,
+metrônomo) **abrem já nesse tom**: ninguém escolhe o tom duas vezes. Quem muda
+o tom: a folha "Trocar tom", o transpor (-/+ meio tom), o Detectar tom, um
+tom tocado na Biblioteca ou no Aprender, e o hino do repertório em andamento.
+O tom e o hino ficam salvos: se o app fechar no meio do culto, volta no mesmo
+ponto.
+
+A barra de baixo separa o app **pelo que o músico faz no culto**:
 
 | Aba | Para quê | O que tem |
 |---|---|---|
-| **Culto** | Na hora de tocar | Detectar o tom (ação principal), repertório do dia (cada hino abre o campo no tom certo), metrônomo, capotraste, apoiar o projeto |
-| **Campos** | Consultar tons | Seletor **Tons \| Progressões**: os 24 campos e, no mesmo lugar, as progressões prontas |
-| **Violão** | Tudo no braço | Braço do violão (destaque), Dicionário de acordes, Acordes do tom no braço, Harmonizar, Passagens e enfeites |
+| **Tocar** | Na hora de tocar | Barra do repertório em andamento (hino anterior/próximo, o tom troca junto, "Salvar o tom no hino"), o tom em destaque (trocar, transpor, voltar ao original, favoritar), **Detectar o tom** (ação principal), capotraste sugerido, os 7 acordes (um toque abre a folha do acorde: forma no violão, notas, quem chama, ouvir, mais formas), dominantes secundárias, atalhos "Neste tom" e caminhos comuns em tela cheia |
+| **Repertório** | Organizar o culto | Várias listas ("Culto 08/11", "Santa ceia"), cada hino com número, tom, capotraste, BPM e observação; Começar/Continuar, Tocar daqui, renomear, duplicar, apagar e compartilhar no WhatsApp |
+| **Biblioteca** | Consultar tudo | Busca (tom pelo nome ou cifra, acorde como "D7" ou "Bm7", ferramenta), ferramentas no tom do momento, Violão, Na hora de tocar e os 24 tons (um toque leva ao Tocar) |
 | **Aprender** | Estudar | **Treinar** no topo (Treino de graus, Decorar o braço) e **Lições** numeradas de 1 a 10, todas fechadas |
-| **Ajustes** | Configurar | Aparência (tema, ícone, texto, menos animação), Abertura, Música (Cifra/Grau, nomes das notas, dominantes), No culto (tela acesa, vibração), Dados, Sobre e legal |
+| **Ajustes** | Configurar | Aparência (tema, ícone, texto, menos animação), Abertura (vídeo, som, marca, só 1 vez por dia), Música (Cifra/Grau, nomes das notas, dominantes), No culto (tela acesa, vibração), Dados, Sobre e legal |
 
 Regras da organização:
-- Cada aba tem **um foco** visível de cara (Culto: "Detectar o tom"; Violão:
-  "Abrir o braço do violão").
+- Cada aba tem **um foco** visível de cara (Tocar: "Detectar o tom";
+  Repertório: "Novo repertório" ou "Começar a tocar").
+- **Deitado** (paisagem), as abas vão para uma **barra lateral** e o Tocar vira
+  um painel sem rolagem: os 7 acordes numa linha, formação ou dominante do
+  acorde escolhido, dois caminhos comuns e os atalhos.
 - Telas internas abrem **por cima** da aba (com botão Voltar e o voltar do
-  Android). O Dicionário abre por cima de qualquer tela, para a de baixo não
-  perder o estado.
+  Android). A de baixo não perde o estado; cada aba guarda a própria rolagem.
+- Voltar numa aba que não é o Tocar volta para o Tocar antes de sair do app.
+- O Tocar volta ao topo sozinho quando o hino, a lista ou o tom mudam.
+- **Atalhos do ícone** (segurar o ícone do app): Detectar tom, Repertório e
+  Metrônomo. Abrem direto, sem a abertura.
 - Um mesmo destino pode ter mais de uma porta (ex.: "Decorar o braço" no
-  Aprender abre o braço já na aba Decorar), mas cada função mora num lugar só.
+  Aprender e na Biblioteca), mas cada função mora num lugar só.
 
 ---
 
@@ -272,9 +286,12 @@ navegação, ela é o ícone `ic_chevron` da `NavRow`.
   `NavRow` para o resto.
 - **Telas internas:** `ScreenHeader` com Voltar; a ação principal em latão; o
   resto em `SecondaryButton`/`OptionChip`.
-- **Ações perigosas** (remover hino, descartar trecho) ficam longe do toque
-  acidental e pedem confirmação ("Toque de novo para remover da lista").
-- **Detalhe do campo:** retrato rola; **paisagem** é compacta e **sem rolagem**.
+- **Ações perigosas** (remover hino, apagar lista, descartar trecho) ficam no
+  fim da tela, longe do toque acidental, e pedem confirmação ("Toque de novo
+  para apagar a lista").
+- **Folhas (sobem de baixo):** "Trocar tom" e a folha do acorde. Fundo
+  `SheetSurface`; fecham com o gesto de descer ou tocando fora.
+- **Tocar:** retrato rola; **paisagem** é compacta e **sem rolagem**.
 - **Tela cheia de progressão:** grade que ocupa a tela toda, acorde da vez
   destacado na cor da função, "Próximo" em latão e a tela fica acesa.
 
@@ -310,7 +327,7 @@ navegação, ela é o ícone `ic_chevron` da `NavRow`.
 | `ChordStrip` para sequências | `horizontalScroll` / `LazyRow` para acordes |
 | Ícones Phosphor com `tint` | Misturar famílias de ícones ou usar "›" e "▶" como texto |
 | Frases com dois-pontos, vírgula ou parênteses | Travessão nos textos |
-| Teste em retrato **e** paisagem | Deixar o detalhe do campo rolar em paisagem |
+| Teste em retrato **e** paisagem | Deixar a aba Tocar rolar em paisagem |
 
 ---
 
@@ -321,5 +338,6 @@ gradle :app:testDebugUnitTest -Proborazzi.test.record=true
 # imagens em app/build/shots/ (abas em shots/tabs, navegação em shots/nav)
 ```
 
-`NavigationTest` abre o app inteiro, toca em cada aba e nas linhas principais
-e confere que a tela certa abriu e que o Voltar devolve para a aba.
+`NavigationTest` abre o app inteiro e faz o caminho do culto: troca e transpõe
+o tom, monta um repertório, começa a tocar a lista, busca na Biblioteca e
+confere que a tela certa abriu e que o Voltar devolve para a aba.

@@ -1,6 +1,6 @@
 # Política de privacidade: Digital Harmonic Field
 
-Última atualização: 13 de outubro de 2026. O mesmo texto aparece no app em
+Última atualização: 8 de novembro de 2026. O mesmo texto aparece no app em
 **Ajustes > Sobre e legal > Política de privacidade** (`legal/LegalTexts.kt`).
 
 ## Resumo
@@ -21,8 +21,9 @@ ou rede social; o mesmo valor de `AppInfo.CONTACT`]*.
   do app continua funcionando.
 
 ## O que fica guardado no seu aparelho
-- Tons favoritos, o repertório do culto (números, nomes e observações que você
-  digita) e as preferências do app (tema, ícone, notação, abertura etc.).
+- Tons favoritos, os repertórios do culto (números, nomes, tons, BPM e
+  observações que você digita), o tom em que você está tocando e o hino em
+  andamento, e as preferências do app (tema, ícone, notação, abertura etc.).
 - Ficam só no celular. Para apagar: **Ajustes > Dados**, limpar os dados do app
   ou desinstalar.
 - Se o backup automático do Android estiver ligado, essas preferências podem ir

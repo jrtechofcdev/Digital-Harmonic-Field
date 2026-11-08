@@ -601,7 +601,7 @@ private fun CandidateCard(
                 Spacer(Modifier.weight(1f))
                 Icon(
                     painterResource(R.drawable.ic_chevron),
-                    contentDescription = "Abrir o campo",
+                    contentDescription = "Tocar neste tom",
                     tint = TextMuted,
                     modifier = Modifier.align(Alignment.CenterVertically).size(20.dp),
                 )

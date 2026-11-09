@@ -17,6 +17,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import com.example.music.rootPc
 import com.example.ui.screens.LibraryScreen
 import com.example.ui.screens.PlayScreen
+import com.example.ui.screens.PreachScreen
+import com.example.ui.screens.PreachStageScreen
 import com.example.ui.screens.ProgressionsScreen
 import com.example.ui.screens.SetlistScreen
 import com.example.ui.screens.SetlistsScreen
@@ -157,13 +159,14 @@ class MainActivity : ComponentActivity() {
 
 /**
  * As 5 áreas do app, pelo que o músico faz no culto: tocar (o painel do tom),
- * seguir o repertório, consultar a biblioteca, aprender e ajustar.
+ * o fundo da pregação, seguir o repertório, consultar a biblioteca (onde
+ * também fica o Aprender) e ajustar.
  */
 internal enum class Tab(val label: String, val icon: Int) {
     TOCAR("Tocar", R.drawable.ic_play_circle),          // o painel do tom do momento
+    PREGACAO("Pregação", R.drawable.ic_hands_praying),  // fundos para pregação, oração e apelo
     REPERTORIO("Repertório", R.drawable.ic_playlist),   // listas de hinos do culto
-    BIBLIOTECA("Biblioteca", R.drawable.ic_books),      // busca, 24 tons, ferramentas
-    APRENDER("Aprender", R.drawable.ic_learn),          // lições e treinos
+    BIBLIOTECA("Biblioteca", R.drawable.ic_books),      // busca, 24 tons, ferramentas e o Aprender
     AJUSTES("Ajustes", R.drawable.ic_settings),         // configurações, sobre e legal
 }
 
@@ -237,10 +240,12 @@ private sealed interface Dest {
     data class Setlist(val id: Long) : Dest
     data class Metronome(val bpm: Int?) : Dest
     data class Capo(val key: String) : Dest
+    data class PreachStage(val id: String) : Dest
     data class Legal(val doc: LegalDoc) : Dest
     data object KeyFinder : Dest
     data object Donation : Dest
     data object Trainer : Dest
+    data object Learn : Dest
     data object DevPanel : Dest
     data object About : Dest
 }
@@ -322,6 +327,8 @@ internal fun HarmonicApp(
             Tool.CAPO -> push(Dest.Capo(key))
             Tool.DETECTAR -> push(Dest.KeyFinder)
             Tool.TREINAR -> push(Dest.Trainer)
+            Tool.APRENDER -> push(Dest.Learn)
+            Tool.PREGACAO -> { entries.forEach { it.visible.targetState = false }; showTab(Tab.PREGACAO) }
         }
     }
     val nav = Nav(::push, ::pop, ::replace, ::playKey, ::showPlay, ::openTool, ::showTab)
@@ -334,6 +341,7 @@ internal fun HarmonicApp(
         when (shortcut) {
             AppShortcut.DETECTAR -> { showTab(Tab.TOCAR); push(Dest.KeyFinder) }
             AppShortcut.REPERTORIO -> showTab(Tab.REPERTORIO)
+            AppShortcut.PREGACAO -> showTab(Tab.PREGACAO)
             AppShortcut.METRONOMO -> push(Dest.Metronome(com.example.data.Live.currentItem?.bpm))
             null -> return@LaunchedEffect
         }
@@ -490,14 +498,12 @@ private fun TabScreen(
             onOpenChord = { nav.push(Dest.Dictionary(it)) },
             onOpenDevPanel = { nav.push(Dest.DevPanel) },
         )
-        Tab.APRENDER -> LearnScreen(
-            onOpenKey = nav.playKey,
+        Tab.PREGACAO -> PreachScreen(
             contentPadding = padding,
-            onOpenTrainer = { nav.push(Dest.Trainer) },
-            onOpenGuitar = { nav.openTool(Tool.BRACO) },
-            onOpenPassages = { nav.openTool(Tool.PASSAGENS) },
-            onOpenDictionary = { nav.openTool(Tool.DICIONARIO) },
-            onOpenStudy = { nav.openTool(Tool.DECORAR) },
+            favorites = favorites,
+            onOpenStage = { nav.push(Dest.PreachStage(it)) },
+            onOpenDictionary = { nav.push(Dest.Dictionary(it)) },
+            onDetectKey = { nav.push(Dest.KeyFinder) },
         )
         Tab.AJUSTES -> SettingsScreen(
             contentPadding = padding,
@@ -560,6 +566,17 @@ private fun Screen(dest: Dest, insets: PaddingValues, nav: Nav) {
         )
         Dest.Donation -> DonationScreen(onBack = pop, contentPadding = insets)
         Dest.Trainer -> DegreeTrainerScreen(onBack = pop, contentPadding = insets)
+        Dest.Learn -> LearnScreen(
+            onOpenKey = nav.playKey,
+            contentPadding = insets,
+            onOpenTrainer = { nav.push(Dest.Trainer) },
+            onOpenGuitar = { nav.openTool(Tool.BRACO) },
+            onOpenPassages = { nav.openTool(Tool.PASSAGENS) },
+            onOpenDictionary = { nav.openTool(Tool.DICIONARIO) },
+            onOpenStudy = { nav.openTool(Tool.DECORAR) },
+            onBack = pop,
+        )
+        is Dest.PreachStage -> PreachStageScreen(dest.id, onBack = pop, contentPadding = insets)
         Dest.DevPanel -> com.example.ui.dev.DevPanelScreen(onBack = pop, contentPadding = insets)
         Dest.About -> AboutScreen(
             onBack = pop,

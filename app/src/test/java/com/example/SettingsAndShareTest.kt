@@ -75,7 +75,7 @@ class SettingsAndShareTest {
         assertEquals(null, com.example.AppShortcut.from(android.content.Intent()))
         com.example.AppShortcuts.publish(ctx)
         val ids = androidx.core.content.pm.ShortcutManagerCompat.getDynamicShortcuts(ctx).map { it.id }
-        assertEquals(setOf("detectar", "repertorio", "metronomo"), ids.toSet())
+        assertEquals(setOf("detectar", "pregacao", "repertorio", "metronomo"), ids.toSet())
     }
 
     @Test fun repertorioParaWhatsApp() {

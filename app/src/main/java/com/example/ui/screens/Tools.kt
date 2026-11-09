@@ -26,6 +26,8 @@ enum class Tool(val short: String, val label: String, val subtitle: String, val 
     DECORAR("Decorar", "Decorar o braço", "Treino rápido das notas, corda por corda", R.drawable.ic_target, "decorar treinar notas braco"),
     DETECTAR("Detectar", "Detectar o tom", "Aponte para quem canta: o tom em 5 a 15 segundos", R.drawable.ic_mic, "detectar tom microfone ouvir descobrir"),
     TREINAR("Treinar", "Treinar graus", "Perguntas rápidas de ouvido e de cifra", R.drawable.ic_learn, "treinar graus ouvido quiz exercicio"),
+    APRENDER("Aprender", "Aprender", "Lições de 1 a 10, na ordem, e os treinos", R.drawable.ic_learn, "aprender licao licoes aula estudar teoria campo"),
+    PREGACAO("Pregação", "Fundo da pregação", "Sequências para pregação, oração, apelo e Ceia", R.drawable.ic_hands_praying, "pregacao fundo musical oracao apelo ceia ministracao palavra"),
     ;
 
     companion object {

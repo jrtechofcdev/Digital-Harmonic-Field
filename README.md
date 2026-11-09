@@ -31,16 +31,16 @@ O app é organizado em cinco abas, pelo que o músico faz no culto:
 | Aba | Para quê | O que tem |
 |---|---|---|
 | **Tocar** | Na hora de tocar | O **hino da vez** (anterior/próximo, o tom troca junto), o tom em destaque (trocar, **transpor**, voltar ao original), **Detectar o tom**, o capotraste sugerido, os **7 acordes** (um toque mostra a forma no violão, as notas e quem chama o acorde), as dominantes e os atalhos no tom |
+| **Pregação** | Fundo da Palavra | **Sequências de fundo** para pregação, oração, apelo, Santa Ceia e volta ao hino (52 no total), com a sensação de cada uma, como tocar, o som e a **tela cheia que passa sozinha**; e os **acordes bonitos** explicados |
 | **Repertório** | Organizar o culto | **Várias listas** ("Culto 08/11", "Santa ceia"), cada hino com número, tom, capotraste, **BPM** e observação; Começar, Tocar daqui, duplicar e enviar no WhatsApp |
-| **Biblioteca** | Consultar tudo | **Busca** (tom pelo nome ou cifra, acorde como "D7", ferramenta), as ferramentas no tom do momento, o violão e os 24 tons |
-| **Aprender** | Estudar | **Treinar** (treino de graus, decorar o braço) e as **lições** de 1 a 10 |
+| **Biblioteca** | Consultar tudo | **Busca** (tom pelo nome ou cifra, acorde como "D7", ferramenta), as ferramentas no tom do momento, o violão, o **Aprender** (lições de 1 a 10 e treinos) e os 24 tons |
 | **Ajustes** | Configurar | Tema (escuro, claro, do sistema), ícone do app, tamanho do texto, menos animação, abertura, notação, tela acesa, vibração, dados, Sobre e documentos legais |
 
 As telas internas entram deslizando por cima da aba, com "Voltar", e a tela de
 baixo continua do jeito que estava. Deitado (paisagem), as abas ficam numa
 barra lateral e o Tocar mostra tudo sem rolagem. Segurando o ícone do app na
-tela inicial aparecem atalhos para **Detectar tom**, **Repertório** e
-**Metrônomo**. Botões e seletores têm animações curtas de
+tela inicial aparecem atalhos para **Detectar tom**, **Pregação**,
+**Repertório** e **Metrônomo**. Botões e seletores têm animações curtas de
 toque e de troca (desligáveis em "Menos animação"). O visual segue o
 [guia de design](docs/DESIGN.md): escuro, latão só na ação principal e cor só
 para a função do acorde.
@@ -70,6 +70,19 @@ A função central. Você vê:
 - As **notas da escala** e a estrela de **favorito**.
 - **Modo paisagem** compacto: todos os graus na tela, sem rolagem, para uso
   ao vivo.
+
+### Pregação (fundo musical)
+Sequências de acordes para tocar baixinho na hora da Palavra, separadas por
+momento: **Pregação** (fundo discreto, como o vai e vem 1 - 4 e o baixo
+parado), **Oração** (4 - 1, 4 - 4m - 1, pedal), **Apelo** (1 - 5 - 6m - 4,
+4 - 5 - 3m - 6m, que crescem aos poucos), **Ceia e ministração** (7M, baixo
+descendo) e **Voltar ao hino** (5sus4 - 5, cadências). São 35 no tom maior e
+17 no menor, só com acordes simples ou cores leves, no tom do momento. Cada
+uma diz a sensação e como tocar, tem o som, as formas no violão e a **tela
+cheia** com **passar sozinho** (8, 6 ou 4 segundos por acorde). Em "Acordes
+bonitos", a nona, o sus, a sétima maior, o 4/5, o baixo parado e outros são
+comparados com o acorde simples. Guia completo em
+[`docs/fundo-de-pregacao.md`](docs/fundo-de-pregacao.md).
 
 ### Biblioteca
 A busca acha **tons** ("sol", "Am", "fá sustenido menor"), **acordes** ("D7",
@@ -123,7 +136,7 @@ largura da tela — nada de arrastar a linha para o lado — e cada progressão 
 em **tela cheia para tocar**: acordes gigantes, passo atual destacado, troca de
 tom na hora (− / +) e tela sempre acesa.
 
-### Aprender
+### Aprender (na Biblioteca)
 Um guia para o tocador iniciante da assembleia: o que é campo harmônico, as três
 funções, a progressão da Harpa, **como tirar música de ouvido**, o sistema de
 números (1‑4‑5) e o **círculo das quintas explicado com uso prático** — um mapa
@@ -273,6 +286,7 @@ app/src/main/java/com/example/
 │   ├── Voicings.kt              # Tipos de acorde, gerador de variações, harmonização, jogos do braço
 │   ├── ChordShapes.kt           # Dicionário: formas CAGED, todas as formas, passo a passo dos dedos
 │   ├── Capo.kt                  # Capotraste: casa e formato aberto para cada tom
+│   ├── Preaching.kt             # Fundos de pregação por momento + acordes bonitos
 │   └── Passages.kt              # Passagens e enfeites por momento do hino (maior e menor)
 ├── data/Repertoire.kt           # Repertórios (várias listas de hinos, salvos no aparelho)
 ├── data/Live.kt                 # Tom do momento + hino em andamento
@@ -283,13 +297,15 @@ app/src/main/java/com/example/
 └── ui/
     ├── theme/                   # Cores, tipografia e tema
     ├── components/              # Peças do sistema (Controls.kt), ChordStrip, Cifra|Grau, violão
-    └── screens/                 # Abas: Tocar (PlayScreen), Repertório, Biblioteca (busca), Aprender,
-                                 #  Ajustes; telas internas: Progressões (+ tela cheia), lições de graus,
+    └── screens/                 # Abas: Tocar (PlayScreen), Pregação (PreachScreen), Repertório,
+                                 #  Biblioteca (busca), Ajustes; telas internas: Aprender, Progressões
+                                 #  (+ tela cheia), fundo em tela cheia, lições de graus,
                                  #  Treino de graus, Braço do violão, Dicionário, Passagens,
                                  #  Metrônomo/Capotraste (PlayTools), Detectar tom, Doação (+ ui/dev na DEV)
 tools/key-model/                 # Bancada de hinos, treino do modelo e ingestão do material real
 tools/icon/make_icon.py          # Gera o ícone em todos os formatos a partir do logo em tools/icon/source/
 docs/detector-de-tom.md          # Como o detector funciona e como retreinar
+docs/fundo-de-pregacao.md        # As sequências de fundo e os acordes bonitos, cifrados
 docs/treino-real.md              # Versão DEV: como captar, rotular e enviar
 ```
 

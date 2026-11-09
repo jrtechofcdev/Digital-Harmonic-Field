@@ -258,13 +258,21 @@ object Passages {
     fun moves(minor: Boolean): List<PassageMove> = table(minor).keys.toList()
 
     private fun step(s: St, tonic: Int, minor: Boolean): PassageStep {
-        val root = Math.floorMod(tonic + s.offset, 12)
-        val bass = s.bass?.let { Math.floorMod(tonic + it, 12) }
-        val chord = LabChord(root, s.type, bass)
+        val fn = when (s.fn) { T -> HarmonicFunction.TONIC; S -> HarmonicFunction.SUBDOMINANT; else -> HarmonicFunction.DOMINANT }
+        return degreeStep(s.label, s.offset, s.type, fn, s.bass, tonic, minor)
+    }
+
+    /**
+     * Um acorde escrito em graus (distância da tônica em semitons, tipo e baixo)
+     * vira o acorde no tom, marcando se ele sai do campo harmônico. Usado nas
+     * passagens e nos fundos de pregação.
+     */
+    fun degreeStep(label: String, offset: Int, type: ChordType, function: HarmonicFunction, bass: Int?, tonic: Int, minor: Boolean): PassageStep {
+        val root = Math.floorMod(tonic + offset, 12)
+        val chord = LabChord(root, type, bass?.let { Math.floorMod(tonic + it, 12) })
         val scale = if (minor) MINOR_SCALE else MAJOR_SCALE
         val outside = (chord.pitchClasses + chord.bassPc).any { Math.floorMod(it - tonic, 12) !in scale }
-        val fn = when (s.fn) { T -> HarmonicFunction.TONIC; S -> HarmonicFunction.SUBDOMINANT; else -> HarmonicFunction.DOMINANT }
-        return PassageStep(s.label, chord, fn, outside)
+        return PassageStep(label, chord, function, outside)
     }
 
     /** O caminho "direto", sem enfeite (para comparar). */

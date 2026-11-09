@@ -103,11 +103,19 @@ class NavigationTest {
         scrollTap("Lá menor"); assertEquals("Am", Live.key)          // tocar num tom leva ao Tocar
         shows("Detectar o tom")
 
-        // Aprender: treinos no topo, lições abaixo.
-        tab("Aprender"); shows("Treino de graus")
+        // Pregação: fundos no tom do momento (Lá menor), momento Apelo e tela cheia.
+        tab("Pregação"); shows("Fundos para a pregação, a oração e o apelo"); shot("pregacao")
+        tapText("Apelo")
+        rule.onAllNodes(hasText("Tela cheia"))[0].performSemanticsAction(SemanticsActions.OnClick); rule.waitForIdle()
+        shows("Passar sozinho"); shot("pregacao_tela_cheia"); back()
+
+        // Aprender agora fica na Biblioteca: lições e treinos.
+        tab("Biblioteca")
+        scrollTap("Lições de 1 a 10, na ordem, e os treinos"); shows("Treino de graus")
         tapText("Treino de graus"); shows("Pelo ouvido"); shot("aprender_treino"); back()
         tapText("Decorar o braço"); shows("Notas, acordes e harmonia no braço"); back()
-        shot("aprender")
+        shot("aprender"); back()
+        shows("Lições de 1 a 10, na ordem, e os treinos")   // voltou para a Biblioteca, na mesma rolagem
 
         // Ajustes: tema, Sobre e documentos legais.
         tab("Ajustes"); shows("Tema"); shot("ajustes")

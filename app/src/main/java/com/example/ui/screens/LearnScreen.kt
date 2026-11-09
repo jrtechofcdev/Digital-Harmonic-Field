@@ -72,6 +72,7 @@ fun LearnScreen(
     onOpenPassages: () -> Unit = {},
     onOpenDictionary: () -> Unit = {},
     onOpenStudy: () -> Unit = {},
+    onBack: (() -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
@@ -82,7 +83,7 @@ fun LearnScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { ScreenHeader("Aprender", subtitle = "Lições curtas, na ordem, e treinos para fixar") }
+        item { ScreenHeader("Aprender", subtitle = "Lições curtas, na ordem, e treinos para fixar", onBack = onBack) }
 
         item { SectionTitle("Treinar", Modifier.padding(top = 12.dp)) }
         item {

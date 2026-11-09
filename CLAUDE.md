@@ -37,20 +37,22 @@ desligável nos Ajustes; por padrão só na 1ª abertura do dia). O centro do ap
 o **tom do momento** (`data/Live.kt`): a aba Tocar mostra o campo dele e todas
 as ferramentas abrem nele. `HarmonicApp` tem 5 abas pelo que o músico faz no
 culto: **Tocar** (o painel do tom: repertório em andamento, transpor, detectar,
-7 acordes com folha do acorde, ferramentas no tom), **Repertório** (várias
-listas, BPM, Começar/Tocar daqui), **Biblioteca** (busca de tom/acorde/
-ferramenta, ferramentas no tom, 24 tons), **Aprender** (Treinar + Lições 1 a
-10) e **Ajustes** (tudo o que é configurável, Sobre e legal). Em paisagem as
+7 acordes com folha do acorde, ferramentas no tom), **Pregação** (fundos por
+momento: pregação, oração, apelo, Ceia, voltar ao hino; acordes bonitos; tela
+cheia com "passar sozinho"), **Repertório** (várias listas, BPM, Começar/Tocar
+daqui), **Biblioteca** (busca de tom/acorde/ferramenta, ferramentas no tom,
+**Aprender** com Treinar + Lições 1 a 10, 24 tons) e **Ajustes** (tudo o que é
+configurável, Sobre e legal). Em paisagem as
 abas viram `NavigationRail`. Telas internas são uma **pilha** (`Dest` +
 `push/pop/replace`): entram deslizando, a de baixo continua composta (mantém
 o estado) mas sem toques (`blockTouchesBelow`) nem semântica. Cada aba guarda
 o próprio estado (`rememberSaveableStateHolder`). Atalhos do ícone
-(`AppShortcuts.kt`): Detectar tom, Repertório, Metrônomo. Ver `docs/DESIGN.md`.
+(`AppShortcuts.kt`): Detectar tom, Pregação, Repertório, Metrônomo. Ver `docs/DESIGN.md`.
 
 ```
 com/example/
 ├── MainActivity.kt        # AppRoot (abertura) + HarmonicApp (5 abas + pilha de telas) + troca de ícone no onStop
-├── AppShortcuts.kt        # Atalhos do ícone (dinâmicos): Detectar tom, Repertório, Metrônomo
+├── AppShortcuts.kt        # Atalhos do ícone (dinâmicos): Detectar tom, Pregação, Repertório, Metrônomo
 ├── AppInfo.kt             # Autor, marca, ano, contato (usado na abertura, Sobre e textos legais)
 ├── settings/AppSettings.kt # Todas as preferências (tema, ícone, abertura, texto, animação...) + IconSwitcher
 ├── legal/LegalTexts.kt    # Privacidade, termos, permissões, licenças (espelho em docs/legal/)
@@ -71,6 +73,7 @@ com/example/
 │   ├── Voicings.kt        # ChordType (9, 7M, sus…), gerador de variações, Harmonize, NeckQuiz
 │   ├── ChordShapes.kt     # Dicionário: moldes CAGED (common), todas as formas (all), howTo (dedos)
 │   ├── Passages.kt        # Passagens/enfeites por momento (PassageMove), escritas em graus
+│   ├── Preaching.kt       # Fundos de pregação por momento (PreachMoment) + acordes bonitos (ColorChord)
 │   ├── SecondaryDominants.kt # "5 de cada grau": dominante, nota de fora, 3ª sobe, 7ª desce, exemplo
 │   └── PitchDetection.kt  # Detecção de altura (autocorrelação/MPM) + ptPitchClass
 ├── audio/
@@ -87,7 +90,8 @@ com/example/
     ├── components/         # Controls.kt (ScreenHeader, PrimaryButton, SecondaryButton, OptionChip,
     │                       #   Segmented, NavRow/RowGroup, Panel, RoundIconButton), CommonUi.kt,
     │                       #   ChordStrip.kt, Notation.kt (Cifra|Grau), GuitarViews.kt, Motion.kt (pressClick)
-    └── screens/            # Abas: PlayScreen (Tocar + folhas Trocar tom/acorde), RepertoireScreen
+    └── screens/            # Abas: PlayScreen (Tocar + folhas Trocar tom/acorde), PreachScreen (Pregação
+                            # + PreachStageScreen, tela cheia com "passar sozinho"), RepertoireScreen
                             # (SetlistsScreen + SetlistScreen), LibraryScreen (busca), Learn, Settings.
                             # Tools.kt (enum Tool + LibrarySearch). Internas: Progressions,
                             # ProgressionStage (tela cheia), DegreeLessons, DegreeTrainer, Guitar
@@ -112,8 +116,8 @@ com/example/
 - **Cor com significado:** todo acorde é pintado pela função tonal
   (`HarmonicFunction.color()` — Tônica/Subdominante/Dominante). Não introduza
   cores por acorde fora desse sistema.
-- **Público iniciante:** textos claros e diretos, em português. A aba Aprender
-  é o guia; explique conceitos como se fosse para quem toca há pouco tempo.
+- **Público iniciante:** textos claros e diretos, em português. O Aprender
+  (dentro da Biblioteca) é o guia; explique conceitos como se fosse para quem toca há pouco tempo.
 - **Tom do momento:** toda ferramenta nova abre em `Live.key` (via `Tool` +
   `openTool` em `MainActivity`). Não crie seletor de tom próprio como entrada
   principal; quem muda o tom é o `Live` (setKey/transpose/goTo).
@@ -141,6 +145,13 @@ com/example/
   `Voicings.evaluate`; molde que não cabe na mão num tom simplesmente não
   aparece. Pestana só com 5+ casas presas (o Ré/Lá abertos não têm pestana). Os
   dedos vêm de `Voicing.fingering` (um dedo por casa) e o texto de `howTo`.
+- **Fundos de pregação** (`Preaching.kt`, guia em `docs/fundo-de-pregacao.md`):
+  em graus (`Passages.degreeStep`), só acordes de `Preaching.ALLOWED` (maior,
+  menor, (9), sus2, sus4, 7M, m7, 7 e baixo trocado). Nada de acorde
+  complicado (pedido do autor). Cada sequência tem sensação e "como tocar";
+  todo momento precisa de uma opção simples e tudo precisa ter forma no
+  violão nos 24 tons (`PreachingTest`). O "passar sozinho" usa tempo real
+  (não passa por `Motion.ms`).
 - **Passagens:** escreva sempre em graus (`St(rótulo, semitons da tônica, tipo,
   função, baixo)`), nunca em cifra. "Fora do campo" é calculado (no menor, a
   sensível do 5 maior conta como dentro). Toda passagem precisa ter forma no

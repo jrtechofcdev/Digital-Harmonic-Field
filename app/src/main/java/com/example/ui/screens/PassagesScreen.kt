@@ -61,7 +61,7 @@ import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextStrong
 
 /** A forma usada para tocar e desenhar cada acorde (a mais usada). */
-private fun shapeOf(chord: LabChord) = ChordShapes.common(chord).firstOrNull()?.voicing
+internal fun shapeOf(chord: LabChord) = ChordShapes.common(chord).firstOrNull()?.voicing
 
 private fun play(player: ChordPlayer, steps: List<PassageStep>) {
     val notes = steps.mapNotNull { shapeOf(it.chord)?.midiNotes }
@@ -151,7 +151,7 @@ fun PassagesScreen(
 
 /** Os acordes de uma sequência, na largura da tela (quebra a linha, nunca rola para o lado). */
 @Composable
-private fun StepRow(steps: List<PassageStep>) {
+internal fun StepRow(steps: List<PassageStep>) {
     val perRow = if (steps.size <= 5) steps.size.coerceAtLeast(1) else 4
     val byDegree = NotationSettings.byDegree
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -218,28 +218,38 @@ private fun PassageCard(p: Passage, plain: List<PassageStep>, player: ChordPlaye
         }
         if (showShapes) {
             Spacer(Modifier.height(8.dp))
-            val per = if (p.steps.size <= 4) 4 else 5
-            p.steps.chunked(per).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    row.forEach { st ->
-                        val c = st.function.color()
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Surface2)
-                                .clickable(enabled = st.chord.bass == null) { onOpenDictionary(st.chord) }
-                                .padding(4.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            shapeOf(st.chord)?.let { ChordDiagram(it.shape, c) }
-                            Text(st.chord.cipher, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = c, maxLines = 1)
-                        }
+            StepShapes(p.steps, onOpenDictionary)
+        }
+    }
+}
+
+/** Os desenhos no violão de cada acorde da sequência (toque abre o Dicionário). */
+@Composable
+internal fun StepShapes(steps: List<PassageStep>, onOpenDictionary: (LabChord) -> Unit, hint: Boolean = true) {
+    val per = if (steps.size <= 4) 4 else 5
+    Column {
+        steps.chunked(per).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                row.forEach { st ->
+                    val c = st.function.color()
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Surface2)
+                            .clickable(enabled = st.chord.bass == null) { onOpenDictionary(st.chord) }
+                            .padding(4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        shapeOf(st.chord)?.let { ChordDiagram(it.shape, c) }
+                        Text(st.chord.cipher, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = c, maxLines = 1)
                     }
-                    repeat(per - row.size) { Spacer(Modifier.weight(1f)) }
                 }
-                Spacer(Modifier.height(6.dp))
+                repeat(per - row.size) { Spacer(Modifier.weight(1f)) }
             }
+            Spacer(Modifier.height(6.dp))
+        }
+        if (hint) {
             Text(
                 "Toque num desenho para ver todas as formas desse acorde no Dicionário.",
                 style = MaterialTheme.typography.labelSmall, color = TextMuted,
@@ -247,4 +257,3 @@ private fun PassageCard(p: Passage, plain: List<PassageStep>, player: ChordPlaye
         }
     }
 }
-

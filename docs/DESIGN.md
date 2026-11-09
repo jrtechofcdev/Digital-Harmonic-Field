@@ -48,9 +48,9 @@ A barra de baixo separa o app **pelo que o músico faz no culto**:
 | Aba | Para quê | O que tem |
 |---|---|---|
 | **Tocar** | Na hora de tocar | Barra do repertório em andamento (hino anterior/próximo, o tom troca junto, "Salvar o tom no hino"), o tom em destaque (trocar, transpor, voltar ao original, favoritar), **Detectar o tom** (ação principal), capotraste sugerido, os 7 acordes (um toque abre a folha do acorde: forma no violão, notas, quem chama, ouvir, mais formas), dominantes secundárias, atalhos "Neste tom" e caminhos comuns em tela cheia |
+| **Pregação** | Fundo da Palavra | Sequências por momento (Pregação, Oração, Apelo, Ceia e ministração, Voltar ao hino), cada uma com sensação, "como tocar", Ouvir, Formas e **Tela cheia** com "passar sozinho" (8, 6 ou 4 s); chave "Só acordes simples"; "Acordes bonitos" ((9), sus, 7M, m7, 4/5, 1/3, pedal, 4m) comparados com o acorde simples |
 | **Repertório** | Organizar o culto | Várias listas ("Culto 08/11", "Santa ceia"), cada hino com número, tom, capotraste, BPM e observação; Começar/Continuar, Tocar daqui, renomear, duplicar, apagar e compartilhar no WhatsApp |
-| **Biblioteca** | Consultar tudo | Busca (tom pelo nome ou cifra, acorde como "D7" ou "Bm7", ferramenta), ferramentas no tom do momento, Violão, Na hora de tocar e os 24 tons (um toque leva ao Tocar) |
-| **Aprender** | Estudar | **Treinar** no topo (Treino de graus, Decorar o braço) e **Lições** numeradas de 1 a 10, todas fechadas |
+| **Biblioteca** | Consultar tudo | Busca (tom pelo nome ou cifra, acorde como "D7" ou "Bm7", ferramenta), ferramentas no tom do momento, Violão, Na hora de tocar, **Aprender** (lições de 1 a 10 e treinos, abre por cima) e os 24 tons (um toque leva ao Tocar) |
 | **Ajustes** | Configurar | Aparência (tema, ícone, texto, menos animação), Abertura (vídeo, som, marca, só 1 vez por dia), Música (Cifra/Grau, nomes das notas, dominantes), No culto (tela acesa, vibração), Dados, Sobre e legal |
 
 Regras da organização:
@@ -63,10 +63,15 @@ Regras da organização:
   Android). A de baixo não perde o estado; cada aba guarda a própria rolagem.
 - Voltar numa aba que não é o Tocar volta para o Tocar antes de sair do app.
 - O Tocar volta ao topo sozinho quando o hino, a lista ou o tom mudam.
-- **Atalhos do ícone** (segurar o ícone do app): Detectar tom, Repertório e
-  Metrônomo. Abrem direto, sem a abertura.
+- **Atalhos do ícone** (segurar o ícone do app): Detectar tom, Pregação,
+  Repertório e Metrônomo. Abrem direto, sem a abertura.
+- O **Aprender** saiu da barra (o culto pede ferramentas à mão) e mora na
+  Biblioteca; abre por cima, com Voltar.
 - Um mesmo destino pode ter mais de uma porta (ex.: "Decorar o braço" no
   Aprender e na Biblioteca), mas cada função mora num lugar só.
+- **Tela cheia de fundo (Pregação):** acordes grandes (o tamanho acompanha a
+  cifra mais longa), o da vez na cor da função, barra de tempo e "passar
+  sozinho". Em pé, nome em cima e tom embaixo; deitado, tudo numa linha.
 
 ---
 

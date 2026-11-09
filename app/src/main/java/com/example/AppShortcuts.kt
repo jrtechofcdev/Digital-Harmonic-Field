@@ -8,13 +8,15 @@ import androidx.core.graphics.drawable.IconCompat
 
 /**
  * Atalhos do ícone: segurando o ícone do app na tela inicial aparecem
- * "Detectar tom", "Repertório" e "Metrônomo". Abrem direto (sem a abertura).
+ * "Detectar tom", "Pregação", "Repertório" e "Metrônomo". Abrem direto (sem a
+ * abertura).
  *
  * São atalhos dinâmicos (criados pelo app ao abrir), então funcionam igual no
  * app normal e na versão DEV, e com o ícone claro ou escuro.
  */
 enum class AppShortcut(val id: String, val short: String, val long: String, val icon: Int) {
     DETECTAR("detectar", "Detectar tom", "Detectar o tom", R.drawable.shortcut_detect),
+    PREGACAO("pregacao", "Pregação", "Fundo da pregação", R.drawable.shortcut_preach),
     REPERTORIO("repertorio", "Repertório", "Abrir o repertório", R.drawable.shortcut_setlist),
     METRONOMO("metronomo", "Metrônomo", "Abrir o metrônomo", R.drawable.shortcut_metronome),
     ;

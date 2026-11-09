@@ -70,8 +70,9 @@ private val minorOrder = pitchClassCiphers.map { it + "m" }
 
 /**
  * Aba Biblioteca: tudo o que o app tem, num lugar só. No topo, a busca (tom,
- * acorde ou ferramenta). Abaixo, as ferramentas no tom do momento, os 24 tons
- * (um toque e o tom vai para a aba Tocar) e o dicionário.
+ * acorde ou ferramenta). Abaixo, as ferramentas no tom do momento, o violão,
+ * o Aprender (lições e treinos) e os 24 tons (um toque e o tom vai para a aba
+ * Tocar).
  */
 @Composable
 fun LibraryScreen(
@@ -158,6 +159,14 @@ fun LibraryScreen(
                 NavRow("Treino real (versão DEV)", subtitle = "Trechos captados, rótulos e envio do .zip", onClick = onOpenDevPanel)
             }
             RowGroup(rows = rows)
+        }
+
+        // Aprender (lições e treinos).
+        item { SectionTitle("Aprender") }
+        item {
+            RowGroup(rows = listOf(Tool.APRENDER, Tool.TREINAR).map { t ->
+                @Composable { NavRow(t.label, subtitle = t.subtitle, icon = t.icon) { onOpenTool(t) } }
+            })
         }
 
         // Os 24 tons.
